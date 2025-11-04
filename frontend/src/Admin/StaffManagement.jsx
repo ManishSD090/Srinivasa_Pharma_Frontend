@@ -31,16 +31,16 @@ const StaffManagement = () => {
     { name: 'Staff Management', path: '/admin/staff' },
     { name: 'Task Management', path: '/admin/tasks' },
     { name: 'Payroll & Attendance', path: '/admin/payroll' },
-    { name: 'Leaves', path: '/admin/leaves' }
+    { name: 'Logout', path: '/' }
   ];
 
   const staffList = [
-    { id: 1, name: 'Dr. Sarah Johnson', phone: '+1 234-567-8901', salary: '$4,500', joiningDate: 'Jan 15, 2020', leavingDate: '----',status: 'Active', initial: 'SJ', color: 'bg-cyan-400' },
-    { id: 2, name: 'Mike Chen', phone: '+1 234-567-8902', salary: '$2,800', joiningDate: 'Mar 10, 2023', leavingDate: '----',status: 'On Leave', initial: 'MC', color: 'bg-teal-400', leavePending: true },
-    { id: 3, name: 'Emily Rodriguez', phone: '+1 234-567-8903', salary: '$3,200', joiningDate: 'Feb 20, 2023', leavingDate: '----',status: 'Active', initial: 'ER', color: 'bg-emerald-400' },
-    { id: 4, name: 'James Wilson', phone: '+1 234-567-8904', salary: '$2,500', joiningDate: 'Apr 05, 2021', leavingDate: 'Jan 15, 2023',status: 'Resigned', initial: 'JW', color: 'bg-green-400' },
-    { id: 5, name: 'Lisa Anderson', phone: '+1 234-567-8905', salary: '$5,200', joiningDate: 'Jan 01, 2023', leavingDate: '----',status: 'Active', initial: 'LA', color: 'bg-lime-400' },
-    { id: 6, name: 'David Kumar', phone: '+1 234-567-8906', salary: '$4,300', joiningDate: 'May 12, 2023', leavingDate: '----',status: 'Active', initial: 'DK', color: 'bg-cyan-500' }
+    { id: 1, name: 'Dr. Sarah Johnson', phone: '+1 234-567-8901', salary: '₹4,500', joiningDate: 'Jan 15, 2020', leavingDate: '----',status: 'Active', initial: 'SJ', color: 'bg-cyan-400' },
+    { id: 2, name: 'Mike Chen', phone: '+1 234-567-8902', salary: '₹2,800', joiningDate: 'Mar 10, 2023', leavingDate: '----',status: 'On Leave', initial: 'MC', color: 'bg-teal-400', leavePending: true },
+    { id: 3, name: 'Emily Rodriguez', phone: '+1 234-567-8903', salary: '₹3,200', joiningDate: 'Feb 20, 2023', leavingDate: '----',status: 'Active', initial: 'ER', color: 'bg-emerald-400' },
+    { id: 4, name: 'James Wilson', phone: '+1 234-567-8904', salary: '₹2,500', joiningDate: 'Apr 05, 2021', leavingDate: 'Jan 15, 2023',status: 'Resigned', initial: 'JW', color: 'bg-green-400' },
+    { id: 5, name: 'Lisa Anderson', phone: '+1 234-567-8905', salary: '₹5,200', joiningDate: 'Jan 01, 2023', leavingDate: '----',status: 'Active', initial: 'LA', color: 'bg-lime-400' },
+    { id: 6, name: 'David Kumar', phone: '+1 234-567-8906', salary: '₹4,300', joiningDate: 'May 12, 2023', leavingDate: '----',status: 'Active', initial: 'DK', color: 'bg-cyan-500' }
   ];
 
   const filteredStaff = staffList.filter(staff => {
@@ -120,17 +120,17 @@ const StaffManagement = () => {
       {/* Sidebar */}
             <aside className={`
               fixed lg:static inset-y-0 left-0 z-50
-              w-64 bg-[#00AD8E] transform transition-transform duration-300 ease-in-out
+              w-64 bg-[linear-gradient(180deg,#05303B_-50.4%,#2B7C7E_20.34%,#91D8C1_80.01%)] transform transition-transform duration-300 ease-in-out
               ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
             `}>
               <div className="p-[14px] border-b border-gray-200">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-[#D2EAF4] rounded-lg flex items-center justify-center text-[#00AD8E] font-bold text-xl">
+                    <div className="w-10 h-10 bg-[#D2EAF4] rounded-lg flex items-center justify-center text-[#246e72] font-bold text-xl">
                       M
                     </div>
                     <div>
-                      <h1 className="text-xl font-bold text-white">MedStore</h1>
+                      <h1 className="text-xl font-bold text-white">Srinivasa Pharma</h1>
                       <p className="text-xs text-white">Admin Panel</p>
                     </div>
                   </div>
@@ -151,8 +151,8 @@ const StaffManagement = () => {
                     className={`
                       w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors
                       ${window.location.pathname === item.path
-                        ? 'bg-teal-50 text-[#00AD8E] font-medium'
-                        : 'text-white hover:bg-gray-50 hover:text-[#00AD8E] font-medium'
+                        ? 'bg-teal-50 text-[#246e72] font-medium'
+                        : 'text-white hover:bg-gray-50 hover:text-[#246e72] font-medium'
                       }
                     `}
                   >
@@ -163,7 +163,7 @@ const StaffManagement = () => {
             </aside>
 
       <div className="flex-1 overflow-auto">
-        <header className="bg-[#00AD8E] shadow-sm sticky top-0 z-30">
+        <header className="bg-[#21696d] shadow-sm sticky top-0 z-30">
           <div className="flex items-center justify-between px-4 lg:px-8 py-4">
             <div className="flex items-center space-x-4">
               <button
@@ -178,7 +178,7 @@ const StaffManagement = () => {
               <span className="text-sm text-white hidden sm:block">Welcome back,</span>
               <div className="flex items-center space-x-2">
                 <span className="text-sm font-medium text-white hidden sm:block">Dr. Admin</span>
-                <div className="w-10 h-10 bg-[#D2EAF4] rounded-full flex items-center justify-center text-[#00AD8E] font-semibold">
+                <div className="w-10 h-10 bg-[#D2EAF4] rounded-full flex items-center justify-center text-[#246e72] font-semibold">
                   DA
                 </div>
               </div>
@@ -189,7 +189,7 @@ const StaffManagement = () => {
         <main className="p-4 lg:p-8 space-y-6">
           <div className="bg-white rounded-xl shadow-md p-6">
             <div className="flex items-center space-x-2 mb-6">
-              <Users size={24} className="text-[#00AD8E]" />
+              <Users size={24} className="text-[#246e72]" />
               <h2 className="text-xl font-bold text-gray-800">Add New Staff Member</h2>
             </div>
             
@@ -202,7 +202,7 @@ const StaffManagement = () => {
                   value={formData.name}
                   onChange={handleFormChange}
                   placeholder="Enter full name"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00AD8E] outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none"
                 />
               </div>
               <div>
@@ -213,7 +213,7 @@ const StaffManagement = () => {
                   value={formData.phone}
                   onChange={handleFormChange}
                   placeholder="Enter phone number"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00AD8E] outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none"
                 />
               </div>
             </div>
@@ -227,7 +227,7 @@ const StaffManagement = () => {
                   value={formData.salary}
                   onChange={handleFormChange}
                   placeholder="Enter salary amount"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00AD8E] outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none"
                 />
               </div>
               <div>
@@ -237,14 +237,14 @@ const StaffManagement = () => {
                   name="joiningDate"
                   value={formData.joiningDate}
                   onChange={handleFormChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00AD8E] outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none"
                 />
               </div>
             </div>
 
             <button
               onClick={handleAddStaff}
-              className="bg-[#00AD8E] text-white px-6 py-2.5 rounded-lg hover:bg-teal-700 transition-colors font-medium"
+              className="bg-[#246e72] text-white px-6 py-2.5 rounded-lg hover:bg-teal-700 transition-colors font-medium"
             >
               + Add Staff Member
             </button>
@@ -253,7 +253,7 @@ const StaffManagement = () => {
           <div className="bg-white rounded-xl shadow-md p-6">
             <div className="flex items-center space-x-2 mb-6">
               <div className="w-8 h-8 bg-teal-50 rounded-lg flex items-center justify-center">
-                <Users size={18} className="text-[#00AD8E]" />
+                <Users size={18} className="text-[#246e72]" />
               </div>
               <h3 className="text-xl font-bold text-gray-800">Staff List</h3>
             </div>
@@ -266,14 +266,14 @@ const StaffManagement = () => {
                     placeholder="Search by name or phone..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full sm:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00AD8E] outline-none text-sm"
+                    className="w-full sm:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm"
                   />
                 </div>
 
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00AD8E] outline-none text-sm"
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm"
                 >
                   <option value="All">All Staff</option>
                   <option value="Active">Active</option>
@@ -284,7 +284,7 @@ const StaffManagement = () => {
                 <select
                   value={entriesPerPage}
                   onChange={(e) => setEntriesPerPage(Number(e.target.value))}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00AD8E] outline-none text-sm"
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm"
                 >
                   <option value={10}>Show 10</option>
                   <option value={50}>Show 50</option>
@@ -295,7 +295,7 @@ const StaffManagement = () => {
               <div className="relative">
                 <button
                   onClick={() => setShowExportDropdown(!showExportDropdown)}
-                  className="bg-[#00AD8E] text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors font-medium flex items-center space-x-2"
+                  className="bg-[#246e72] text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors font-medium flex items-center space-x-2"
                 >
                   <Download size={18} />
                   <span>Export</span>
@@ -351,7 +351,7 @@ const StaffManagement = () => {
                         <div className="flex space-x-2">
                           <button 
                             onClick={() => handleEdit(staff)}
-                            className="w-8 h-8 bg-[#00AD8E] text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center"
+                            className="w-8 h-8 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center"
                             title="Edit"
                           >
                             <Edit size={16} />
@@ -366,7 +366,7 @@ const StaffManagement = () => {
                           {staff.leavePending && (
                             <button 
                               onClick={() => handleApproveLeave(staff)}
-                              className="w-8 h-8 bg-[#00AD8E] text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center"
+                              className="w-8 h-8 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center"
                               title="Approve Leave"
                             >
                               <CheckCircle size={16} />
@@ -401,7 +401,7 @@ const StaffManagement = () => {
                     onClick={() => setCurrentPage(index + 1)}
                     className={`w-10 h-10 rounded-lg transition-colors text-sm font-medium ${
                       currentPage === index + 1
-                        ? 'bg-[#00AD8E] text-white'
+                        ? 'bg-[#246e72] text-white'
                         : 'border border-gray-300 hover:bg-gray-50 text-gray-700'
                     }`}
                   >
@@ -424,7 +424,7 @@ const StaffManagement = () => {
       </div>
 
       {showApproveModal && selectedLeaveStaff && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-bold text-gray-800">Approve Leave Request</h3>
@@ -483,7 +483,7 @@ const StaffManagement = () => {
               </button>
               <button
                 onClick={approveLeave}
-                className="flex-1 px-4 py-2 bg-[#00AD8E] text-white rounded-lg hover:bg-teal-700 transition-colors font-medium"
+                className="flex-1 px-4 py-2 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 transition-colors font-medium"
               >
                 Approve Leave
               </button>

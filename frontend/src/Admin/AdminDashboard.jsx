@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { ShoppingCart, Users,Edit, Trash2, DollarSign, Truck, Bell, CheckSquare, Calendar, Menu, X } from 'lucide-react';
-import { NavLink } from 'react-router-dom'
 import { useNavigate } from 'react-router-dom';
 
 const AdminDashboard = () => {
@@ -135,7 +134,7 @@ const AdminDashboard = () => {
     { name: 'Staff Management', path: '/admin/staff' },
     { name: 'Task Management', path: '/admin/tasks' },
     { name: 'Payroll & Attendance', path: '/admin/payroll' },
-    { name: 'Leaves', path: '/admin/leaves'}
+    { name: 'Logout', path: '/' }
   ];
 
   const toggleOrderSelection = (orderId) => {
@@ -157,17 +156,17 @@ const AdminDashboard = () => {
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-[#00AD8E] transform transition-transform duration-300 ease-in-out
+      <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-[linear-gradient(180deg,#05303B_-50.4%,#2B7C7E_20.34%,#91D8C1_80.01%)] transform transition-transform duration-300 ease-in-out
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
          `}>
         <div className="p-[14px] border-b border-gray-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-[#D2EAF4] rounded-lg flex items-center justify-center text-[#00AD8E] font-bold text-xl">
-                M
+              <div className="w-10 h-10 bg-[#D2EAF4] rounded-lg flex items-center justify-center text-[#246e72] font-bold text-xl">
+                S
               </div>
               <div>
-                <h1 className="text-xl font-bold text-white">MedStore</h1>
+                <h1 className="text-xl font-bold text-white">Srinivasa Pharma</h1>
                 <p className="text-xs text-white">Admin Panel</p>
               </div>
             </div>
@@ -188,8 +187,8 @@ const AdminDashboard = () => {
               className={`
               w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors
               ${window.location.pathname === item.path
-              ? 'bg-teal-50 text-[#00AD8E] font-medium'
-              : 'text-white hover:bg-gray-50 hover:text-[#00AD8E] font-medium'
+              ? 'bg-teal-50 text-[#246e72] font-medium'
+              : 'text-white hover:bg-gray-50 hover:text-[#246e72] font-medium'
               }
               `}
             >
@@ -202,11 +201,11 @@ const AdminDashboard = () => {
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
         {/* Header */}
-        <header className="bg-[#00AD8E] shadow-sm sticky top-0 z-30">
+        <header className="bg-[#21696d] shadow-sm sticky top-0 z-30">
           <div className="flex items-center justify-between px-4 lg:px-8 py-4">
             <div className="flex items-center space-x-4">
               <button 
-                className="lg:hidden text-gray-600"
+                className="lg:hidden text-white"
                 onClick={() => setIsSidebarOpen(true)}
               >
                 <Menu size={24} />
@@ -217,7 +216,7 @@ const AdminDashboard = () => {
               <span className="text-sm text-white hidden sm:block">Welcome back,</span>
               <div className="flex items-center space-x-2">
                 <span className="text-sm font-medium text-white hidden sm:block">Dr. Admin</span>
-                <div className="w-10 h-10 bg-[#D2EAF4] rounded-full flex items-center justify-center text-[#00AD8E] font-semibold">
+                <div className="w-10 h-10 bg-[#D2EAF4] rounded-full flex items-center justify-center text-[#246e72] font-semibold">
                   DA
                 </div>
               </div>
@@ -251,7 +250,7 @@ const AdminDashboard = () => {
           <div className="bg-white rounded-xl shadow-md p-6">
             <div className="flex items-center space-x-2 mb-6">
               <div className="w-8 h-8 bg-teal-50 rounded-lg flex items-center justify-center">
-                <ShoppingCart size={18} className="text-[#00AD8E]" />
+                <ShoppingCart size={18} className="text-[#246e72]" />
               </div>
               <h3 className="text-xl font-bold text-gray-800">Recent Orders</h3>
             </div>
@@ -278,7 +277,7 @@ const AdminDashboard = () => {
                           type="checkbox" 
                           checked={selectedOrders.includes(order.id)}
                           onChange={() => toggleOrderSelection(order.id)}
-                          className="w-4 h-4 text-[#00AD8E] rounded border-gray-300 focus:ring-[#00AD8E]"
+                          className="w-4 h-4 text-[#246e72] rounded border-gray-300 focus:ring-[#246e72]"
                         />
                       </td>
                       <td className="py-4 px-4 text-sm text-gray-700">{order.date}</td>
@@ -289,7 +288,7 @@ const AdminDashboard = () => {
                       <td className="py-4 px-4 text-sm text-gray-700">{order.phone}</td>
                       <td className="py-4 px-4">
                         <div className="flex space-x-2">
-                          <button className="w-8 h-8 bg-[#00AD8E] text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center">
+                          <button className="w-8 h-8 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center">
                             <Edit size={16} />
                           </button>
                           <button className="w-8 h-8 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center">
@@ -310,7 +309,7 @@ const AdminDashboard = () => {
             <div className="bg-white rounded-xl shadow-md p-6">
               <div className="flex items-center space-x-2 mb-6">
                 <div className="w-8 h-8 bg-teal-50 rounded-lg flex items-center justify-center">
-                  <Bell size={18} className="text-[#00AD8E]" />
+                  <Bell size={18} className="text-[#246e72]" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-800">Reminders & Alerts</h3>
               </div>
@@ -337,7 +336,7 @@ const AdminDashboard = () => {
             <div className="bg-white rounded-xl shadow-md p-6">
               <div className="flex items-center space-x-2 mb-6">
                 <div className="w-8 h-8 bg-teal-50 rounded-lg flex items-center justify-center">
-                  <CheckSquare size={18} className="text-[#00AD8E]" />
+                  <CheckSquare size={18} className="text-[#246e72]" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-800">Tasks Nearing Deadline</h3>
               </div>
@@ -361,14 +360,14 @@ const AdminDashboard = () => {
             <div className="bg-white rounded-xl shadow-md p-6">
               <div className="flex items-center space-x-2 mb-6">
                 <div className="w-8 h-8 bg-teal-50 rounded-lg flex items-center justify-center">
-                  <Calendar size={18} className="text-[#00AD8E]" />
+                  <Calendar size={18} className="text-[#246e72]" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-800">Leave Applications</h3>
               </div>
               <div className="space-y-4">
                 {leaves.map((leave, index) => (
                   <div key={index} className="flex items-center space-x-3 p-3 bg-[#D2EAF4] rounded-lg">
-                    <div className="w-10 h-10 bg-[#00AD8E] rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                    <div className="w-10 h-10 bg-[#246e72] rounded-full flex items-center justify-center text-white font-semibold text-sm">
                       {leave.initial}
                     </div>
                     <div className="flex-1">

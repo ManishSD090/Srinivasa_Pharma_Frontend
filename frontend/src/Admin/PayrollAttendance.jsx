@@ -18,11 +18,8 @@ const PayrollAttendancePage = () => {
 
   const [payrollItems, setPayrollItems] = useState([
     { id: 1, label: 'Base Salary', amount: 3500.00, type: 'addition', editable: false },
-    { id: 2, label: 'Overtime (12 hrs @ $25/hr)', amount: 300.00, type: 'addition', editable: true },
-    { id: 3, label: 'Medical Allowance', amount: 200.00, type: 'addition', editable: true },
-    { id: 4, label: 'Advances Taken', amount: -150.00, type: 'deduction', editable: true },
-    { id: 5, label: 'Tax Deduction', amount: -420.00, type: 'deduction', editable: true },
-    { id: 6, label: 'Insurance Premium', amount: -85.00, type: 'deduction', editable: true }
+    { id: 2, label: 'Overtime', amount: 0, type: 'addition', editable: true },
+    { id: 3, label: 'Advances Taken', amount: 0, type: 'deduction', editable: true },
   ]);
 
   const [editingItem, setEditingItem] = useState(null);
@@ -36,7 +33,7 @@ const PayrollAttendancePage = () => {
     { name: 'Staff Management', path: '/admin/staff' },
     { name: 'Task Management', path: '/admin/tasks' },
     { name: 'Payroll & Attendance', path: '/admin/payroll' },
-    { name: 'Leaves', path: '/admin/leaves'}
+    { name: 'Logout', path: '/' }
   ];
 
   const staffMembers = [
@@ -134,17 +131,17 @@ const PayrollAttendancePage = () => {
       {/* Sidebar */}
       <aside className={`
         fixed lg:static inset-y-0 left-0 z-50
-        w-64 bg-[#00AD8E] transform transition-transform duration-300 ease-in-out
+        w-64 bg-[linear-gradient(180deg,#05303B_-50.4%,#2B7C7E_20.34%,#91D8C1_80.01%)] transform transition-transform duration-300 ease-in-out
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
         <div className="p-[14px] border-b border-gray-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-[#D2EAF4] rounded-lg flex items-center justify-center text-[#00AD8E] font-bold text-xl">
+              <div className="w-10 h-10 bg-[#D2EAF4] rounded-lg flex items-center justify-center text-[#246e72] font-bold text-xl">
                 M
               </div>
               <div>
-                <h1 className="text-xl font-bold text-white">MedStore</h1>
+                <h1 className="text-xl font-bold text-white">Srinivasa Pharma</h1>
                 <p className="text-xs text-white">Admin Panel</p>
               </div>
             </div>
@@ -165,8 +162,8 @@ const PayrollAttendancePage = () => {
               className={`
                 w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors
                 ${item.path === '/admin/payroll' // Hardcoded for this example
-                  ? 'bg-teal-50 text-[#00AD8E] font-medium'
-                  : 'text-white hover:bg-gray-50 hover:text-[#00AD8E] font-medium'
+                  ? 'bg-teal-50 text-[#246e72] font-medium'
+                  : 'text-white hover:bg-gray-50 hover:text-[#246e72] font-medium'
                 }
               `}
             >
@@ -177,7 +174,7 @@ const PayrollAttendancePage = () => {
       </aside>
 
       <div className="flex-1 overflow-auto">
-        <header className="bg-[#00AD8E] shadow-sm sticky top-0 z-30">
+        <header className="bg-[#21696d] shadow-sm sticky top-0 z-30">
           <div className="flex items-center justify-between px-4 lg:px-8 py-4">
             <div className="flex items-center space-x-4">
               <button
@@ -192,7 +189,7 @@ const PayrollAttendancePage = () => {
               <span className="text-sm text-white hidden sm:block">Welcome back,</span>
               <div className="flex items-center space-x-2">
                 <span className="text-sm font-medium text-white hidden sm:block">Dr. Admin</span>
-                <div className="w-10 h-10 bg-[#D2EAF4] rounded-full flex items-center justify-center text-[#00AD8E] font-semibold">
+                <div className="w-10 h-10 bg-[#D2EAF4] rounded-full flex items-center justify-center text-[#246e72] font-semibold">
                   DA
                 </div>
               </div>
@@ -205,7 +202,7 @@ const PayrollAttendancePage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Select Staff</label>
-                <select value={selectedStaff} onChange={(e) => setSelectedStaff(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00AD8E] outline-none">
+                <select value={selectedStaff} onChange={(e) => setSelectedStaff(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none">
                   {staffMembers.map(staff => <option key={staff.id} value={staff.id}>{staff.name}</option>)}
                 </select>
               </div>
@@ -214,7 +211,7 @@ const PayrollAttendancePage = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Period</label>
                 <div className="flex items-center space-x-2">
                   <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50"><ChevronLeft size={20} /></button>
-                  <select value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00AD8E] outline-none">
+                  <select value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none">
                     <option>December 2024</option>
                     <option>November 2024</option>
                     <option>October 2024</option>
@@ -224,12 +221,12 @@ const PayrollAttendancePage = () => {
               </div>
 
               <div className="flex items-end space-x-2">
-                <button onClick={() => setActiveFilter('current')} className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeFilter === 'current' ? 'bg-[#00AD8E] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>Current Month</button>
-                <button onClick={() => setActiveFilter('last')} className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeFilter === 'last' ? 'bg-[#00AD8E] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>Last Month</button>
+                <button onClick={() => setActiveFilter('current')} className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeFilter === 'current' ? 'bg-[#246e72] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>Current Month</button>
+                <button onClick={() => setActiveFilter('last')} className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeFilter === 'last' ? 'bg-[#246e72] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>Last Month</button>
               </div>
 
               <div className="flex items-end relative">
-                <button onClick={() => setShowExportDropdown(!showExportDropdown)} className="w-full bg-[#00AD8E] text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors font-medium flex items-center justify-center space-x-2">
+                <button onClick={() => setShowExportDropdown(!showExportDropdown)} className="w-full bg-[#246e72] text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors font-medium flex items-center justify-center space-x-2">
                   <Download size={18} />
                   <span>Export</span>
                 </button>
@@ -258,7 +255,7 @@ const PayrollAttendancePage = () => {
                   {weeks.map((week, weekIndex) => (
                     <div key={weekIndex} className="grid grid-cols-7 gap-2 mb-2">
                       {week.map((day, dayIndex) => (
-                        <div key={dayIndex} onClick={() => day && handleDateClick(day)} className={`relative aspect-square border rounded-lg flex flex-col items-center justify-center ${day ? 'cursor-pointer hover:bg-gray-50' : 'bg-gray-50'} ${day === 19 ? 'ring-2 ring-[#00AD8E]' : ''}`}>
+                        <div key={dayIndex} onClick={() => day && handleDateClick(day)} className={`relative aspect-square border rounded-lg flex flex-col items-center justify-center ${day ? 'cursor-pointer hover:bg-gray-50' : 'bg-gray-50'} ${day === 19 ? 'ring-2 ring-[#246e72]' : ''}`}>
                           {day && (
                             <>
                               <span className="text-sm font-medium text-gray-700">{day}</span>
@@ -300,10 +297,10 @@ const PayrollAttendancePage = () => {
                   <div className="pt-3 border-t border-gray-200">
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-sm font-medium text-gray-700">Attendance Rate</span>
-                      <span className="text-lg font-bold text-[#00AD8E]">91%</span>
+                      <span className="text-lg font-bold text-[#246e72]">91%</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-[#00AD8E] h-2 rounded-full" style={{ width: '91%' }} />
+                      <div className="bg-[linear-gradient(180deg,#05303B_-50.4%,#2B7C7E_20.34%,#91D8C1_80.01%)] h-2 rounded-full" style={{ width: '91%' }} />
                     </div>
                   </div>
                 </div>
@@ -345,13 +342,13 @@ const PayrollAttendancePage = () => {
                     <div key={item.id}>
                       {editingItem?.id === item.id ? (
                         <div className="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg">
-                          <input type="text" defaultValue={item.label} className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00AD8E] outline-none" id={`label-${item.id}`} />
-                          <input type="number" step="0.01" defaultValue={Math.abs(item.amount)} className="w-24 px-2 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00AD8E] outline-none" id={`amount-${item.id}`} />
+                          <input type="text" defaultValue={item.label} className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" id={`label-${item.id}`} />
+                          <input type="number" step="0.01" defaultValue={Math.abs(item.amount)} className="w-24 px-2 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" id={`amount-${item.id}`} />
                           <button onClick={() => {
                             const newLabel = document.getElementById(`label-${item.id}`).value;
                             const newAmount = document.getElementById(`amount-${item.id}`).value;
                             handleSaveItem(item.id, newLabel, item.type === 'deduction' ? -Math.abs(newAmount) : Math.abs(newAmount));
-                          }} className="px-3 py-1 bg-[#00AD8E] text-white rounded-lg hover:bg-teal-700 text-xs font-medium">Save</button>
+                          }} className="px-3 py-1 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 text-xs font-medium">Save</button>
                         </div>
                       ) : (
                         <div className="flex justify-between items-center p-2 hover:bg-gray-50 rounded-lg">
@@ -378,7 +375,7 @@ const PayrollAttendancePage = () => {
                   <div className="pt-4 border-t-2 border-gray-300 mt-4">
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-bold text-gray-800">Net Payable Amount</span>
-                      <span className="text-2xl font-bold text-[#00AD8E]">${calculateNetPayable().toFixed(2)}</span>
+                      <span className="text-2xl font-bold text-[#246e72]">₹{calculateNetPayable().toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
@@ -387,7 +384,7 @@ const PayrollAttendancePage = () => {
               <div>
                 <h3 className="text-lg font-semibold text-gray-700 mb-4">Payroll Actions</h3>
                 <div className="space-y-4">
-                  <button className="w-full bg-[#00AD8E] text-white px-6 py-3 rounded-lg hover:bg-teal-700 transition-colors font-medium flex items-center justify-center space-x-2">
+                  <button className="w-full bg-[#246e72] text-white px-6 py-3 rounded-lg hover:bg-teal-700 transition-colors font-medium flex items-center justify-center space-x-2">
                     <FileText size={20} />
                     <span>Generate Salary Slip</span>
                   </button>
@@ -407,15 +404,15 @@ const PayrollAttendancePage = () => {
                     <div className="space-y-3">
                       <div>
                         <label className="block text-xs text-gray-600 mb-1">Additional Bonus</label>
-                        <input type="number" step="0.01" value={manualBonus} onChange={(e) => setManualBonus(e.target.value)} placeholder="0.00" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00AD8E] outline-none" />
+                        <input type="number" step="0.01" value={manualBonus} onChange={(e) => setManualBonus(e.target.value)} placeholder="0.00" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
                       </div>
                       <div>
                         <label className="block text-xs text-gray-600 mb-1">Additional Deduction</label>
-                        <input type="number" step="0.01" value={manualDeduction} onChange={(e) => setManualDeduction(e.target.value)} placeholder="0.00" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00AD8E] outline-none" />
+                        <input type="number" step="0.01" value={manualDeduction} onChange={(e) => setManualDeduction(e.target.value)} placeholder="0.00" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
                       </div>
                       <div>
                         <label className="block text-xs text-gray-600 mb-1">Notes</label>
-                        <textarea value={payrollNotes} onChange={(e) => setPayrollNotes(e.target.value)} placeholder="Add notes for adjustments..." rows="3" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00AD8E] outline-none resize-none" />
+                        <textarea value={payrollNotes} onChange={(e) => setPayrollNotes(e.target.value)} placeholder="Add notes for adjustments..." rows="3" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none resize-none" />
                       </div>
                     </div>
                   </div>
@@ -427,7 +424,7 @@ const PayrollAttendancePage = () => {
           <div className="bg-white rounded-xl shadow-md p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-800">Past Payroll Records</h2>
-              <button className="px-4 py-2 bg-[#00AD8E] text-white rounded-lg hover:bg-teal-700 text-sm font-medium">Export All</button>
+              <button className="px-4 py-2 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 text-sm font-medium">Export All</button>
             </div>
 
             <div className="overflow-x-auto">
@@ -446,14 +443,14 @@ const PayrollAttendancePage = () => {
                     <tr key={record.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                       <td className="py-4 px-4 text-sm text-gray-700">{record.month}</td>
                       <td className="py-4 px-4 text-sm text-gray-700">{record.generatedDate}</td>
-                      <td className="py-4 px-4 text-sm font-semibold text-gray-800">${record.netAmount.toFixed(2)}</td>
+                      <td className="py-4 px-4 text-sm font-semibold text-gray-800">₹{record.netAmount.toFixed(2)}</td>
                       <td className="py-4 px-4">
                         <span className={`px-3 py-1 rounded-full text-xs font-medium ${record.status === 'Paid' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{record.status}</span>
                       </td>
                       <td className="py-4 px-4">
                         <div className="flex space-x-2">
                           <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Eye size={16} /></button>
-                          <button className="p-2 text-[#00AD8E] hover:bg-teal-50 rounded-lg transition-colors"><Download size={16} /></button>
+                          <button className="p-2 text-[#246e72] hover:bg-teal-50 rounded-lg transition-colors"><Download size={16} /></button>
                         </div>
                       </td>
                     </tr>
@@ -466,7 +463,7 @@ const PayrollAttendancePage = () => {
       </div>
 
       {showAttendanceModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-bold text-gray-800">Attendance Details - Dec {selectedDate}</h3>
@@ -485,10 +482,10 @@ const PayrollAttendancePage = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Admin Comment</label>
-                <textarea placeholder="Add your comment..." rows="3" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00AD8E] outline-none resize-none" />
+                <textarea placeholder="Add your comment..." rows="3" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none resize-none" />
               </div>
 
-              <button onClick={() => setShowAttendanceModal(false)} className="w-full bg-[#00AD8E] text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors font-medium">Save Comment</button>
+              <button onClick={() => setShowAttendanceModal(false)} className="w-full bg-[#246e72] text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors font-medium">Save Comment</button>
             </div>
           </div>
         </div>

@@ -5,7 +5,6 @@ import OrdersPage from './OrdersPage';
 import StaffManagement from './StaffManagement';
 import TaskManagement from './TaskManagement';
 import PayrollAttendancePage from './PayrollAttendance';
-// import LeavesPage from './LeavesPage';
 
 const Admin = () => {
   return (
@@ -15,7 +14,6 @@ const Admin = () => {
       <Route path="/staff" element={<StaffManagement />} />
       <Route path="/tasks" element={<TaskManagement />} />
       <Route path="/payroll" element={<PayrollAttendancePage />} />
-      {/* <Route path="/leaves" element={<LeavesPage />} /> */}
     </Routes>
   );
 };

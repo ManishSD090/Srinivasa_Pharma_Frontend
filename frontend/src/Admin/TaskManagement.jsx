@@ -35,7 +35,7 @@ const TaskManagement = () => {
     { name: 'Staff Management', path: '/admin/staff' },
     { name: 'Task Management', path: '/admin/tasks' },
     { name: 'Payroll & Attendance', path: '/admin/payroll' },
-    { name: 'Leaves', path: '/admin/leaves' }
+    { name: 'Logout', path: '/' }
   ];
 
   const [tasks, setTasks] = useState([
@@ -109,13 +109,13 @@ const TaskManagement = () => {
     <div className="flex h-screen bg-[#D2EAF4]">
       {isSidebarOpen && <div className="fixed inset-0 bg-none z-40 lg:hidden" onClick={() => setIsSidebarOpen(false)} />}
 
-      <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-[#00AD8E] transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+      <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-[linear-gradient(180deg,#05303B_-50.4%,#2B7C7E_20.34%,#91D8C1_80.01%)] transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         <div className="p-[14px] border-b border-gray-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-[#D2EAF4] rounded-lg flex items-center justify-center text-[#00AD8E] font-bold text-xl">M</div>
+              <div className="w-10 h-10 bg-[#D2EAF4] rounded-lg flex items-center justify-center text-[#246e72] font-bold text-xl">M</div>
               <div>
-                <h1 className="text-xl font-bold text-white">MedStore</h1>
+                <h1 className="text-xl font-bold text-white">Srinivasa Pharma</h1>
                 <p className="text-xs text-white">Admin Panel</p>
               </div>
             </div>
@@ -125,7 +125,7 @@ const TaskManagement = () => {
 
         <nav className="p-4 space-y-2">
           {navItems.map((item, index) => (
-            <button key={index} onClick={() => navigate(item.path)} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${window.location.pathname === item.path ? 'bg-teal-50 text-[#00AD8E] font-medium' : 'text-white hover:bg-gray-50 hover:text-[#00AD8E] font-medium'}`}>
+            <button key={index} onClick={() => navigate(item.path)} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${window.location.pathname === item.path ? 'bg-teal-50 text-[#246e72] font-medium' : 'text-white hover:bg-gray-50 hover:text-[#246e72] font-medium'}`}>
               <span>{item.name}</span>
             </button>
           ))}
@@ -133,7 +133,7 @@ const TaskManagement = () => {
       </aside>
 
       <div className="flex-1 overflow-auto">
-        <header className="bg-[#00AD8E] shadow-sm sticky top-0 z-30">
+        <header className="bg-[#21696d] shadow-sm sticky top-0 z-30">
           <div className="flex items-center justify-between px-4 lg:px-8 py-4">
             <div className="flex items-center space-x-4">
               <button className="lg:hidden text-white" onClick={() => setIsSidebarOpen(true)}><Menu size={24} /></button>
@@ -143,7 +143,7 @@ const TaskManagement = () => {
               <span className="text-sm text-white hidden sm:block">Welcome back,</span>
               <div className="flex items-center space-x-2">
                 <span className="text-sm font-medium text-white hidden sm:block">Dr. Admin</span>
-                <div className="w-10 h-10 bg-[#D2EAF4] rounded-full flex items-center justify-center text-[#00AD8E] font-semibold">DA</div>
+                <div className="w-10 h-10 bg-[#D2EAF4] rounded-full flex items-center justify-center text-[#246e72] font-semibold">DA</div>
               </div>
             </div>
           </div>
@@ -152,18 +152,18 @@ const TaskManagement = () => {
         <main className="p-4 lg:p-8 space-y-6">
           <div className="bg-white rounded-xl shadow-md p-6">
             <div className="flex items-center space-x-2 mb-6">
-              <Plus size={24} className="text-[#00AD8E]" />
+              <Plus size={24} className="text-[#246e72]" />
               <h2 className="text-xl font-bold text-gray-800">Create New Task</h2>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Task Title</label>
-                <input type="text" name="title" value={formData.title} onChange={handleFormChange} placeholder="Enter task title" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00AD8E] outline-none" />
+                <input type="text" name="title" value={formData.title} onChange={handleFormChange} placeholder="Enter task title" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Assigned To</label>
-                <select name="assignedTo" value={formData.assignedTo} onChange={handleFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00AD8E] outline-none">
+                <select name="assignedTo" value={formData.assignedTo} onChange={handleFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none">
                   <option value="">Select Staff Member</option>
                   <option value="Dr. Sarah Johnson">Dr. Sarah Johnson</option>
                   <option value="Mike Chen">Mike Chen</option>
@@ -173,11 +173,11 @@ const TaskManagement = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
-                <input type="date" name="dueDate" value={formData.dueDate} onChange={handleFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00AD8E] outline-none" />
+                <input type="date" name="dueDate" value={formData.dueDate} onChange={handleFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
               </div>
               <div className="md:col-span-2 lg:col-span-1">
                  <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
-                <select name="priority" value={formData.priority} onChange={handleFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00AD8E] outline-none">
+                <select name="priority" value={formData.priority} onChange={handleFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none">
                   <option value="">Select Priority</option>
                   <option value="Low">Low</option>
                   <option value="Medium">Medium</option>
@@ -186,11 +186,11 @@ const TaskManagement = () => {
               </div>
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                <textarea name="description" value={formData.description} onChange={handleFormChange} placeholder="Enter task description" rows="1" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00AD8E] outline-none" />
+                <textarea name="description" value={formData.description} onChange={handleFormChange} placeholder="Enter task description" rows="1" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
               </div>
             </div>
             
-            <button onClick={handleCreateTask} className="bg-[#00AD8E] text-white px-6 py-2.5 rounded-lg hover:bg-teal-700 transition-colors font-medium">+ Create Task</button>
+            <button onClick={handleCreateTask} className="bg-[#246e72] text-white px-6 py-2.5 rounded-lg hover:bg-teal-700 transition-colors font-medium">+ Create Task</button>
           </div>
 
           {overdueTasks.length > 0 && (
@@ -208,28 +208,28 @@ const TaskManagement = () => {
 
           <div className="bg-white rounded-xl shadow-md p-6">
             <div className="flex items-center space-x-2 mb-6">
-              <div className="w-8 h-8 bg-teal-50 rounded-lg flex items-center justify-center"><CheckCircle size={18} className="text-[#00AD8E]" /></div>
+              <div className="w-8 h-8 bg-teal-50 rounded-lg flex items-center justify-center"><CheckCircle size={18} className="text-[#246e72]" /></div>
               <h3 className="text-xl font-bold text-gray-800">All Tasks</h3>
             </div>
 
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
               <div className="flex flex-wrap items-center gap-3">
-                <input type="text" placeholder="Search tasks or staff..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full sm:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00AD8E] outline-none text-sm" />
-                <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00AD8E] outline-none text-sm">
+                <input type="text" placeholder="Search tasks or staff..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full sm:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm" />
+                <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm">
                   <option value="All">All Status</option>
                   <option value="Not Started">Not Started</option>
                   <option value="In Progress">In Progress</option>
                   <option value="Completed">Completed</option>
                   <option value="Overdue">Overdue</option>
                 </select>
-                <select value={entriesPerPage} onChange={(e) => setEntriesPerPage(Number(e.target.value))} className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00AD8E] outline-none text-sm">
+                <select value={entriesPerPage} onChange={(e) => setEntriesPerPage(Number(e.target.value))} className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm">
                   <option value={10}>Show 10</option>
                   <option value={50}>Show 50</option>
                   <option value={100}>Show 100</option>
                 </select>
               </div>
               <div className="relative">
-                <button onClick={() => setShowExportDropdown(!showExportDropdown)} className="bg-[#00AD8E] text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors font-medium flex items-center space-x-2">
+                <button onClick={() => setShowExportDropdown(!showExportDropdown)} className="bg-[#246e72] text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors font-medium flex items-center space-x-2">
                   <Download size={18} />
                   <span>Export</span>
                 </button>
@@ -269,7 +269,7 @@ const TaskManagement = () => {
                       <td className="py-4 px-4"><span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(task.status)}`}>{task.status}</span></td>
                       <td className="py-4 px-4">
                         <div className="flex space-x-2">
-                          <button onClick={() => { setSelectedTask(task); setShowEditModal(true); }} className="w-8 h-8 bg-[#00AD8E] text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center" title="Edit Task"><Edit size={16} /></button>
+                          <button onClick={() => { setSelectedTask(task); setShowEditModal(true); }} className="w-8 h-8 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center" title="Edit Task"><Edit size={16} /></button>
                           <button onClick={() => { setSelectedTask(task); setShowDeleteModal(true); }} className="w-8 h-8 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center" title="Delete Task"><Trash2 size={16} /></button>
                         </div>
                       </td>
@@ -286,7 +286,7 @@ const TaskManagement = () => {
                   <ChevronLeft size={16} /><span className="hidden sm:inline">Previous</span>
                 </button>
                 {[...Array(totalPages)].map((_, index) => (
-                  <button key={index + 1} onClick={() => setCurrentPage(index + 1)} className={`w-10 h-10 rounded-lg transition-colors text-sm font-medium ${currentPage === index + 1 ? 'bg-[#00AD8E] text-white' : 'border border-gray-300 hover:bg-gray-50 text-gray-700'}`}>
+                  <button key={index + 1} onClick={() => setCurrentPage(index + 1)} className={`w-10 h-10 rounded-lg transition-colors text-sm font-medium ${currentPage === index + 1 ? 'bg-[#246e72] text-white' : 'border border-gray-300 hover:bg-gray-50 text-gray-700'}`}>
                     {index + 1}
                   </button>
                 ))}
@@ -300,7 +300,7 @@ const TaskManagement = () => {
           {volunteerRequests.length > 0 && (
             <div className="bg-white rounded-xl shadow-md p-6">
               <div className="flex items-center space-x-2 mb-6">
-                <Users size={24} className="text-[#00AD8E]" />
+                <Users size={24} className="text-[#246e72]" />
                 <h3 className="text-xl font-bold text-gray-800">Volunteer Management</h3>
               </div>
               <div className="space-y-4">
@@ -316,7 +316,7 @@ const TaskManagement = () => {
                       </div>
                     </div>
                     <div className="flex space-x-2">
-                      <button onClick={() => { setSelectedVolunteer(volunteer); setShowVolunteerApproval(true); }} className="bg-[#00AD8E] text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors font-medium">Approve</button>
+                      <button onClick={() => { setSelectedVolunteer(volunteer); setShowVolunteerApproval(true); }} className="bg-[#246e72] text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors font-medium">Approve</button>
                       <button className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors font-medium">Decline</button>
                     </div>
                   </div>
@@ -328,7 +328,7 @@ const TaskManagement = () => {
       </div>
 
       {showEditModal && selectedTask && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-bold text-gray-800">Edit Task</h3>
@@ -337,28 +337,28 @@ const TaskManagement = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Task Title</label>
-                <input type="text" defaultValue={selectedTask.title} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00AD8E] outline-none" />
+                <input type="text" defaultValue={selectedTask.title} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                <textarea defaultValue={selectedTask.description} rows="3" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00AD8E] outline-none resize-none" />
+                <textarea defaultValue={selectedTask.description} rows="3" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none resize-none" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
-                  <select defaultValue={selectedTask.priority} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00AD8E] outline-none">
+                  <select defaultValue={selectedTask.priority} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none">
                     <option value="Low">Low</option><option value="Medium">Medium</option><option value="High">High</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
-                  <input type="date" defaultValue={selectedTask.dueDate} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00AD8E] outline-none" />
+                  <input type="date" defaultValue={selectedTask.dueDate} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
                 </div>
               </div>
             </div>
             <div className="flex space-x-3 mt-6">
               <button onClick={() => setShowEditModal(false)} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium text-gray-700">Cancel</button>
-              <button onClick={() => setShowEditModal(false)} className="flex-1 px-4 py-2 bg-[#00AD8E] text-white rounded-lg hover:bg-teal-700 transition-colors font-medium">Save Changes</button>
+              <button onClick={() => setShowEditModal(false)} className="flex-1 px-4 py-2 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 transition-colors font-medium">Save Changes</button>
             </div>
           </div>
         </div>
@@ -381,7 +381,7 @@ const TaskManagement = () => {
       )}
 
       {showVolunteerApproval && selectedVolunteer && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-bold text-gray-800">Approve Volunteer Request</h3>
@@ -404,7 +404,7 @@ const TaskManagement = () => {
             </div>
             <div className="flex space-x-3">
               <button onClick={() => setShowVolunteerApproval(false)} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium text-gray-700">Decline</button>
-              <button onClick={() => setShowVolunteerApproval(false)} className="flex-1 px-4 py-2 bg-[#00AD8E] text-white rounded-lg hover:bg-teal-700 transition-colors font-medium">Approve Request</button>
+              <button onClick={() => setShowVolunteerApproval(false)} className="flex-1 px-4 py-2 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 transition-colors font-medium">Approve Request</button>
             </div>
           </div>
         </div>
