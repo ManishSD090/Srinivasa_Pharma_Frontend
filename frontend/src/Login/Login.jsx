@@ -13,14 +13,16 @@ function Login() {
   const { email, password } = formData 
 
   const handleSubmit = (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (email === 'admin@gmail.com' && password === '1234') {
-      navigate('/admin/dashboard')
+      navigate('/admin/dashboard');
+    } else if (email === 'staff@gmail.com' && password === '1234') {
+      navigate('/staff/dashboard');
     } else {
-      alert('Invalid credentials')
+      alert('Invalid credentials');
     }
-  }
+  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -33,12 +35,12 @@ function Login() {
   return (
     <div className="min-h-screen flex ">
       {/* Left Side - Welcome Section */}
-      <div className="hidden lg:flex lg:w-1/2 bg-[#00ad8e] items-center justify-center p-12 relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 bg-[linear-gradient(180deg,#05303B_-50.4%,#2B7C7E_20.34%,#91D8C1_80.01%)] items-center justify-center p-12 relative overflow-hidden">
         
         <div className="relative z-10 text-center max-w-md">
           {/* Medical Image Placeholder */}
           <div className="mb-8 mx-auto w-64 h-64 bg-[#d2eaf4] bg-opacity-20 rounded-3xl flex items-center justify-center backdrop-blur-sm shadow-xl">
-            <svg className="w-32 h-32 text-[#00ad8e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-32 h-32 text-[#246e72]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
             </svg>
           </div>
@@ -79,7 +81,7 @@ function Login() {
         <div className="w-full max-w-md">
           {/* Logo Icon */}
           <div className="flex justify-center mb-8">
-            <div className="w-16 h-16 bg-[#00ad8e] rounded-2xl flex items-center justify-center shadow-lg">
+            <div className="w-16 h-16 bg-[#246e72] rounded-2xl flex items-center justify-center shadow-lg">
               <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
               </svg>
@@ -93,7 +95,7 @@ function Login() {
 
           {/*Login Tab */}
           <div className="mb-6">
-            <button className="w-full py-3 px-6 rounded-xl font-semibold text-white bg-[#00ad8e] shadow-md">
+            <button className="w-full py-3 px-6 rounded-xl font-semibold text-white bg-[#246e72] shadow-md">
               <svg className="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
@@ -114,7 +116,7 @@ function Login() {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 pl-11 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#7ec9fc] focus:border-transparent outline-none bg-white"
+                  className="w-full px-4 py-3 pl-11 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#246e72] focus:border-transparent outline-none bg-white"
                   placeholder="Enter email"
                 />
                 <svg className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -134,7 +136,7 @@ function Login() {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full px-4 py-3 pl-11 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#7ec9fc] focus:border-transparent outline-none bg-white"
+                className="w-full px-4 py-3 pl-11 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#246e72] focus:border-transparent outline-none bg-white"
                 placeholder="Enter password"
               />
                 <svg className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -151,13 +153,13 @@ function Login() {
                   name="remember"
                   checked={formData.remember}
                   onChange={handleChange}
-                  className="w-4 h-4 rounded border-gray-300 text-[#7ec9fc] focus:ring-[#7ec9fc]"
+                  className="w-4 h-4 rounded border-gray-300 text-[#246e72] focus:ring-[#246e72]"
                 />
                 <span className="ml-2 text-sm text-gray-700">Remember me</span>
               </label>
               <button 
                 onClick={() => console.log('Forgot password')}
-                className="text-sm text-[#00ad8e] hover:text-[#5fb3f0] font-medium transition"
+                className="text-sm text-[#246e72] hover:text-[#5fb3f0] font-medium transition"
               >
                 Forgot password?
               </button>
@@ -166,7 +168,7 @@ function Login() {
             {/* Sign In Button */}
             <button
               onClick={handleSubmit}
-              className="w-full py-3 px-6 rounded-xl font-semibold text-white bg-[#00ad8e] hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200"
+              className="w-full py-3 px-6 rounded-xl font-semibold text-white bg-[#246e72] hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200"
             >
               <svg className="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
@@ -181,7 +183,7 @@ function Login() {
             <div className="flex justify-center gap-4">
               <button 
                 onClick={() => console.log('Contact support')}
-                className="text-sm text-gray-700 hover:text-[#7ec9fc] transition flex items-center"
+                className="text-sm text-gray-700 hover:text-[#246e72] transition flex items-center"
               >
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -190,7 +192,7 @@ function Login() {
               </button>
               <button 
                 onClick={() => console.log('Help center')}
-                className="text-sm text-gray-700 hover:text-[#7ec9fc] transition flex items-center"
+                className="text-sm text-gray-700 hover:text-[#246e72] transition flex items-center"
               >
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
