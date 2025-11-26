@@ -75,6 +75,7 @@ const StaffDashboard = () => {
   const navItems = [
     { name: 'Dashboard', path: '/staff/dashboard' },
     { name: 'Orders', path: '/staff/orders' },
+    { name: 'Inventory', path: '/staff/inventory' },
     { name: 'Tasks', path: '/staff/tasks' },
     { name: 'Attendance', path: '/staff/attendance' },
     { name: 'Leaves', path: '/staff/leaves' },

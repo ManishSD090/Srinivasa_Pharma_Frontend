@@ -5,6 +5,7 @@ import StaffAttendance from './StaffAttendance'
 import StaffTask from './StaffTask'
 import StaffLeaves from './StaffLeaves'
 import StaffOrders from './StaffOrders'
+import StaffInventory from './StaffInventory'
 
 const Staff = () => {
   return (
@@ -14,6 +15,7 @@ const Staff = () => {
         <Route path="/attendance" element={<StaffAttendance />} />
         <Route path="/tasks" element={<StaffTask />} />
         <Route path="/leaves" element={<StaffLeaves />} />
+        <Route path="/inventory" element={<StaffInventory />} />
     </Routes>
   )
 }

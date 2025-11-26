@@ -12,18 +12,18 @@ const StaffOrders = () => {
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showCustomRange, setShowCustomRange] = useState(false);
   const [reminderMessage, setReminderMessage] = useState('');
   const navigate = useNavigate();
 
-  // Form Data (Split into order-level and item-level)
+  // --- UPDATED: Form Data (Distributor removed from root) ---
   const [formData, setFormData] = useState({
     date: '',
-    distributor: '',
     phone: ''
   });
+
+  // --- UPDATED: Items State (Distributor added here) ---
   const [items, setItems] = useState([
-    { itemName: '', quantity: '', advance: '' }
+    { itemName: '', quantity: '', advance: '', distributor: '' }
   ]);
   const [isForReview, setIsForReview] = useState(false);
 
@@ -39,62 +39,58 @@ const StaffOrders = () => {
     'Reliance Pharma'
   ];
 
-  // Navigation items
   const navItems = [
     { name: 'Dashboard', path: '/staff/dashboard' },
     { name: 'Orders', path: '/staff/orders' },
+    { name: 'Inventory', path: '/staff/inventory' },
     { name: 'Tasks', path: '/staff/tasks' },
     { name: 'Attendance', path: '/staff/attendance' },
     { name: 'Leaves', path: '/staff/leaves' },
     { name: 'Logout', path: '/' }
   ];
 
-  // Orders Data (New Nested Structure)
+  // --- UPDATED: Orders Data Structure ---
+  // Distributor is now a property of individual items, not the whole order
   const [orders, setOrders] = useState([
     { 
       id: 1, 
       date: '2024-01-15', 
-      distributor: 'MedSupply Co.', 
       phone: '+91 98765 43210', 
       status: 'Placed',
       items: [
-        { itemName: 'Paracetamol 500mg', quantity: 100, advance: '₹2,500' }
+        { itemName: 'Paracetamol 500mg', quantity: 100, advance: '₹2,500', distributor: 'MedSupply Co.' }
       ] 
     },
     { 
       id: 2, 
       date: '2024-01-14', 
-      distributor: 'PharmaCorp Ltd.', 
       phone: '+91 87654 32109', 
       status: 'Needs Review',
       items: [
-        { itemName: 'Amoxicillin 250mg', quantity: 50, advance: '₹1,200' }
+        { itemName: 'Amoxicillin 250mg', quantity: 50, advance: '₹1,200', distributor: 'PharmaCorp Ltd.' }
       ] 
     },
     { 
       id: 3, 
       date: '2024-01-13', 
-      distributor: 'Apex Distributors', 
       phone: '+91 76543 21098', 
       status: 'Placed',
       items: [
-        { itemName: 'Insulin Glargine', quantity: 20, advance: '₹8,000' }
+        { itemName: 'Insulin Glargine', quantity: 20, advance: '₹8,000', distributor: 'Apex Distributors' }
       ] 
     },
     { 
       id: 4, 
       date: '2024-01-12', 
-      distributor: 'Global Health Pharma', 
       phone: '+91 65432 10987', 
       status: 'Placed',
       items: [
-        { itemName: 'Vitamin D3 Tablets', quantity: 200, advance: '₹1,500' },
-        { itemName: 'Cough Syrup 100ml', quantity: 75, advance: '₹900' }
+        { itemName: 'Vitamin D3 Tablets', quantity: 200, advance: '₹1,500', distributor: 'Global Health Pharma' },
+        { itemName: 'Cough Syrup 100ml', quantity: 75, advance: '₹900', distributor: 'Sunway Medical Supplies' }
       ] 
     }
   ]);
 
-  // Handlers
   const handleNavigation = (path) => {
     navigate(path);
   };
@@ -104,7 +100,6 @@ const StaffOrders = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // --- New Item Handlers ---
   const handleItemChange = (index, e) => {
     const { name, value } = e.target;
     const updatedItems = [...items];
@@ -112,24 +107,26 @@ const StaffOrders = () => {
     setItems(updatedItems);
   };
 
+  // --- UPDATED: Add Item Row (Initialize with empty distributor) ---
   const handleAddItemRow = () => {
-    setItems([...items, { itemName: '', quantity: '', advance: '' }]);
+    setItems([...items, { itemName: '', quantity: '', advance: '', distributor: '' }]);
   };
 
   const handleRemoveItemRow = (index) => {
     const updatedItems = items.filter((_, i) => i !== index);
     setItems(updatedItems);
   };
-  // --- End New Item Handlers ---
 
-  // --- Updated Add Order Handler ---
+  // --- UPDATED: Add Order Handler ---
   const handleAddOrder = () => {
-    if (!formData.date || !formData.distributor || !formData.phone) {
-      alert('Please fill in all required order fields (Date, Distributor, Phone)');
+    // 1. Validate Form Data
+    if (!formData.date || !formData.phone) {
+      alert('Please fill in Date and Phone');
       return;
     }
-    if (items.some(i => !i.itemName || !i.quantity || !i.advance)) {
-      alert('Please complete all item fields (Name, Quantity, Advance)');
+    // 2. Validate Item Data (Check if Distributor is selected per item)
+    if (items.some(i => !i.itemName || !i.quantity || !i.advance || !i.distributor)) {
+      alert('Please complete all item fields including Distributor');
       return;
     }
 
@@ -137,18 +134,17 @@ const StaffOrders = () => {
       id: orders.length + 1,
       ...formData,
       status: isForReview ? 'Needs Review' : 'Placed',
-      items // Add the items array
+      items // Items now contain the distributor info
     };
 
     setOrders([newOrder, ...orders]);
     alert('Order added successfully!');
     
-    // Reset all forms
-    setFormData({ date: '', distributor: '', phone: '' });
-    setItems([{ itemName: '', quantity: '', advance: '' }]);
+    // Reset
+    setFormData({ date: '', phone: '' });
+    setItems([{ itemName: '', quantity: '', advance: '', distributor: '' }]);
     setIsForReview(false);
   };
-  // --- End Updated Handler ---
 
   const handleSendReminder = (id) => {
     const order = orders.find(o => o.id === id);
@@ -158,27 +154,26 @@ const StaffOrders = () => {
     }
   };
 
-  // Filter & Pagination (Updated filter logic)
+  // --- UPDATED: Filter Logic ---
+  // Now searches within the items array for distributor names
   const filteredOrders = orders.filter(order =>
-    order.distributor.toLowerCase().includes(searchQuery.toLowerCase()) ||
     order.phone.includes(searchQuery) ||
-    order.items.some(item => item.itemName.toLowerCase().includes(searchQuery.toLowerCase()))
+    order.items.some(item => 
+      item.itemName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.distributor.toLowerCase().includes(searchQuery.toLowerCase())
+    )
   );
+
   const totalPages = Math.ceil(filteredOrders.length / entriesPerPage);
   const displayedOrders = filteredOrders.slice((currentPage - 1) * entriesPerPage, currentPage * entriesPerPage);
 
-  // Get status badge style
   const getStatusStyle = (status) => {
     switch (status) {
-      case 'Placed':
-        return 'bg-green-100 text-green-700';
-      case 'Needs Review':
-        return 'bg-yellow-100 text-yellow-700';
-      default:
-        return 'bg-gray-100 text-gray-700';
+      case 'Placed': return 'bg-green-100 text-green-700';
+      case 'Needs Review': return 'bg-yellow-100 text-yellow-700';
+      default: return 'bg-gray-100 text-gray-700';
     }
   };
-
 
   return (
     <div className="flex h-screen bg-[#D2EAF4]">
@@ -189,13 +184,7 @@ const StaffOrders = () => {
         />
       )}
 
-      <aside
-        className={`
-          fixed lg:static inset-y-0 left-0 z-50
-          w-64 bg-[linear-gradient(180deg,#05303B_-50.4%,#2B7C7E_20.34%,#91D8C1_80.01%)] transform transition-transform duration-300 ease-in-out
-          ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-        `}
-      >
+      <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-[linear-gradient(180deg,#05303B_-50.4%,#2B7C7E_20.34%,#91D8C1_80.01%)] transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         <div className="p-[14px] border-b border-gray-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -210,11 +199,7 @@ const StaffOrders = () => {
         </div>
         <nav className="p-4 space-y-2">
           {navItems.map((item, index) => (
-            <button
-              key={index}
-              onClick={() => handleNavigation(item.path)}
-              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${item.path === '/staff/orders' ? 'bg-teal-50 text-[#246e72] font-medium' : 'text-white hover:bg-gray-50 hover:text-[#246e72] font-medium'}`}
-            >
+            <button key={index} onClick={() => handleNavigation(item.path)} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${item.path === '/staff/orders' ? 'bg-teal-50 text-[#246e72] font-medium' : 'text-white hover:bg-gray-50 hover:text-[#246e72] font-medium'}`}>
               <span>{item.name}</span>
             </button>
           ))}
@@ -255,18 +240,11 @@ const StaffOrders = () => {
               <h3 className="text-xl font-bold text-gray-800">Add New Order</h3>
             </div>
 
-            {/* Order-Level Fields */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            {/* Order-Level Fields (Distributor Removed) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Date of Order</label>
                 <input type="date" name="date" value={formData.date} onChange={handleFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm"/>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Distributor</label>
-                <select name="distributor" value={formData.distributor} onChange={handleFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm">
-                  <option value="">Select Distributor</option>
-                  {distributors.map(d => <option key={d} value={d}>{d}</option>)}
-                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Customer Phone</label>
@@ -274,36 +252,64 @@ const StaffOrders = () => {
               </div>
             </div>
 
-            {/* Item-Level Dynamic Fields */}
+            {/* Item-Level Dynamic Fields (Distributor Added) */}
             <div className="mb-4">
               <h4 className="text-lg font-semibold text-gray-700 mb-3 border-b pb-2">Order Items</h4>
               {items.map((item, index) => (
-                <div key={index} className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-3 items-center">
-                  <input
-                    type="text"
-                    name="itemName"
-                    placeholder="Item Name"
-                    value={item.itemName}
-                    onChange={(e) => handleItemChange(index, e)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm md:col-span-2"
-                  />
-                  <input
-                    type="number"
-                    name="quantity"
-                    placeholder="Qty"
-                    value={item.quantity}
-                    onChange={(e) => handleItemChange(index, e)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm"
-                  />
-                  <input
-                    type="text"
-                    name="advance"
-                    placeholder="Advance (e.g., ₹100)"
-                    value={item.advance}
-                    onChange={(e) => handleItemChange(index, e)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm"
-                  />
-                  <div className="flex space-x-2">
+                // Changed grid to 12 columns for better spacing
+                <div key={index} className="grid grid-cols-1 md:grid-cols-12 gap-3 mb-3 items-center border-b border-gray-100 pb-3 md:border-0 md:pb-0">
+                  
+                  {/* Item Name (3 cols) */}
+                  <div className="md:col-span-3">
+                     <input
+                      type="text"
+                      name="itemName"
+                      placeholder="Item Name"
+                      value={item.itemName}
+                      onChange={(e) => handleItemChange(index, e)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm"
+                    />
+                  </div>
+
+                  {/* Distributor (3 cols) - MOVED HERE */}
+                  <div className="md:col-span-3">
+                    <select 
+                      name="distributor" 
+                      value={item.distributor} 
+                      onChange={(e) => handleItemChange(index, e)} 
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm"
+                    >
+                      <option value="">Select Distributor</option>
+                      {distributors.map(d => <option key={d} value={d}>{d}</option>)}
+                    </select>
+                  </div>
+
+                  {/* Quantity (2 cols) */}
+                  <div className="md:col-span-2">
+                    <input
+                      type="number"
+                      name="quantity"
+                      placeholder="Qty"
+                      value={item.quantity}
+                      onChange={(e) => handleItemChange(index, e)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm"
+                    />
+                  </div>
+
+                  {/* Advance (2 cols) */}
+                  <div className="md:col-span-2">
+                    <input
+                      type="text"
+                      name="advance"
+                      placeholder="Advance"
+                      value={item.advance}
+                      onChange={(e) => handleItemChange(index, e)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm"
+                    />
+                  </div>
+
+                  {/* Action Buttons (2 cols) */}
+                  <div className="md:col-span-2 flex space-x-2">
                     <button
                       onClick={handleAddItemRow}
                       className="w-8 h-8 bg-[#246e72] text-white rounded-lg hover:bg-[#1a5256] flex items-center justify-center font-bold"
@@ -342,8 +348,6 @@ const StaffOrders = () => {
               </div>
             </div>
           </div>
-          {/* === END UPDATED FORM === */}
-
 
           {/* === UPDATED ORDER LIST === */}
           <div className="bg-white rounded-xl shadow-md p-6">
@@ -361,11 +365,6 @@ const StaffOrders = () => {
                     <Filter size={18} />
                     <span>Filter</span>
                   </button>
-                  {showFilterDropdown && (
-                    <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
-                      {/* ... filter options ... */}
-                    </div>
-                  )}
                 </div>
                 <select value={entriesPerPage} onChange={(e) => setEntriesPerPage(Number(e.target.value))} className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm">
                   <option value={10}>Show 10</option>
@@ -374,7 +373,7 @@ const StaffOrders = () => {
                 </select>
               </div>
               <div className="w-full sm:w-auto">
-                <input type="text" placeholder="Search by item, distributor, or phone..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full sm:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm"/>
+                <input type="text" placeholder="Search item, distributor..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full sm:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm"/>
               </div>
             </div>
 
@@ -383,9 +382,9 @@ const StaffOrders = () => {
                 <thead>
                   <tr className="border-b border-gray-200">
                     <th className="py-3 px-4 text-sm font-semibold text-gray-600 text-left">DATE</th>
-                    <th className="py-3 px-4 text-sm font-semibold text-gray-600 text-left">DISTRIBUTOR</th>
+                    {/* Removed Distributor Column */}
                     <th className="py-3 px-4 text-sm font-semibold text-gray-600 text-left">PHONE</th>
-                    <th className="py-3 px-4 text-sm font-semibold text-gray-600 text-left">ITEMS</th>
+                    <th className="py-3 px-4 text-sm font-semibold text-gray-600 text-left">ITEMS & DISTRIBUTORS</th>
                     <th className="py-3 px-4 text-sm font-semibold text-gray-600 text-left">STATUS</th>
                     <th className="py-3 px-4 text-sm font-semibold text-gray-600 text-left">ACTIONS</th>
                   </tr>
@@ -394,14 +393,16 @@ const StaffOrders = () => {
                   {displayedOrders.map(order => (
                     <tr key={order.id} className="border-b border-gray-100 hover:bg-gray-50">
                       <td className="py-4 px-4 text-sm text-gray-700">{order.date}</td>
-                      <td className="py-4 px-4 text-sm text-gray-700">{order.distributor}</td>
                       <td className="py-4 px-4 text-sm text-gray-700">{order.phone}</td>
                       <td className="py-4 px-4 text-sm text-gray-700">
-                        <ul className="list-disc pl-5 space-y-1">
+                        <ul className="space-y-2">
                           {order.items.map((item, idx) => (
-                            <li key={idx}>
+                            <li key={idx} className="flex flex-col">
                               <span className="font-medium text-gray-800">{item.itemName}</span>
-                              <span className="text-gray-600"> (Qty: {item.quantity}, Adv: {item.advance})</span>
+                              <div className="flex items-center gap-2 text-xs">
+                                <span className="bg-teal-50 text-teal-700 px-2 py-0.5 rounded border border-teal-100">{item.distributor}</span>
+                                <span className="text-gray-500">Qty: {item.quantity} | Adv: {item.advance}</span>
+                              </div>
                             </li>
                           ))}
                         </ul>

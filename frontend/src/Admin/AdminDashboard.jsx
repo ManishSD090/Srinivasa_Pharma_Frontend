@@ -131,6 +131,7 @@ const AdminDashboard = () => {
   const navItems = [
     { name: 'Dashboard', path: '/admin/dashboard'},
     { name: 'Order Management', path: '/admin/orders' },
+    { name: 'Inventory Checklist', path: '/admin/inventory' },
     { name: 'Staff Management', path: '/admin/staff' },
     { name: 'Task Management', path: '/admin/tasks' },
     { name: 'Payroll & Attendance', path: '/admin/payroll' },
