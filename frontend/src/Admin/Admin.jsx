@@ -2,20 +2,20 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import AdminDashboard from './AdminDashboard';
 import OrdersPage from './OrdersPage';
-// import StaffPage from './StaffPage';
-// import TasksPage from './TasksPage';
-// import RemindersPage from './RemindersPage';
-// import LeavesPage from './LeavesPage';
+import StaffManagement from './StaffManagement';
+import TaskManagement from './TaskManagement';
+import PayrollAttendancePage from './PayrollAttendance';
+import InventoryChecklist from './InventoryChecklist';
 
 const Admin = () => {
   return (
     <Routes>
       <Route path="/dashboard" element={<AdminDashboard />} />
       <Route path="/orders" element={<OrdersPage />} />
-      {/* <Route path="/staff" element={<StaffPage />} />
-      <Route path="/tasks" element={<TasksPage />} />
-      <Route path="/reminders" element={<RemindersPage />} />
-      <Route path="/leaves" element={<LeavesPage />} /> */}
+      <Route path="/staff" element={<StaffManagement />} />
+      <Route path="/tasks" element={<TaskManagement />} />
+      <Route path="/payroll" element={<PayrollAttendancePage />} />
+      <Route path="/inventory" element={<InventoryChecklist />} />
     </Routes>
   );
 };
