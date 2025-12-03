@@ -241,7 +241,7 @@ const StaffOrders = () => {
             </div>
 
             {/* Order-Level Fields (Distributor Removed) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Date of Order</label>
                 <input type="date" name="date" value={formData.date} onChange={handleFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm"/>
@@ -249,6 +249,10 @@ const StaffOrders = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Customer Phone</label>
                 <input type="tel" name="phone" placeholder="+91 XXXXX XXXXX" value={formData.phone} onChange={handleFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm"/>
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Advance Amount</label>
+                <input type="text"name="advance" placeholder="Advance" value={formData.advance} onChange={handleFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm"/>
               </div>
             </div>
 
@@ -260,7 +264,7 @@ const StaffOrders = () => {
                 <div key={index} className="grid grid-cols-1 md:grid-cols-12 gap-3 mb-3 items-center border-b border-gray-100 pb-3 md:border-0 md:pb-0">
                   
                   {/* Item Name (3 cols) */}
-                  <div className="md:col-span-3">
+                  <div className="md:col-span-4">
                      <input
                       type="text"
                       name="itemName"
@@ -272,7 +276,7 @@ const StaffOrders = () => {
                   </div>
 
                   {/* Distributor (3 cols) - MOVED HERE */}
-                  <div className="md:col-span-3">
+                  <div className="md:col-span-4">
                     <select 
                       name="distributor" 
                       value={item.distributor} 
@@ -291,18 +295,6 @@ const StaffOrders = () => {
                       name="quantity"
                       placeholder="Qty"
                       value={item.quantity}
-                      onChange={(e) => handleItemChange(index, e)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm"
-                    />
-                  </div>
-
-                  {/* Advance (2 cols) */}
-                  <div className="md:col-span-2">
-                    <input
-                      type="text"
-                      name="advance"
-                      placeholder="Advance"
-                      value={item.advance}
                       onChange={(e) => handleItemChange(index, e)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm"
                     />

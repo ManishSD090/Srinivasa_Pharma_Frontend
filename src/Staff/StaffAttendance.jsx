@@ -2,14 +2,13 @@ import React, { useState } from 'react';
 import { 
   ChevronLeft, ChevronRight, Download, X, 
   Clock, Calendar, Coffee, Briefcase, 
-  Menu, CheckCircle, AlertCircle
+  Menu, CheckCircle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const StaffAttendance = () => {
   // UI State
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isPunchedIn, setIsPunchedIn] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState('January 2025');
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
@@ -27,15 +26,15 @@ const StaffAttendance = () => {
     { name: 'Logout', path: '/' }
   ];
 
-  // Today's attendance data
+  // Today's attendance data (Static View)
   const todayAttendance = {
     date: 'Monday, January 15, 2025',
     currentTime: '02:45 PM',
     punchInTime: '08:00 AM',
-    punchOutTime: isPunchedIn ? '--:-- --' : '06:00 PM',
+    punchOutTime: '--:-- --', // Placeholder for current active day
     hoursWorked: 6.75,
     targetHours: 10,
-    status: 'Punched In'
+    status: 'Present'
   };
 
   // Calendar attendance data
@@ -76,12 +75,6 @@ const StaffAttendance = () => {
     (currentPage - 1) * entriesPerPage,
     currentPage * entriesPerPage
   );
-
-  // Handlers
-  const handlePunchInOut = () => {
-    setIsPunchedIn(!isPunchedIn);
-    console.log(isPunchedIn ? 'Punching Out' : 'Punching In');
-  };
 
   const handleNavigation = (path) => {
     navigate(path);
@@ -207,17 +200,15 @@ const StaffAttendance = () => {
 
         <main className="p-4 lg:p-8 space-y-6">
 
-          {/* === RESPONSIVE GRID WRAPPER (Change 1) === */}
+          {/* === RESPONSIVE GRID WRAPPER === */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
             {/* Today's Attendance */}
-           {/* Today's Attendance */}
             <div className="bg-white rounded-xl shadow-md p-6">
               <h3 className="text-xl font-bold text-gray-800 mb-4">Today's Attendance</h3>
               
-              {/* This wrapper is no longer a grid */}
               <div>
-                {/* Punch In Details Section */}
+                {/* Punch In Details Section (Read Only) */}
                 <div>
                   <p className="text-lg font-semibold text-gray-700 mb-2">{todayAttendance.date}</p>
                   <p className="text-sm text-gray-500 mb-4">Current Time: {todayAttendance.currentTime}</p>
@@ -225,8 +216,8 @@ const StaffAttendance = () => {
                   <div className="space-y-3 mb-4">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600">Status:</span>
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${isPunchedIn ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
-                        {isPunchedIn ? 'Punched In' : 'Punched Out'}
+                      <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                        {todayAttendance.status}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
@@ -238,16 +229,11 @@ const StaffAttendance = () => {
                       <span className="text-sm font-semibold text-gray-800">{todayAttendance.punchOutTime}</span>
                     </div>
                   </div>
-
-                  <button
-                    onClick={handlePunchInOut}
-                    className="w-full bg-[#246e72] text-white py-3 rounded-lg hover:bg-[#1a5256] transition-colors font-medium"
-                  >
-                    {isPunchedIn ? 'Punch Out' : 'Punch In'}
-                  </button>
+                  
+                  {/* BUTTON REMOVED FROM HERE */}
                 </div>
 
-                {/* Hours Worked Section (Now full-width below) */}
+                {/* Hours Worked Section */}
                 <div className="mt-6 pt-6 border-t border-gray-200">
                   <p className="text-sm text-gray-600 mb-2">Hours Worked Today</p>
                   <p className="text-3xl font-bold text-[#246e72] mb-2">{todayAttendance.hoursWorked}h / {todayAttendance.targetHours}h</p>
@@ -365,7 +351,6 @@ const StaffAttendance = () => {
 
           {/* Attendance History */}
           <div className="bg-white rounded-xl shadow-md p-6">
-            {/* === RESPONSIVE HEADER (Change 2) === */}
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
               <h3 className="text-xl font-bold text-gray-800">Attendance History</h3>
               
@@ -412,8 +397,6 @@ const StaffAttendance = () => {
                 </div>
               </div>
             </div>
-            {/* === END RESPONSIVE HEADER === */}
-
 
             <div className="overflow-x-auto">
               <table className="w-full">

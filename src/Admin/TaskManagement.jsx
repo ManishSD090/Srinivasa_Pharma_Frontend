@@ -21,12 +21,24 @@ const TaskManagement = () => {
   const [selectedVolunteer, setSelectedVolunteer] = useState(null);
   const navigate = useNavigate();
 
+  // State for Creating a Task
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     priority: '',
     dueDate: '',
     assignedTo: ''
+  });
+
+  // --- NEW: State for Editing a Task ---
+  const [editFormData, setEditFormData] = useState({
+    id: null,
+    title: '',
+    description: '',
+    priority: '',
+    dueDate: '',
+    assignedTo: '', // This allows reassigning staff
+    status: ''
   });
 
   const navItems = [
@@ -53,7 +65,7 @@ const TaskManagement = () => {
 
   const overdueTasks = tasks.filter(task => {
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Normalize today's date
+    today.setHours(0, 0, 0, 0); 
     const dueDate = new Date(task.dueDate);
     return task.status !== 'Completed' && dueDate < today;
   });
@@ -66,6 +78,8 @@ const TaskManagement = () => {
 
   const totalPages = Math.ceil(filteredTasks.length / entriesPerPage);
   const displayedTasks = filteredTasks.slice((currentPage - 1) * entriesPerPage, currentPage * entriesPerPage);
+
+  // --- Handlers ---
 
   const handleFormChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -85,6 +99,23 @@ const TaskManagement = () => {
     setTasks(tasks.filter(t => t.id !== selectedTask.id));
     setShowDeleteModal(false);
     setSelectedTask(null);
+  };
+
+  // --- NEW: Handle opening the Edit Modal ---
+  const handleEditClick = (task) => {
+    setEditFormData(task); // Load current task data into edit form
+    setShowEditModal(true);
+  };
+
+  // --- NEW: Handle changing inputs in Edit Modal ---
+  const handleEditFormChange = (e) => {
+    setEditFormData({ ...editFormData, [e.target.name]: e.target.value });
+  };
+
+  // --- NEW: Save the updates (Reassigning happens here) ---
+  const handleUpdateTask = () => {
+    setTasks(tasks.map(t => t.id === editFormData.id ? editFormData : t));
+    setShowEditModal(false);
   };
   
   const getPriorityBadge = (priority) => {
@@ -270,7 +301,8 @@ const TaskManagement = () => {
                       <td className="py-4 px-4"><span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(task.status)}`}>{task.status}</span></td>
                       <td className="py-4 px-4">
                         <div className="flex space-x-2">
-                          <button onClick={() => { setSelectedTask(task); setShowEditModal(true); }} className="w-8 h-8 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center" title="Edit Task"><Edit size={16} /></button>
+                          {/* UPDATED: Pass task to handleEditClick */}
+                          <button onClick={() => handleEditClick(task)} className="w-8 h-8 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center" title="Edit Task"><Edit size={16} /></button>
                           <button onClick={() => { setSelectedTask(task); setShowDeleteModal(true); }} className="w-8 h-8 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center" title="Delete Task"><Trash2 size={16} /></button>
                         </div>
                       </td>
@@ -280,6 +312,7 @@ const TaskManagement = () => {
               </table>
             </div>
 
+            {/* Pagination ... (Unchanged) */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
               <p className="text-sm text-gray-600">Showing {displayedTasks.length} of {filteredTasks.length} tasks</p>
               <div className="flex items-center space-x-2">
@@ -298,6 +331,7 @@ const TaskManagement = () => {
             </div>
           </div>
 
+          {/* Volunteer Section (Unchanged) */}
           {volunteerRequests.length > 0 && (
             <div className="bg-white rounded-xl shadow-md p-6">
               <div className="flex items-center space-x-2 mb-6">
@@ -328,7 +362,8 @@ const TaskManagement = () => {
         </main>
       </div>
 
-      {showEditModal && selectedTask && (
+      {/* --- UPDATED EDIT MODAL --- */}
+      {showEditModal && editFormData && (
         <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full p-6">
             <div className="flex items-center justify-between mb-4">
@@ -338,33 +373,49 @@ const TaskManagement = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Task Title</label>
-                <input type="text" defaultValue={selectedTask.title} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
+                <input type="text" name="title" value={editFormData.title} onChange={handleEditFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
               </div>
+              
+              {/* --- NEW: ASSIGNED TO DROPDOWN --- */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Reassign To (Current: {editFormData.assignedTo})</label>
+                <select name="assignedTo" value={editFormData.assignedTo} onChange={handleEditFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none">
+                  <option value="">Select Staff Member</option>
+                  <option value="Dr. Sarah Johnson">Dr. Sarah Johnson</option>
+                  <option value="Mike Chen">Mike Chen</option>
+                  <option value="Lisa Anderson">Lisa Anderson</option>
+                  <option value="Open for volunteer">Open for volunteer</option>
+                </select>
+              </div>
+              {/* ---------------------------------- */}
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                <textarea defaultValue={selectedTask.description} rows="3" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none resize-none" />
+                <textarea name="description" value={editFormData.description} onChange={handleEditFormChange} rows="3" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none resize-none" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
-                  <select defaultValue={selectedTask.priority} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none">
+                  <select name="priority" value={editFormData.priority} onChange={handleEditFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none">
                     <option value="Low">Low</option><option value="Medium">Medium</option><option value="High">High</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
-                  <input type="date" defaultValue={selectedTask.dueDate} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
+                  <input type="date" name="dueDate" value={editFormData.dueDate} onChange={handleEditFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
                 </div>
               </div>
             </div>
             <div className="flex space-x-3 mt-6">
               <button onClick={() => setShowEditModal(false)} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium text-gray-700">Cancel</button>
-              <button onClick={() => setShowEditModal(false)} className="flex-1 px-4 py-2 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 transition-colors font-medium">Save Changes</button>
+              {/* Call handleUpdateTask to save */}
+              <button onClick={handleUpdateTask} className="flex-1 px-4 py-2 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 transition-colors font-medium">Save Changes</button>
             </div>
           </div>
         </div>
       )}
 
+      {/* Delete and Volunteer Modals remain unchanged... */}
       {showDeleteModal && selectedTask && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">

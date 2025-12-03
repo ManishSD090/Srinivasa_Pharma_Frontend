@@ -28,15 +28,16 @@ const OrdersPage = () => {
   ];
 
   // --- UPDATED STATE ---
-  // 1. Distributor removed from formData (Order Level)
+  // 1. Added 'advance' to Order Level state
   const [formData, setFormData] = useState({
     date: '',
-    phone: ''
+    phone: '',
+    advance: '' // Added here
   });
 
-  // 2. Distributor added to items (Item Level)
+  // 2. Items State
   const [items, setItems] = useState([
-    { itemName: '', quantity: '', advance: '', distributor: '' }
+    { itemName: '', quantity: '', distributor: '' } // Removed advance from here as it's now global
   ]);
 
   const navigate = useNavigate();
@@ -51,7 +52,6 @@ const OrdersPage = () => {
     { name: 'Logout', path: '/' }
   ];
 
-  // 3. Updated Orders Data Structure (Distributor inside items)
   const [orders, setOrders] = useState([
     { 
       id: 1, date: '2024-01-15', phone: '+91 98765 43210', 
@@ -74,7 +74,6 @@ const OrdersPage = () => {
     },
   ]);
 
-  // 4. Updated filter logic to search inside items for distributors
   const filteredOrders = orders.filter(order =>
     order.phone.includes(searchQuery) ||
     order.items.some(item => 
@@ -111,9 +110,8 @@ const OrdersPage = () => {
     setItems(updatedItems);
   };
 
-  // Initialize new item with empty distributor
   const handleAddItemRow = () => {
-    setItems([...items, { itemName: '', quantity: '', advance: '', distributor: '' }]);
+    setItems([...items, { itemName: '', quantity: '', distributor: '' }]);
   };
 
   const handleRemoveItemRow = (index) => {
@@ -121,15 +119,14 @@ const OrdersPage = () => {
     setItems(updatedItems);
   };
 
-  // --- UPDATED SUBMIT HANDLER ---
   const handleAddOrder = () => {
     // Validate Order fields
     if (!formData.date || !formData.phone) {
       alert('Please fill in Date and Phone');
       return;
     }
-    // Validate Item fields (including Distributor)
-    if (items.some(i => !i.itemName || !i.quantity || !i.advance || !i.distributor)) {
+    // Validate Item fields
+    if (items.some(i => !i.itemName || !i.quantity || !i.distributor)) {
       alert('Please complete all item fields including Distributor');
       return;
     }
@@ -137,15 +134,15 @@ const OrdersPage = () => {
     const newOrder = {
       id: orders.length + 1,
       ...formData,
-      items // Items now contain distributor info
+      items: items.map(item => ({...item, advance: formData.advance})) // Apply global advance to items for now
     };
 
     setOrders([newOrder, ...orders]);
     alert('Order added successfully!');
     
     // Reset forms
-    setFormData({ date: '', phone: '' });
-    setItems([{ itemName: '', quantity: '', advance: '', distributor: '' }]);
+    setFormData({ date: '', phone: '', advance: '' });
+    setItems([{ itemName: '', quantity: '', distributor: '' }]);
   };
 
   return (
@@ -234,8 +231,8 @@ const OrdersPage = () => {
           <div className="bg-white rounded-xl shadow-md p-6">
             <h2 className="text-xl font-bold text-gray-800 mb-6">Add New Order</h2>
             
-            {/* Order-Level Fields (Distributor Removed) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            {/* Order-Level Fields: Grid changed to 4 columns to accommodate Advance */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Date of Order</label>
                 <input
@@ -257,17 +254,29 @@ const OrdersPage = () => {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none"
                 />
               </div>
+              {/* --- MOVED ADVANCE HERE (Matches StaffOrders) --- */}
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Advance Amount</label>
+                <input
+                  type="text"
+                  name="advance"
+                  placeholder="Advance"
+                  value={formData.advance}
+                  onChange={handleFormChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none"
+                />
+              </div>
             </div>
 
             {/* Item-Level Dynamic Fields */}
             <div className="mb-4">
               <h4 className="text-lg font-semibold text-gray-700 mb-3 border-b pb-2">Order Items</h4>
               {items.map((item, index) => (
-                // Changed grid to 12 cols for better spacing
+                // Changed grid to 12 cols
                 <div key={index} className="grid grid-cols-1 md:grid-cols-12 gap-3 mb-3 items-center border-b border-gray-100 pb-3 md:border-0 md:pb-0">
                   
-                  {/* Item Name (3 cols) */}
-                  <div className="md:col-span-3">
+                  {/* Item Name (Expanded from 3 to 4 cols) */}
+                  <div className="md:col-span-4">
                     <input
                       type="text"
                       name="itemName"
@@ -278,8 +287,8 @@ const OrdersPage = () => {
                     />
                   </div>
 
-                  {/* Distributor (3 cols) - MOVED HERE */}
-                  <div className="md:col-span-3">
+                  {/* Distributor (Expanded from 3 to 4 cols) */}
+                  <div className="md:col-span-4">
                     <select 
                       name="distributor" 
                       value={item.distributor} 
@@ -303,17 +312,7 @@ const OrdersPage = () => {
                     />
                   </div>
 
-                  {/* Advance (2 cols) */}
-                  <div className="md:col-span-2">
-                    <input
-                      type="text"
-                      name="advance"
-                      placeholder="Advance"
-                      value={item.advance}
-                      onChange={(e) => handleItemChange(index, e)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm"
-                    />
-                  </div>
+                  {/* ADVANCE REMOVED FROM HERE */}
 
                   {/* Actions (2 cols) */}
                   <div className="md:col-span-2 flex space-x-2">

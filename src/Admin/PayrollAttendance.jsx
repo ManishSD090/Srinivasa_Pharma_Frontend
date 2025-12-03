@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   ChevronLeft, ChevronRight, Download, 
   X, AlertCircle, Eye, FileText, 
-  Edit2, Trash2, Menu 
+  Edit2, Trash2, Menu, CheckCircle, Clock 
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -14,6 +14,10 @@ const PayrollAttendancePage = () => {
   const [showAttendanceModal, setShowAttendanceModal] = useState(false);
   const [showExportDropdown, setShowExportDropdown] = useState(false);
   const [activeFilter, setActiveFilter] = useState('current');
+  
+  // --- NEW: State for Punch In/Out Button ---
+  const [isPunchedIn, setIsPunchedIn] = useState(true); 
+  
   const navigate = useNavigate();
 
   const [payrollItems, setPayrollItems] = useState([
@@ -38,7 +42,6 @@ const PayrollAttendancePage = () => {
   ];
 
   const staffMembers = [
-    { id: 'all', name: 'All Staff Members' },
     { id: '1', name: 'Dr. Sarah Johnson' },
     { id: '2', name: 'Pharmacist Mike Chen' },
     { id: '3', name: 'Tech Assistant Lisa Park' }
@@ -91,6 +94,11 @@ const PayrollAttendancePage = () => {
     setPayrollItems(payrollItems.filter(item => item.id !== id));
   };
 
+  // --- NEW: Handler for Punch In/Out ---
+  const handlePunchInOut = () => {
+    setIsPunchedIn(!isPunchedIn);
+  };
+
   const addNewPayrollItem = (type) => {
     const newItem = {
       id: Date.now(),
@@ -100,11 +108,11 @@ const PayrollAttendancePage = () => {
       editable: true
     };
     setPayrollItems([...payrollItems, newItem]);
-    setEditingItem(newItem); // Automatically edit the new item
+    setEditingItem(newItem);
   };
 
   const daysInMonth = 31;
-  const firstDayOfWeek = 0; // Assuming Sunday is the first day (0)
+  const firstDayOfWeek = 0;
   const weeks = [];
   let week = new Array(firstDayOfWeek).fill(null);
 
@@ -162,7 +170,7 @@ const PayrollAttendancePage = () => {
               onClick={() => navigate(item.path)}
               className={`
                 w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors
-                ${item.path === '/admin/payroll' // Hardcoded for this example
+                ${item.path === '/admin/payroll'
                   ? 'bg-teal-50 text-[#246e72] font-medium'
                   : 'text-white hover:bg-gray-50 hover:text-[#246e72] font-medium'
                 }
@@ -240,6 +248,59 @@ const PayrollAttendancePage = () => {
               </div>
             </div>
           </div>
+
+                        {/* --- UPDATED TODAY'S ATTENDANCE CARD WITH BUTTON --- */}
+              <div className="bg-white rounded-xl shadow-md p-6">
+                <h3 className="text-xl font-bold text-gray-800 mb-4">Today's Attendance</h3>
+                <div>
+                  <p className="text-lg font-semibold text-gray-700 mb-1">Monday, January 15, 2025</p>
+                  <p className="text-sm text-gray-500 mb-4">Current Time: 02:45 PM</p>
+                  
+                  <div className="space-y-3 mb-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Status:</span>
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${isPunchedIn ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
+                        {isPunchedIn ? 'Punched In' : 'Punched Out'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Punch In:</span>
+                      <span className="text-sm font-semibold text-gray-800">08:00 AM</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Punch Out:</span>
+                      <span className="text-sm font-semibold text-gray-800">{isPunchedIn ? '--:-- --' : '06:00 PM'}</span>
+                    </div>
+                  </div>
+
+                  {/* --- NEW BUTTON HERE --- */}
+                  <button
+                    onClick={handlePunchInOut}
+                    className="w-full bg-[#246e72] text-white py-3 rounded-lg hover:bg-[#1a5256] transition-colors font-medium mb-6"
+                  >
+                    {isPunchedIn ? 'Punch Out' : 'Punch In'}
+                  </button>
+                  {/* ----------------------- */}
+
+                  <div className="mt-2 pt-6 border-t border-gray-200">
+                    <p className="text-sm text-gray-600 mb-2">Hours Worked Today</p>
+                    <p className="text-3xl font-bold text-[#246e72] mb-2">6.75h / 10h</p>
+                    <div className="w-full bg-gray-200 rounded-full h-4 mb-4">
+                      <div className="bg-[#246e72] h-4 rounded-full transition-all duration-300" style={{ width: '68%' }} />
+                    </div>
+                    <div className="bg-[#D2EAF4] rounded-lg p-4">
+                      <div className="flex items-start space-x-2">
+                        <CheckCircle className="text-green-600 mt-0.5" size={20} />
+                        <div>
+                          <p className="text-sm font-semibold text-gray-800">On Track!</p>
+                          <p className="text-xs text-gray-600">You've completed 68% of your target hours</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {/* --- END UPDATED CARD --- */}
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 bg-white rounded-xl shadow-md p-6">
@@ -475,7 +536,7 @@ const PayrollAttendancePage = () => {
               <div className="bg-[#D2EAF4] rounded-lg p-4">
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm"><span className="text-gray-600">Status:</span><span className="font-medium text-gray-800 capitalize">{attendanceData[selectedDate]}</span></div>
-	                <div className="flex justify-between text-sm"><span className="text-gray-600">Punch In:</span><span className="font-medium text-gray-800">09:05 AM</span></div>
+                  <div className="flex justify-between text-sm"><span className="text-gray-600">Punch In:</span><span className="font-medium text-gray-800">09:05 AM</span></div>
                   <div className="flex justify-between text-sm"><span className="text-gray-600">Punch Out:</span><span className="font-medium text-gray-800">06:15 PM</span></div>
                   <div className="flex justify-between text-sm"><span className="text-gray-600">Total Hours:</span><span className="font-medium text-gray-800">9 hours 10 mins</span></div>
                 </div>

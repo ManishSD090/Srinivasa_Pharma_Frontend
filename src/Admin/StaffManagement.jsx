@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Edit, Trash2, Download, 
   ChevronLeft, ChevronRight, X, 
@@ -16,30 +16,32 @@ const StaffManagement = () => {
   
   // --- Modal States ---
   const [showApproveModal, setShowApproveModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false); // Controls the Edit Popup
+  const [showEditModal, setShowEditModal] = useState(false);
   const [selectedLeaveStaff, setSelectedLeaveStaff] = useState(null);
   
   const navigate = useNavigate();
   
-  // Inline Form Data (Add New Staff)
+  // Inline Form Data (Add New Staff) -> Added workHours
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
     salary: '',
+    workHours: '', // NEW FIELD
     joiningDate: '',
     role: '',
     password: ''
   });
 
-  // Edit Modal Form Data
+  // Edit Modal Form Data -> Added workHours
   const [editFormData, setEditFormData] = useState({
     id: null,
     name: '',
     phone: '',
     salary: '',
+    workHours: '', // NEW FIELD
     joiningDate: '',
     role: '',
-    password: '' // Added for completeness
+    password: ''
   });
 
   const navItems = [
@@ -52,13 +54,14 @@ const StaffManagement = () => {
     { name: 'Logout', path: '/' }
   ];
 
+  // Updated Mock Data with workHours
   const [staffList, setStaffList] = useState([
-    { id: 1, name: 'Dr. Sarah Johnson', phone: '+1 234-567-8901', salary: '₹4,500', joiningDate: '2020-01-15', leavingDate: '----', status: 'Active', initial: 'SJ', color: 'bg-cyan-400' },
-    { id: 2, name: 'Mike Chen', phone: '+1 234-567-8902', salary: '₹2,800', joiningDate: '2023-03-10', leavingDate: '----', status: 'On Leave', initial: 'MC', color: 'bg-teal-400', leavePending: true },
-    { id: 3, name: 'Emily Rodriguez', phone: '+1 234-567-8903', salary: '₹3,200', joiningDate: '2023-02-20', leavingDate: '----', status: 'Active', initial: 'ER', color: 'bg-emerald-400' },
-    { id: 4, name: 'James Wilson', phone: '+1 234-567-8904', salary: '₹2,500', joiningDate: '2021-04-05', leavingDate: '2023-01-15', status: 'Resigned', initial: 'JW', color: 'bg-green-400' },
-    { id: 5, name: 'Lisa Anderson', phone: '+1 234-567-8905', salary: '₹5,200', joiningDate: '2023-01-01', leavingDate: '----', status: 'Active', initial: 'LA', color: 'bg-lime-400' },
-    { id: 6, name: 'David Kumar', phone: '+1 234-567-8906', salary: '₹4,300', joiningDate: '2023-05-12', leavingDate: '----', status: 'Active', initial: 'DK', color: 'bg-cyan-500' }
+    { id: 1, name: 'Dr. Sarah Johnson', phone: '+1 234-567-8901', salary: '₹4,500', workHours: '8', joiningDate: '2020-01-15', leavingDate: '----', status: 'Active', initial: 'SJ', color: 'bg-cyan-400' },
+    { id: 2, name: 'Mike Chen', phone: '+1 234-567-8902', salary: '₹2,800', workHours: '9', joiningDate: '2023-03-10', leavingDate: '----', status: 'On Leave', initial: 'MC', color: 'bg-teal-400', leavePending: true },
+    { id: 3, name: 'Emily Rodriguez', phone: '+1 234-567-8903', salary: '₹3,200', workHours: '8', joiningDate: '2023-02-20', leavingDate: '----', status: 'Active', initial: 'ER', color: 'bg-emerald-400' },
+    { id: 4, name: 'James Wilson', phone: '+1 234-567-8904', salary: '₹2,500', workHours: '6', joiningDate: '2021-04-05', leavingDate: '2023-01-15', status: 'Resigned', initial: 'JW', color: 'bg-green-400' },
+    { id: 5, name: 'Lisa Anderson', phone: '+1 234-567-8905', salary: '₹5,200', workHours: '10', joiningDate: '2023-01-01', leavingDate: '----', status: 'Active', initial: 'LA', color: 'bg-lime-400' },
+    { id: 6, name: 'David Kumar', phone: '+1 234-567-8906', salary: '₹4,300', workHours: '8', joiningDate: '2023-05-12', leavingDate: '----', status: 'Active', initial: 'DK', color: 'bg-cyan-500' }
   ]);
 
   const filteredStaff = staffList.filter(staff => {
@@ -95,28 +98,25 @@ const StaffManagement = () => {
       color: 'bg-teal-500'
     };
     setStaffList([...staffList, newStaff]);
-    setFormData({ name: '', phone: '', salary: '', joiningDate: '', role: '', password: '' });
+    // Reset form including workHours
+    setFormData({ name: '', phone: '', salary: '', workHours: '', joiningDate: '', role: '', password: '' });
   };
 
   // OPEN EDIT POPUP
   const handleEdit = (staff) => {
     if (staff) {
-      // Editing existing staff
       setEditFormData(staff);
     } else {
-      // Button clicked without staff (e.g. the one near title) - treat as Add or Empty
-      setEditFormData({ id: null, name: '', phone: '', salary: '', joiningDate: '', role: '', password: '' });
+      // Reset edit form including workHours
+      setEditFormData({ id: null, name: '', phone: '', salary: '', workHours: '', joiningDate: '', role: '', password: '' });
     }
     setShowEditModal(true);
   };
 
-  // SAVE CHANGES FROM POPUP
   const handleUpdateStaff = () => {
     if (editFormData.id) {
-      // Update existing
       setStaffList(staffList.map(s => s.id === editFormData.id ? editFormData : s));
     } else {
-      // Add new (if used as Add button)
       const newStaff = {
         ...editFormData,
         id: Date.now(),
@@ -228,7 +228,6 @@ const StaffManagement = () => {
               <Users size={24} className="text-[#246e72]" />
               <h2 className="text-xl font-bold text-gray-800">Add New Staff Member</h2>
               
-              {/* --- YOUR ADDED BUTTON (Fixed to work) --- */}
               <button 
                 onClick={() => handleEdit(null)} 
                 className="w-8 h-8 bg-[#246e72] ml-4 text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center"
@@ -236,8 +235,6 @@ const StaffManagement = () => {
                 >
                   <Edit size={16} />
               </button>
-              {/* --------------------------------------- */}
-
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -251,11 +248,18 @@ const StaffManagement = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            {/* UPDATED GRID TO 4 COLUMNS TO FIT WORK HOURS */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Salary</label>
-                <input type="text" name="salary" value={formData.salary} onChange={handleFormChange} placeholder="Enter salary amount" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
+                <input type="text" name="salary" value={formData.salary} onChange={handleFormChange} placeholder="Enter salary" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
               </div>
+              {/* --- NEW WORK HOURS INPUT --- */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Daily Work Hours</label>
+                <input type="number" name="workHours" value={formData.workHours} onChange={handleFormChange} placeholder="e.g. 8" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
+              </div>
+              {/* ----------------------------- */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Joining Date</label>
                 <input type="date" name="joiningDate" value={formData.joiningDate} onChange={handleFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
@@ -317,6 +321,9 @@ const StaffManagement = () => {
                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Staff Name</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Phone Number</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Salary</th>
+                    {/* --- ADDED HEADER --- */}
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Work Hours</th>
+                    {/* ------------------- */}
                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Joining Date</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Leaving Date</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Status</th>
@@ -334,6 +341,9 @@ const StaffManagement = () => {
                       </td>
                       <td className="py-4 px-4 text-sm text-gray-700">{staff.phone}</td>
                       <td className="py-4 px-4 text-sm text-gray-700 font-semibold">{staff.salary}</td>
+                      {/* --- ADDED CELL --- */}
+                      <td className="py-4 px-4 text-sm text-gray-700">{staff.workHours} Hrs</td>
+                      {/* ------------------ */}
                       <td className="py-4 px-4 text-sm text-gray-700">{staff.joiningDate}</td>
                       <td className="py-4 px-4 text-sm text-gray-700">{staff.leavingDate}</td>
                       <td className="py-4 px-4">
@@ -341,7 +351,6 @@ const StaffManagement = () => {
                       </td>
                       <td className="py-4 px-4">
                         <div className="flex space-x-2">
-                          {/* --- TABLE EDIT BUTTON --- */}
                           <button onClick={() => handleEdit(staff)} className="w-8 h-8 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center" title="Edit">
                             <Edit size={16} />
                           </button>
@@ -361,7 +370,6 @@ const StaffManagement = () => {
               </table>
             </div>
             
-            {/* Pagination ... */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
               <p className="text-sm text-gray-600">Showing {displayedStaff.length} of {filteredStaff.length} staff members</p>
               <div className="flex items-center space-x-2">
@@ -399,6 +407,12 @@ const StaffManagement = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Salary</label>
                 <input type="text" name="salary" value={editFormData.salary} onChange={handleEditFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" placeholder="₹..." />
               </div>
+              {/* --- NEW WORK HOURS INPUT IN MODAL --- */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Daily Work Hours</label>
+                <input type="number" name="workHours" value={editFormData.workHours} onChange={handleEditFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" placeholder="8" />
+              </div>
+              {/* ------------------------------------- */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Password (Optional)</label>
                 <input type="password" name="password" value={editFormData.password} onChange={handleEditFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" placeholder="******" />
@@ -409,7 +423,7 @@ const StaffManagement = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Leaving Date</label>
-                <input type="date" name="leavingDate" value={editFormData.joiningDate} onChange={handleEditFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
+                <input type="date" name="leavingDate" value={editFormData.leavingDate} onChange={handleEditFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
               </div>
             </div>
 

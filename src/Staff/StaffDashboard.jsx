@@ -9,7 +9,6 @@ import { useNavigate } from 'react-router-dom'; // Import useNavigate
 const StaffDashboard = () => {
   // UI State
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isPunchedIn, setIsPunchedIn] = useState(true);
   const navigate = useNavigate(); // Initialize useNavigate
 
   // Dashboard Stats
@@ -48,10 +47,10 @@ const StaffDashboard = () => {
     { id: 4, title: 'Prepare Monthly Report', priority: 'Medium', dueDate: 'Dec 28, 2024', status: 'In Progress' }
   ];
 
-  // Attendance Data
+  // Attendance Data (Read Only)
   const attendance = {
     punchInTime: '09:00 AM',
-    punchOutTime: 'Not Yet',
+    punchOutTime: '--:-- --',
     hoursWorked: 6.5,
     totalHours: 10
   };
@@ -83,11 +82,6 @@ const StaffDashboard = () => {
   ];
 
   // Handlers
-  const handlePunchInOut = () => {
-    setIsPunchedIn(!isPunchedIn);
-    console.log(isPunchedIn ? 'Punching Out' : 'Punching In');
-  };
-
   const handleViewTask = (task) => {
     console.log('Viewing task:', task);
   };
@@ -319,13 +313,8 @@ const StaffDashboard = () => {
                     />
                   </div>
                 </div>
-
-                <button
-                  onClick={handlePunchInOut}
-                  className="w-full bg-[#246e72] text-white py-3 rounded-lg hover:bg-[#1a5256] transition-colors font-medium"
-                >
-                  {isPunchedIn ? 'Punch Out Now' : 'Punch In Now'}
-                </button>
+                
+                {/* Button Removed */}
               </div>
             </div>
 
