@@ -2,11 +2,7 @@ import React, { useState } from 'react';
 import { 
   ChevronLeft, ChevronRight, Download, 
   X, AlertCircle, Eye, FileText, 
-<<<<<<< HEAD:src/Admin/PayrollAttendance.jsx
   Edit2, Trash2, Menu, CheckCircle, Clock 
-=======
-  Edit2, Trash2, Menu 
->>>>>>> 723e05b51ca56d2a79566e217833e91ab777f44c:frontend/src/Admin/PayrollAttendance.jsx
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -18,13 +14,10 @@ const PayrollAttendancePage = () => {
   const [showAttendanceModal, setShowAttendanceModal] = useState(false);
   const [showExportDropdown, setShowExportDropdown] = useState(false);
   const [activeFilter, setActiveFilter] = useState('current');
-<<<<<<< HEAD:src/Admin/PayrollAttendance.jsx
   
   // --- NEW: State for Punch In/Out Button ---
   const [isPunchedIn, setIsPunchedIn] = useState(true); 
   
-=======
->>>>>>> 723e05b51ca56d2a79566e217833e91ab777f44c:frontend/src/Admin/PayrollAttendance.jsx
   const navigate = useNavigate();
 
   const [payrollItems, setPayrollItems] = useState([
@@ -49,10 +42,6 @@ const PayrollAttendancePage = () => {
   ];
 
   const staffMembers = [
-<<<<<<< HEAD:src/Admin/PayrollAttendance.jsx
-=======
-    { id: 'all', name: 'All Staff Members' },
->>>>>>> 723e05b51ca56d2a79566e217833e91ab777f44c:frontend/src/Admin/PayrollAttendance.jsx
     { id: '1', name: 'Dr. Sarah Johnson' },
     { id: '2', name: 'Pharmacist Mike Chen' },
     { id: '3', name: 'Tech Assistant Lisa Park' }
@@ -105,14 +94,11 @@ const PayrollAttendancePage = () => {
     setPayrollItems(payrollItems.filter(item => item.id !== id));
   };
 
-<<<<<<< HEAD:src/Admin/PayrollAttendance.jsx
   // --- NEW: Handler for Punch In/Out ---
   const handlePunchInOut = () => {
     setIsPunchedIn(!isPunchedIn);
   };
 
-=======
->>>>>>> 723e05b51ca56d2a79566e217833e91ab777f44c:frontend/src/Admin/PayrollAttendance.jsx
   const addNewPayrollItem = (type) => {
     const newItem = {
       id: Date.now(),
@@ -122,19 +108,11 @@ const PayrollAttendancePage = () => {
       editable: true
     };
     setPayrollItems([...payrollItems, newItem]);
-<<<<<<< HEAD:src/Admin/PayrollAttendance.jsx
     setEditingItem(newItem);
   };
 
   const daysInMonth = 31;
   const firstDayOfWeek = 0;
-=======
-    setEditingItem(newItem); // Automatically edit the new item
-  };
-
-  const daysInMonth = 31;
-  const firstDayOfWeek = 0; // Assuming Sunday is the first day (0)
->>>>>>> 723e05b51ca56d2a79566e217833e91ab777f44c:frontend/src/Admin/PayrollAttendance.jsx
   const weeks = [];
   let week = new Array(firstDayOfWeek).fill(null);
 
@@ -192,11 +170,7 @@ const PayrollAttendancePage = () => {
               onClick={() => navigate(item.path)}
               className={`
                 w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors
-<<<<<<< HEAD:src/Admin/PayrollAttendance.jsx
                 ${item.path === '/admin/payroll'
-=======
-                ${item.path === '/admin/payroll' // Hardcoded for this example
->>>>>>> 723e05b51ca56d2a79566e217833e91ab777f44c:frontend/src/Admin/PayrollAttendance.jsx
                   ? 'bg-teal-50 text-[#246e72] font-medium'
                   : 'text-white hover:bg-gray-50 hover:text-[#246e72] font-medium'
                 }
@@ -275,7 +249,6 @@ const PayrollAttendancePage = () => {
             </div>
           </div>
 
-<<<<<<< HEAD:src/Admin/PayrollAttendance.jsx
                         {/* --- UPDATED TODAY'S ATTENDANCE CARD WITH BUTTON --- */}
               <div className="bg-white rounded-xl shadow-md p-6">
                 <h3 className="text-xl font-bold text-gray-800 mb-4">Today's Attendance</h3>
@@ -329,8 +302,6 @@ const PayrollAttendancePage = () => {
               </div>
               {/* --- END UPDATED CARD --- */}
 
-=======
->>>>>>> 723e05b51ca56d2a79566e217833e91ab777f44c:frontend/src/Admin/PayrollAttendance.jsx
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 bg-white rounded-xl shadow-md p-6">
               <h2 className="text-xl font-bold text-gray-800 mb-4">December 2024 Attendance</h2>
@@ -565,11 +536,7 @@ const PayrollAttendancePage = () => {
               <div className="bg-[#D2EAF4] rounded-lg p-4">
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm"><span className="text-gray-600">Status:</span><span className="font-medium text-gray-800 capitalize">{attendanceData[selectedDate]}</span></div>
-<<<<<<< HEAD:src/Admin/PayrollAttendance.jsx
                   <div className="flex justify-between text-sm"><span className="text-gray-600">Punch In:</span><span className="font-medium text-gray-800">09:05 AM</span></div>
-=======
-	                <div className="flex justify-between text-sm"><span className="text-gray-600">Punch In:</span><span className="font-medium text-gray-800">09:05 AM</span></div>
->>>>>>> 723e05b51ca56d2a79566e217833e91ab777f44c:frontend/src/Admin/PayrollAttendance.jsx
                   <div className="flex justify-between text-sm"><span className="text-gray-600">Punch Out:</span><span className="font-medium text-gray-800">06:15 PM</span></div>
                   <div className="flex justify-between text-sm"><span className="text-gray-600">Total Hours:</span><span className="font-medium text-gray-800">9 hours 10 mins</span></div>
                 </div>
