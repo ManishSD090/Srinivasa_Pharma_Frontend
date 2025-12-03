@@ -21,7 +21,10 @@ const TaskManagement = () => {
   const [selectedVolunteer, setSelectedVolunteer] = useState(null);
   const navigate = useNavigate();
 
+<<<<<<< HEAD:src/Admin/TaskManagement.jsx
   // State for Creating a Task
+=======
+>>>>>>> 723e05b51ca56d2a79566e217833e91ab777f44c:frontend/src/Admin/TaskManagement.jsx
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -30,6 +33,7 @@ const TaskManagement = () => {
     assignedTo: ''
   });
 
+<<<<<<< HEAD:src/Admin/TaskManagement.jsx
   // --- NEW: State for Editing a Task ---
   const [editFormData, setEditFormData] = useState({
     id: null,
@@ -41,6 +45,8 @@ const TaskManagement = () => {
     status: ''
   });
 
+=======
+>>>>>>> 723e05b51ca56d2a79566e217833e91ab777f44c:frontend/src/Admin/TaskManagement.jsx
   const navItems = [
     { name: 'Dashboard', path: '/admin/dashboard'},
     { name: 'Order Management', path: '/admin/orders' },
@@ -65,7 +71,11 @@ const TaskManagement = () => {
 
   const overdueTasks = tasks.filter(task => {
     const today = new Date();
+<<<<<<< HEAD:src/Admin/TaskManagement.jsx
     today.setHours(0, 0, 0, 0); 
+=======
+    today.setHours(0, 0, 0, 0); // Normalize today's date
+>>>>>>> 723e05b51ca56d2a79566e217833e91ab777f44c:frontend/src/Admin/TaskManagement.jsx
     const dueDate = new Date(task.dueDate);
     return task.status !== 'Completed' && dueDate < today;
   });
@@ -79,8 +89,11 @@ const TaskManagement = () => {
   const totalPages = Math.ceil(filteredTasks.length / entriesPerPage);
   const displayedTasks = filteredTasks.slice((currentPage - 1) * entriesPerPage, currentPage * entriesPerPage);
 
+<<<<<<< HEAD:src/Admin/TaskManagement.jsx
   // --- Handlers ---
 
+=======
+>>>>>>> 723e05b51ca56d2a79566e217833e91ab777f44c:frontend/src/Admin/TaskManagement.jsx
   const handleFormChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -100,6 +113,7 @@ const TaskManagement = () => {
     setShowDeleteModal(false);
     setSelectedTask(null);
   };
+<<<<<<< HEAD:src/Admin/TaskManagement.jsx
 
   // --- NEW: Handle opening the Edit Modal ---
   const handleEditClick = (task) => {
@@ -117,6 +131,8 @@ const TaskManagement = () => {
     setTasks(tasks.map(t => t.id === editFormData.id ? editFormData : t));
     setShowEditModal(false);
   };
+=======
+>>>>>>> 723e05b51ca56d2a79566e217833e91ab777f44c:frontend/src/Admin/TaskManagement.jsx
   
   const getPriorityBadge = (priority) => {
     const styles = { 
@@ -301,8 +317,12 @@ const TaskManagement = () => {
                       <td className="py-4 px-4"><span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(task.status)}`}>{task.status}</span></td>
                       <td className="py-4 px-4">
                         <div className="flex space-x-2">
+<<<<<<< HEAD:src/Admin/TaskManagement.jsx
                           {/* UPDATED: Pass task to handleEditClick */}
                           <button onClick={() => handleEditClick(task)} className="w-8 h-8 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center" title="Edit Task"><Edit size={16} /></button>
+=======
+                          <button onClick={() => { setSelectedTask(task); setShowEditModal(true); }} className="w-8 h-8 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center" title="Edit Task"><Edit size={16} /></button>
+>>>>>>> 723e05b51ca56d2a79566e217833e91ab777f44c:frontend/src/Admin/TaskManagement.jsx
                           <button onClick={() => { setSelectedTask(task); setShowDeleteModal(true); }} className="w-8 h-8 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center" title="Delete Task"><Trash2 size={16} /></button>
                         </div>
                       </td>
@@ -312,7 +332,10 @@ const TaskManagement = () => {
               </table>
             </div>
 
+<<<<<<< HEAD:src/Admin/TaskManagement.jsx
             {/* Pagination ... (Unchanged) */}
+=======
+>>>>>>> 723e05b51ca56d2a79566e217833e91ab777f44c:frontend/src/Admin/TaskManagement.jsx
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
               <p className="text-sm text-gray-600">Showing {displayedTasks.length} of {filteredTasks.length} tasks</p>
               <div className="flex items-center space-x-2">
@@ -331,7 +354,10 @@ const TaskManagement = () => {
             </div>
           </div>
 
+<<<<<<< HEAD:src/Admin/TaskManagement.jsx
           {/* Volunteer Section (Unchanged) */}
+=======
+>>>>>>> 723e05b51ca56d2a79566e217833e91ab777f44c:frontend/src/Admin/TaskManagement.jsx
           {volunteerRequests.length > 0 && (
             <div className="bg-white rounded-xl shadow-md p-6">
               <div className="flex items-center space-x-2 mb-6">
@@ -362,8 +388,12 @@ const TaskManagement = () => {
         </main>
       </div>
 
+<<<<<<< HEAD:src/Admin/TaskManagement.jsx
       {/* --- UPDATED EDIT MODAL --- */}
       {showEditModal && editFormData && (
+=======
+      {showEditModal && selectedTask && (
+>>>>>>> 723e05b51ca56d2a79566e217833e91ab777f44c:frontend/src/Admin/TaskManagement.jsx
         <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full p-6">
             <div className="flex items-center justify-between mb-4">
@@ -373,6 +403,7 @@ const TaskManagement = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Task Title</label>
+<<<<<<< HEAD:src/Admin/TaskManagement.jsx
                 <input type="text" name="title" value={editFormData.title} onChange={handleEditFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
               </div>
               
@@ -392,30 +423,52 @@ const TaskManagement = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
                 <textarea name="description" value={editFormData.description} onChange={handleEditFormChange} rows="3" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none resize-none" />
+=======
+                <input type="text" defaultValue={selectedTask.title} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                <textarea defaultValue={selectedTask.description} rows="3" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none resize-none" />
+>>>>>>> 723e05b51ca56d2a79566e217833e91ab777f44c:frontend/src/Admin/TaskManagement.jsx
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
+<<<<<<< HEAD:src/Admin/TaskManagement.jsx
                   <select name="priority" value={editFormData.priority} onChange={handleEditFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none">
+=======
+                  <select defaultValue={selectedTask.priority} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none">
+>>>>>>> 723e05b51ca56d2a79566e217833e91ab777f44c:frontend/src/Admin/TaskManagement.jsx
                     <option value="Low">Low</option><option value="Medium">Medium</option><option value="High">High</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+<<<<<<< HEAD:src/Admin/TaskManagement.jsx
                   <input type="date" name="dueDate" value={editFormData.dueDate} onChange={handleEditFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
+=======
+                  <input type="date" defaultValue={selectedTask.dueDate} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
+>>>>>>> 723e05b51ca56d2a79566e217833e91ab777f44c:frontend/src/Admin/TaskManagement.jsx
                 </div>
               </div>
             </div>
             <div className="flex space-x-3 mt-6">
               <button onClick={() => setShowEditModal(false)} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium text-gray-700">Cancel</button>
+<<<<<<< HEAD:src/Admin/TaskManagement.jsx
               {/* Call handleUpdateTask to save */}
               <button onClick={handleUpdateTask} className="flex-1 px-4 py-2 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 transition-colors font-medium">Save Changes</button>
+=======
+              <button onClick={() => setShowEditModal(false)} className="flex-1 px-4 py-2 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 transition-colors font-medium">Save Changes</button>
+>>>>>>> 723e05b51ca56d2a79566e217833e91ab777f44c:frontend/src/Admin/TaskManagement.jsx
             </div>
           </div>
         </div>
       )}
 
+<<<<<<< HEAD:src/Admin/TaskManagement.jsx
       {/* Delete and Volunteer Modals remain unchanged... */}
+=======
+>>>>>>> 723e05b51ca56d2a79566e217833e91ab777f44c:frontend/src/Admin/TaskManagement.jsx
       {showDeleteModal && selectedTask && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
