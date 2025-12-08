@@ -4,7 +4,7 @@ import {
   ChevronLeft, ChevronRight, X, 
   Users, Menu, CheckCircle, Save 
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import AdminSidebar from './AdminSidebar';
 
 const StaffManagement = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -18,9 +18,7 @@ const StaffManagement = () => {
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedLeaveStaff, setSelectedLeaveStaff] = useState(null);
-  
-  const navigate = useNavigate();
-  
+    
   // Inline Form Data (Add New Staff) -> Added workHours
   const [formData, setFormData] = useState({
     name: '',
@@ -43,16 +41,6 @@ const StaffManagement = () => {
     role: '',
     password: ''
   });
-
-  const navItems = [
-    { name: 'Dashboard', path: '/admin/dashboard'},
-    { name: 'Order Management', path: '/admin/orders' },
-    { name: 'Inventory Checklist', path: '/admin/inventory' },
-    { name: 'Staff Management', path: '/admin/staff' },
-    { name: 'Task Management', path: '/admin/tasks' },
-    { name: 'Payroll & Attendance', path: '/admin/payroll' },
-    { name: 'Logout', path: '/' }
-  ];
 
   // Updated Mock Data with workHours
   const [staffList, setStaffList] = useState([
@@ -162,46 +150,12 @@ const StaffManagement = () => {
 
   return (
     <div className="flex h-screen bg-[#D2EAF4]">
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-none z-40 lg:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <aside className={`
-        fixed lg:static inset-y-0 left-0 z-50
-        w-64 bg-[linear-gradient(180deg,#05303B_-50.4%,#2B7C7E_20.34%,#91D8C1_80.01%)] transform transition-transform duration-300 ease-in-out
-        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-      `}>
-        <div className="p-[14px] border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-[#D2EAF4] rounded-lg flex items-center justify-center text-[#246e72] font-bold text-xl">M</div>
-              <div>
-                <h1 className="text-xl font-bold text-white">Srinivasa Pharma</h1>
-                <p className="text-xs text-white">Admin Panel</p>
-              </div>
-            </div>
-            <button className="lg:hidden text-white" onClick={() => setIsSidebarOpen(false)}>
-              <X size={24} />
-            </button>
-          </div>
-        </div>
-
-        <nav className="p-4 space-y-2">
-          {navItems.map((item, index) => (
-            <button
-              key={index}
-              onClick={() => navigate(item.path)}
-              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${window.location.pathname === item.path ? 'bg-teal-50 text-[#246e72] font-medium' : 'text-white hover:bg-gray-50 hover:text-[#246e72] font-medium'}`}
-            >
-              <span>{item.name}</span>
-            </button>
-          ))}
-        </nav>
-      </aside>
+      
+      {/* Replaced Manual Sidebar with Component */}
+      <AdminSidebar 
+        isSidebarOpen={isSidebarOpen} 
+        setIsSidebarOpen={setIsSidebarOpen} 
+      />
 
       <div className="flex-1 overflow-auto">
         <header className="bg-[#21696d] shadow-sm sticky top-0 z-30">
@@ -407,15 +361,12 @@ const StaffManagement = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Salary</label>
                 <input type="text" name="salary" value={editFormData.salary} onChange={handleEditFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" placeholder="₹..." />
               </div>
-<<<<<<< HEAD:src/Admin/StaffManagement.jsx
               {/* --- NEW WORK HOURS INPUT IN MODAL --- */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Daily Work Hours</label>
                 <input type="number" name="workHours" value={editFormData.workHours} onChange={handleEditFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" placeholder="8" />
               </div>
               {/* ------------------------------------- */}
-=======
->>>>>>> 723e05b51ca56d2a79566e217833e91ab777f44c:frontend/src/Admin/StaffManagement.jsx
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Password (Optional)</label>
                 <input type="password" name="password" value={editFormData.password} onChange={handleEditFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" placeholder="******" />
@@ -426,11 +377,7 @@ const StaffManagement = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Leaving Date</label>
-<<<<<<< HEAD:src/Admin/StaffManagement.jsx
                 <input type="date" name="leavingDate" value={editFormData.leavingDate} onChange={handleEditFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
-=======
-                <input type="date" name="leavingDate" value={editFormData.joiningDate} onChange={handleEditFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
->>>>>>> 723e05b51ca56d2a79566e217833e91ab777f44c:frontend/src/Admin/StaffManagement.jsx
               </div>
             </div>
 
@@ -467,4 +414,4 @@ const StaffManagement = () => {
   );
 };
 
-export default StaffManagement;
+export default StaffManagement; 

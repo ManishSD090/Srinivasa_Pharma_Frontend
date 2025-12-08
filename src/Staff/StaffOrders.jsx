@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { 
   Edit, Filter, ChevronLeft, ChevronRight, 
-  X, Menu, ShoppingCart, Bell, AlertTriangle, Trash2
+  Menu, ShoppingCart, Bell, AlertTriangle, Trash2
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import StaffSidebar from './StaffSidebar'; // Import the reusable component
 
 const StaffOrders = () => {
   // UI State
@@ -13,7 +13,6 @@ const StaffOrders = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [reminderMessage, setReminderMessage] = useState('');
-  const navigate = useNavigate();
 
   // --- UPDATED: Form Data (Distributor removed from root) ---
   const [formData, setFormData] = useState({
@@ -37,16 +36,6 @@ const StaffOrders = () => {
     'Sunway Medical Supplies',
     'Heritage Pharmaceuticals',
     'Reliance Pharma'
-  ];
-
-  const navItems = [
-    { name: 'Dashboard', path: '/staff/dashboard' },
-    { name: 'Orders', path: '/staff/orders' },
-    { name: 'Inventory', path: '/staff/inventory' },
-    { name: 'Tasks', path: '/staff/tasks' },
-    { name: 'Attendance', path: '/staff/attendance' },
-    { name: 'Leaves', path: '/staff/leaves' },
-    { name: 'Logout', path: '/' }
   ];
 
   // --- UPDATED: Orders Data Structure ---
@@ -90,10 +79,6 @@ const StaffOrders = () => {
       ] 
     }
   ]);
-
-  const handleNavigation = (path) => {
-    navigate(path);
-  };
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
@@ -177,34 +162,12 @@ const StaffOrders = () => {
 
   return (
     <div className="flex h-screen bg-[#D2EAF4]">
-      {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-none z-40 lg:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-
-      <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-[linear-gradient(180deg,#05303B_-50.4%,#2B7C7E_20.34%,#91D8C1_80.01%)] transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
-        <div className="p-[14px] border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-[#D2EAF4] rounded-lg flex items-center justify-center text-[#246e72] font-bold text-xl">S</div>
-              <div>
-                <h1 className="text-xl font-bold text-white">Srinivasa Pharma</h1>
-                <p className="text-xs text-white">Staff Portal</p>
-              </div>
-            </div>
-            <button className="lg:hidden text-white" onClick={() => setIsSidebarOpen(false)}><X size={24} /></button>
-          </div>
-        </div>
-        <nav className="p-4 space-y-2">
-          {navItems.map((item, index) => (
-            <button key={index} onClick={() => handleNavigation(item.path)} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${item.path === '/staff/orders' ? 'bg-teal-50 text-[#246e72] font-medium' : 'text-white hover:bg-gray-50 hover:text-[#246e72] font-medium'}`}>
-              <span>{item.name}</span>
-            </button>
-          ))}
-        </nav>
-      </aside>
+      
+      {/* Replaced Manual Sidebar with Component */}
+      <StaffSidebar 
+        isSidebarOpen={isSidebarOpen} 
+        setIsSidebarOpen={setIsSidebarOpen} 
+      />
 
       <div className="flex-1 overflow-auto">
         <header className="bg-[#21696d] shadow-sm sticky top-0 z-30">
@@ -265,7 +228,7 @@ const StaffOrders = () => {
                   
                   {/* Item Name (3 cols) */}
                   <div className="md:col-span-4">
-                     <input
+                      <input
                       type="text"
                       name="itemName"
                       placeholder="Item Name"
@@ -374,7 +337,6 @@ const StaffOrders = () => {
                 <thead>
                   <tr className="border-b border-gray-200">
                     <th className="py-3 px-4 text-sm font-semibold text-gray-600 text-left">DATE</th>
-                    {/* Removed Distributor Column */}
                     <th className="py-3 px-4 text-sm font-semibold text-gray-600 text-left">PHONE</th>
                     <th className="py-3 px-4 text-sm font-semibold text-gray-600 text-left">ITEMS & DISTRIBUTORS</th>
                     <th className="py-3 px-4 text-sm font-semibold text-gray-600 text-left">STATUS</th>

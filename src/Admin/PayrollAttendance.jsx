@@ -4,7 +4,7 @@ import {
   X, AlertCircle, Eye, FileText, 
   Edit2, Trash2, Menu, CheckCircle, Clock 
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import AdminSidebar from './AdminSidebar';
 
 const PayrollAttendancePage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -18,8 +18,6 @@ const PayrollAttendancePage = () => {
   // --- NEW: State for Punch In/Out Button ---
   const [isPunchedIn, setIsPunchedIn] = useState(true); 
   
-  const navigate = useNavigate();
-
   const [payrollItems, setPayrollItems] = useState([
     { id: 1, label: 'Base Salary', amount: 3500.00, type: 'addition', editable: false },
     { id: 2, label: 'Overtime', amount: 0, type: 'addition', editable: true },
@@ -30,16 +28,6 @@ const PayrollAttendancePage = () => {
   const [manualBonus, setManualBonus] = useState('0.00');
   const [manualDeduction, setManualDeduction] = useState('0.00');
   const [payrollNotes, setPayrollNotes] = useState('');
-
-  const navItems = [
-    { name: 'Dashboard', path: '/admin/dashboard'},
-    { name: 'Order Management', path: '/admin/orders' },
-    { name: 'Inventory Checklist', path: '/admin/inventory' },
-    { name: 'Staff Management', path: '/admin/staff' },
-    { name: 'Task Management', path: '/admin/tasks' },
-    { name: 'Payroll & Attendance', path: '/admin/payroll' },
-    { name: 'Logout', path: '/' }
-  ];
 
   const staffMembers = [
     { id: '1', name: 'Dr. Sarah Johnson' },
@@ -130,57 +118,12 @@ const PayrollAttendancePage = () => {
 
   return (
     <div className="flex h-screen bg-[#D2EAF4]">
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-none z-40 lg:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <aside className={`
-        fixed lg:static inset-y-0 left-0 z-50
-        w-64 bg-[linear-gradient(180deg,#05303B_-50.4%,#2B7C7E_20.34%,#91D8C1_80.01%)] transform transition-transform duration-300 ease-in-out
-        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-      `}>
-        <div className="p-[14px] border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-[#D2EAF4] rounded-lg flex items-center justify-center text-[#246e72] font-bold text-xl">
-                M
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-white">Srinivasa Pharma</h1>
-                <p className="text-xs text-white">Admin Panel</p>
-              </div>
-            </div>
-            <button
-              className="lg:hidden text-white"
-              onClick={() => setIsSidebarOpen(false)}
-            >
-              <X size={24} />
-            </button>
-          </div>
-        </div>
-
-        <nav className="p-4 space-y-2">
-          {navItems.map((item, index) => (
-            <button
-              key={index}
-              onClick={() => navigate(item.path)}
-              className={`
-                w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors
-                ${item.path === '/admin/payroll'
-                  ? 'bg-teal-50 text-[#246e72] font-medium'
-                  : 'text-white hover:bg-gray-50 hover:text-[#246e72] font-medium'
-                }
-              `}
-            >
-              <span>{item.name}</span>
-            </button>
-          ))}
-        </nav>
-      </aside>
+      
+      {/* Replaced Manual Sidebar with Component */}
+      <AdminSidebar 
+        isSidebarOpen={isSidebarOpen} 
+        setIsSidebarOpen={setIsSidebarOpen} 
+      />
 
       <div className="flex-1 overflow-auto">
         <header className="bg-[#21696d] shadow-sm sticky top-0 z-30">
@@ -249,58 +192,58 @@ const PayrollAttendancePage = () => {
             </div>
           </div>
 
-                        {/* --- UPDATED TODAY'S ATTENDANCE CARD WITH BUTTON --- */}
-              <div className="bg-white rounded-xl shadow-md p-6">
-                <h3 className="text-xl font-bold text-gray-800 mb-4">Today's Attendance</h3>
-                <div>
-                  <p className="text-lg font-semibold text-gray-700 mb-1">Monday, January 15, 2025</p>
-                  <p className="text-sm text-gray-500 mb-4">Current Time: 02:45 PM</p>
-                  
-                  <div className="space-y-3 mb-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Status:</span>
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${isPunchedIn ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
-                        {isPunchedIn ? 'Punched In' : 'Punched Out'}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Punch In:</span>
-                      <span className="text-sm font-semibold text-gray-800">08:00 AM</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Punch Out:</span>
-                      <span className="text-sm font-semibold text-gray-800">{isPunchedIn ? '--:-- --' : '06:00 PM'}</span>
-                    </div>
-                  </div>
+          {/* --- UPDATED TODAY'S ATTENDANCE CARD WITH BUTTON --- */}
+          <div className="bg-white rounded-xl shadow-md p-6">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">Today's Attendance</h3>
+            <div>
+              <p className="text-lg font-semibold text-gray-700 mb-1">Monday, January 15, 2025</p>
+              <p className="text-sm text-gray-500 mb-4">Current Time: 02:45 PM</p>
+              
+              <div className="space-y-3 mb-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Status:</span>
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${isPunchedIn ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
+                    {isPunchedIn ? 'Punched In' : 'Punched Out'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Punch In:</span>
+                  <span className="text-sm font-semibold text-gray-800">08:00 AM</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Punch Out:</span>
+                  <span className="text-sm font-semibold text-gray-800">{isPunchedIn ? '--:-- --' : '06:00 PM'}</span>
+                </div>
+              </div>
 
-                  {/* --- NEW BUTTON HERE --- */}
-                  <button
-                    onClick={handlePunchInOut}
-                    className="w-full bg-[#246e72] text-white py-3 rounded-lg hover:bg-[#1a5256] transition-colors font-medium mb-6"
-                  >
-                    {isPunchedIn ? 'Punch Out' : 'Punch In'}
-                  </button>
-                  {/* ----------------------- */}
+              {/* --- NEW BUTTON HERE --- */}
+              <button
+                onClick={handlePunchInOut}
+                className="w-full bg-[#246e72] text-white py-3 rounded-lg hover:bg-[#1a5256] transition-colors font-medium mb-6"
+              >
+                {isPunchedIn ? 'Punch Out' : 'Punch In'}
+              </button>
+              {/* ----------------------- */}
 
-                  <div className="mt-2 pt-6 border-t border-gray-200">
-                    <p className="text-sm text-gray-600 mb-2">Hours Worked Today</p>
-                    <p className="text-3xl font-bold text-[#246e72] mb-2">6.75h / 10h</p>
-                    <div className="w-full bg-gray-200 rounded-full h-4 mb-4">
-                      <div className="bg-[#246e72] h-4 rounded-full transition-all duration-300" style={{ width: '68%' }} />
-                    </div>
-                    <div className="bg-[#D2EAF4] rounded-lg p-4">
-                      <div className="flex items-start space-x-2">
-                        <CheckCircle className="text-green-600 mt-0.5" size={20} />
-                        <div>
-                          <p className="text-sm font-semibold text-gray-800">On Track!</p>
-                          <p className="text-xs text-gray-600">You've completed 68% of your target hours</p>
-                        </div>
-                      </div>
+              <div className="mt-2 pt-6 border-t border-gray-200">
+                <p className="text-sm text-gray-600 mb-2">Hours Worked Today</p>
+                <p className="text-3xl font-bold text-[#246e72] mb-2">6.75h / 10h</p>
+                <div className="w-full bg-gray-200 rounded-full h-4 mb-4">
+                  <div className="bg-[#246e72] h-4 rounded-full transition-all duration-300" style={{ width: '68%' }} />
+                </div>
+                <div className="bg-[#D2EAF4] rounded-lg p-4">
+                  <div className="flex items-start space-x-2">
+                    <CheckCircle className="text-green-600 mt-0.5" size={20} />
+                    <div>
+                      <p className="text-sm font-semibold text-gray-800">On Track!</p>
+                      <p className="text-xs text-gray-600">You've completed 68% of your target hours</p>
                     </div>
                   </div>
                 </div>
               </div>
-              {/* --- END UPDATED CARD --- */}
+            </div>
+          </div>
+          {/* --- END UPDATED CARD --- */}
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 bg-white rounded-xl shadow-md p-6">

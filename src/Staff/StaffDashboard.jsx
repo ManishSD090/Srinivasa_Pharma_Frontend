@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { 
   ClipboardCheck, Clock, Bell, CheckCircle, 
-  Menu, X, User, Calendar, 
-  Edit, Eye // Added Edit and Eye for task actions
+  Menu, User, Calendar, 
+  Edit, Eye 
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useNavigate } from 'react-router-dom';
+import StaffSidebar from './StaffSidebar'; // Import the component
 
 const StaffDashboard = () => {
   // UI State
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate();
 
   // Dashboard Stats
   const statsCards = [
@@ -70,17 +71,6 @@ const StaffDashboard = () => {
     { id: 4, message: 'Monthly performance review available', time: '2 days ago' }
   ];
 
-  // Navigation items
-  const navItems = [
-    { name: 'Dashboard', path: '/staff/dashboard' },
-    { name: 'Orders', path: '/staff/orders' },
-    { name: 'Inventory', path: '/staff/inventory' },
-    { name: 'Tasks', path: '/staff/tasks' },
-    { name: 'Attendance', path: '/staff/attendance' },
-    { name: 'Leaves', path: '/staff/leaves' },
-    { name: 'Logout', path: '/' }
-  ];
-
   // Handlers
   const handleViewTask = (task) => {
     console.log('Viewing task:', task);
@@ -88,11 +78,6 @@ const StaffDashboard = () => {
 
   const handleUpdateTask = (task) => {
     console.log('Updating task:', task);
-  };
-
-  // Use navigate hook for navigation
-  const handleNavigation = (path) => {
-    navigate(path);
   };
 
   // Utility functions
@@ -108,59 +93,12 @@ const StaffDashboard = () => {
 
   return (
     <div id='dashboard' className="flex h-screen bg-[#D2EAF4]">
-      {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-none z-40 lg:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <aside
-        className={`
-          fixed lg:static inset-y-0 left-0 z-50
-          w-64 bg-[linear-gradient(180deg,#05303B_-50.4%,#2B7C7E_20.34%,#91D8C1_80.01%)] transform transition-transform duration-300 ease-in-out
-          ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-        `}
-      >
-        <div className="p-[14px] border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-[#D2EAF4] rounded-lg flex items-center justify-center text-[#246e72] font-bold text-xl">
-                S
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-white">Srinivasa Pharma</h1>
-                <p className="text-xs text-white">Staff Portal</p>
-              </div>
-            </div>
-            <button
-              className="lg:hidden text-white"
-              onClick={() => setIsSidebarOpen(false)}
-            >
-              <X size={24} />
-            </button>
-          </div>
-        </div>
-
-        <nav className="p-4 space-y-2">
-          {navItems.map((item, index) => (
-            <button
-              key={index}
-              onClick={() => handleNavigation(item.path)}
-              className={`
-                w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors
-                ${window.location.pathname === item.path
-                  ? 'bg-teal-50 text-[#246e72] font-medium'
-                  : 'text-white hover:bg-gray-50 hover:text-[#246e72] font-medium'
-                }
-              `}
-            >
-              <span>{item.name}</span>
-            </button>
-          ))}
-        </nav>
-      </aside>
+      
+      {/* Replaced Manual Sidebar with Component */}
+      <StaffSidebar 
+        isSidebarOpen={isSidebarOpen} 
+        setIsSidebarOpen={setIsSidebarOpen} 
+      />
 
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
@@ -242,7 +180,6 @@ const StaffDashboard = () => {
                           {task.status}
                         </span>
                       </td>
-                      {/* === TASK ACTIONS BUTTONS === */}
                       <td className="py-4 px-4">
                         <div className="flex space-x-2">
                           <button
@@ -261,7 +198,6 @@ const StaffDashboard = () => {
                           </button>
                         </div>
                       </td>
-                      {/* ========================== */}
                     </tr>
                   ))}
                 </tbody>
@@ -313,8 +249,6 @@ const StaffDashboard = () => {
                     />
                   </div>
                 </div>
-                
-                {/* Button Removed */}
               </div>
             </div>
 
@@ -378,15 +312,24 @@ const StaffDashboard = () => {
           <div className="bg-white rounded-xl shadow-md p-6">
             <h3 className="text-xl font-bold text-gray-800 mb-4">Quick Actions</h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <button className="bg-[#246e72] text-white py-3 px-4 rounded-lg hover:bg-[#1a5256] transition-colors font-medium flex items-center justify-center space-x-2">
+              <button 
+                onClick={() => navigate('/staff/tasks')}
+                className="bg-[#246e72] text-white py-3 px-4 rounded-lg hover:bg-[#1a5256] transition-colors font-medium flex items-center justify-center space-x-2"
+              >
                 <ClipboardCheck size={18} />
                 <span>View All Tasks</span>
               </button>
-              <button className="bg-[#246e72] text-white py-3 px-4 rounded-lg hover:bg-[#1a5256] transition-colors font-medium flex items-center justify-center space-x-2">
+              <button 
+                onClick={() => navigate('/staff/leaves')}
+                className="bg-[#246e72] text-white py-3 px-4 rounded-lg hover:bg-[#1a5256] transition-colors font-medium flex items-center justify-center space-x-2"
+              >
                 <Calendar size={18} />
                 <span>Apply for Leave</span>
               </button>
-              <button className="bg-[#246e72] text-white py-3 px-4 rounded-lg hover:bg-[#1a5256] transition-colors font-medium flex items-center justify-center space-x-2">
+              <button 
+                onClick={() => navigate('/staff/attendance')}
+                className="bg-[#246e72] text-white py-3 px-4 rounded-lg hover:bg-[#1a5256] transition-colors font-medium flex items-center justify-center space-x-2"
+              >
                 <Clock size={18} />
                 <span>Attendance History</span>
               </button>
