@@ -175,6 +175,42 @@ function Login() {
               </svg>
               Sign In
             </button>
+
+            {/* Divider */}
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-[#d2eaf4] text-gray-500">Or continue with</span>
+              </div>
+            </div>
+
+            {/* Google Login Button */}
+            <button
+              onClick={() => console.log('Google Login Clicked')}
+              className="w-full py-3 px-6 rounded-xl font-semibold text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:shadow-md transform hover:scale-[1.02] transition-all duration-200 flex items-center justify-center"
+            >
+              <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                <path
+                  fill="#EA4335"
+                  d="M5.266 9.765A7.077 7.077 0 0 1 12 4.909c1.69 0 3.218.6 4.418 1.582L19.91 3C17.782 1.145 15.055 0 12 0 7.273 0 3.191 2.691 1.145 6.655l4.121 3.11z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M16.04 18.013c-1.09.593-2.325.896-3.618.896-3.24 0-6.063-2.09-7.12-5.007L1.145 17.02C3.191 21.018 7.273 24 12 24c3.11 0 5.927-1.09 8.09-2.936l-4.05-3.051z"
+                />
+                <path
+                  fill="#4285F4"
+                  d="M23.49 12.275c0-.827-.073-1.623-.21-2.396H12v4.54h6.44c-.28 1.487-1.12 2.753-2.4 3.594l4.05 3.051c2.373-2.183 3.4-5.39 3.4-8.789z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.266 14.235A6.974 6.974 0 0 1 4.909 12c0-.782.136-1.536.357-2.235L1.145 6.655A11.97 11.97 0 0 0 0 12c0 1.92.445 3.736 1.245 5.345l4.021-3.11z"
+                />
+              </svg>
+              Sign in with Google
+            </button>
           </div>
 
           {/* Help Section */}

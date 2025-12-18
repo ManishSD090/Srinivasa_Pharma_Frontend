@@ -19,7 +19,7 @@ const StaffAttendance = () => {
     date: 'Monday, January 15, 2025',
     currentTime: '02:45 PM',
     punchInTime: '08:00 AM',
-    punchOutTime: '--:-- --', // Placeholder for current active day
+    punchOutTime: '--:-- --',
     hoursWorked: 6.75,
     targetHours: 10,
     status: 'Present'
@@ -66,7 +66,7 @@ const StaffAttendance = () => {
 
   // Calendar grid generation
   const daysInMonth = 31;
-  const firstDayOfWeek = 3; // Wednesday for Jan 1, 2025
+  const firstDayOfWeek = 3; 
   const weeks = [];
   let week = new Array(firstDayOfWeek).fill(null);
 
@@ -106,11 +106,7 @@ const StaffAttendance = () => {
   return (
     <div className="flex h-screen bg-[#D2EAF4]">
       
-      {/* Replaced Manual Sidebar with Component */}
-      <StaffSidebar 
-        isSidebarOpen={isSidebarOpen} 
-        setIsSidebarOpen={setIsSidebarOpen} 
-      />
+      <StaffSidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
 
       <div className="flex-1 overflow-auto">
         <header className="bg-[#21696d] shadow-sm sticky top-0 z-30">
@@ -146,7 +142,7 @@ const StaffAttendance = () => {
               <h3 className="text-xl font-bold text-gray-800 mb-4">Today's Attendance</h3>
               
               <div>
-                {/* Punch In Details Section (Read Only) */}
+                {/* Punch In Details Section */}
                 <div>
                   <p className="text-lg font-semibold text-gray-700 mb-2">{todayAttendance.date}</p>
                   <p className="text-sm text-gray-500 mb-4">Current Time: {todayAttendance.currentTime}</p>
@@ -198,12 +194,13 @@ const StaffAttendance = () => {
             <div className="bg-white rounded-xl shadow-md p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-bold text-gray-800">Attendance Calendar</h3>
+                {/* Updated Navigation Buttons to Match Theme */}
                 <div className="flex items-center space-x-2">
-                  <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                  <button className="p-2 border border-gray-300 rounded-lg text-[#246e72] hover:bg-teal-50 transition-colors">
                     <ChevronLeft size={20} />
                   </button>
                   <span className="text-sm font-medium text-gray-700 min-w-[120px] text-center">{selectedMonth}</span>
-                  <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                  <button className="p-2 border border-gray-300 rounded-lg text-[#246e72] hover:bg-teal-50 transition-colors">
                     <ChevronRight size={20} />
                   </button>
                 </div>
@@ -269,7 +266,7 @@ const StaffAttendance = () => {
             {summaryStats.map((stat, index) => {
               const Icon = stat.icon;
               return (
-                <div key={index} className="bg-white rounded-xl shadow-md p-6">
+                <div key={index} className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <p className="text-sm text-gray-600 mb-1">{stat.title}</p>
@@ -290,11 +287,12 @@ const StaffAttendance = () => {
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
               <h3 className="text-xl font-bold text-gray-800">Attendance History</h3>
               
+              {/* --- UPDATED FILTER CONTROLS TO MATCH ADMIN THEME --- */}
               <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
                 <select
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm w-full sm:w-auto"
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 text-sm font-medium focus:ring-2 focus:ring-[#246e72] outline-none w-full sm:w-auto"
                 >
                   <option>January 2025</option>
                   <option>December 2024</option>
@@ -304,7 +302,7 @@ const StaffAttendance = () => {
                 <select
                   value={entriesPerPage}
                   onChange={(e) => setEntriesPerPage(Number(e.target.value))}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm w-full sm:w-auto"
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 text-sm font-medium focus:ring-2 focus:ring-[#246e72] outline-none w-full sm:w-auto"
                 >
                   <option value={10}>Show 10</option>
                   <option value={50}>Show 50</option>
@@ -314,7 +312,7 @@ const StaffAttendance = () => {
                 <div className="relative w-full sm:w-auto">
                   <button
                     onClick={() => setShowExportDropdown(!showExportDropdown)}
-                    className="bg-[#246e72] text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors font-medium flex items-center space-x-2 w-full justify-center sm:w-auto"
+                    className="bg-[#246e72] text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors font-medium flex items-center space-x-2 w-full justify-center sm:w-auto text-sm"
                   >
                     <Download size={18} />
                     <span>Export</span>

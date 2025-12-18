@@ -63,7 +63,7 @@ const StaffSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                 w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors
                 ${location.pathname === item.path
                   ? 'bg-teal-50 text-[#246e72] font-medium'
-                  : 'text-white hover:bg-gray-50 hover:text-[#246e72] font-medium'
+                  : 'text-white hover:bg-red-50 hover:text-[#246e72] font-medium'
                 }
               `}
             >

@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { 
   ClipboardCheck, CheckCircle, Clock, AlertTriangle,
   Edit, Trash2, Download, ChevronLeft, ChevronRight, 
-  X, Menu, Eye
+  X, Menu, Eye, Save, Send, Filter
 } from 'lucide-react';
-import StaffSidebar from './StaffSidebar'; // Import the component
+import StaffSidebar from './StaffSidebar'; 
 
 const StaffTask = () => {
   // UI State
@@ -12,28 +12,30 @@ const StaffTask = () => {
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterPriority, setFilterPriority] = useState('All');
-  const [filterStatus, setFilterStatus] = useState('All');
-  const [selectedTasks, setSelectedTasks] = useState([]);
+  
+  // --- UPDATED FILTER STATE (Matches Admin Theme) ---
+  const [activeFilter, setActiveFilter] = useState('All');
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  const [showExportDropdown, setShowExportDropdown] = useState(false);
 
-  // Form Data for adding personal task/note
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    priority: '',
-    deadline: ''
-  });
+  // --- Modal States ---
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [viewTask, setViewTask] = useState(null);
+
+  const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+  const [taskToUpdate, setTaskToUpdate] = useState(null);
+  const [newStatus, setNewStatus] = useState('');
 
   // Summary stats
   const summaryCards = [
-    { title: 'Total Tasks Assigned', value: '24', icon: ClipboardCheck, color: 'text-[#246e72]', bgColor: 'bg-teal-50' },
-    { title: 'Completed Tasks', value: '16', icon: CheckCircle, color: 'text-green-600', bgColor: 'bg-green-50' },
-    { title: 'Pending Tasks', value: '6', icon: Clock, color: 'text-yellow-600', bgColor: 'bg-yellow-50' },
-    { title: 'Overdue Tasks', value: '2', icon: AlertTriangle, color: 'text-red-600', bgColor: 'bg-red-50' }
+    { title: 'Total Tasks Assigned', value: '24', icon: ClipboardCheck, color: 'text-teal-600', bg: 'bg-teal-50' },
+    { title: 'Completed Tasks', value: '16', icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50' },
+    { title: 'Pending Tasks', value: '6', icon: Clock, color: 'text-yellow-600', bg: 'bg-yellow-50' },
+    { title: 'Overdue Tasks', value: '2', icon: AlertTriangle, color: 'text-red-600', bg: 'bg-red-50' }
   ];
 
   // Tasks Data
-  const [tasks] = useState([
+  const [tasks, setTasks] = useState([
     { 
       id: 1, 
       title: 'Inventory Stock Check', 
@@ -84,22 +86,54 @@ const StaffTask = () => {
     }
   ]);
 
-  // Handlers
+  // --- Handlers ---
+
   const handleViewTask = (task) => {
-    alert(`Viewing details for task: ${task.title}`);
+    setViewTask(task);
+    setIsViewModalOpen(true);
   };
 
-  const handleUpdateTask = (task) => {
-    alert(`Updating status for task: ${task.title}`);
+  const handleEditClick = (task) => {
+    setTaskToUpdate(task);
+    setNewStatus(task.status); 
+    setIsStatusModalOpen(true);
   };
 
-  // Filter tasks
+  const handleRequestStatusChange = () => {
+    if (newStatus === taskToUpdate.status) {
+      alert("No changes made to status.");
+      return;
+    }
+    // Simulation of sending request
+    alert(`Request Sent Successfully!\n\nAdmin will review your request to change status of "${taskToUpdate.title}" from '${taskToUpdate.status}' to '${newStatus}'.`);
+    
+    setIsStatusModalOpen(false);
+    setTaskToUpdate(null);
+  };
+
+  const handleFilterSelect = (filterType) => {
+    setActiveFilter(filterType);
+    setShowFilterDropdown(false);
+    setCurrentPage(1); 
+  };
+
+  // --- UPDATED Filter Logic (Unified) ---
   const filteredTasks = tasks.filter(task => {
     const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           task.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesPriority = filterPriority === 'All' || task.priority === filterPriority;
-    const matchesStatus = filterStatus === 'All' || task.status === filterStatus;
-    return matchesSearch && matchesPriority && matchesStatus;
+    
+    let matchesFilter = true;
+    if (activeFilter === 'All') {
+      matchesFilter = true;
+    } else if (['High', 'Medium', 'Low'].includes(activeFilter)) {
+      // Filter by Priority
+      matchesFilter = task.priority === activeFilter;
+    } else {
+      // Filter by Status
+      matchesFilter = task.status === activeFilter;
+    }
+
+    return matchesSearch && matchesFilter;
   });
 
   // Pagination
@@ -132,58 +166,41 @@ const StaffTask = () => {
   return (
     <div className="flex h-screen bg-[#D2EAF4]">
       
-      {/* Replaced Manual Sidebar with Component */}
-      <StaffSidebar 
-        isSidebarOpen={isSidebarOpen} 
-        setIsSidebarOpen={setIsSidebarOpen} 
-      />
+      <StaffSidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
 
-      {/* Main Content */}
       <div className="flex-1 overflow-auto">
-        {/* Header */}
         <header className="bg-[#21696d] shadow-sm sticky top-0 z-30">
           <div className="flex items-center justify-between px-4 lg:px-8 py-4">
             <div className="flex items-center space-x-4">
-              <button 
-                className="lg:hidden text-white"
-                onClick={() => setIsSidebarOpen(true)}
-              >
-                <Menu size={24} />
-              </button>
+              <button className="lg:hidden text-white" onClick={() => setIsSidebarOpen(true)}><Menu size={24} /></button>
               <h2 className="text-2xl font-bold text-white">Staff Tasks</h2>
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-white hidden sm:block">Welcome,</span>
               <div className="flex items-center space-x-2">
                 <span className="text-sm font-medium text-white hidden sm:block">Sarah Johnson</span>
-                <div className="w-10 h-10 bg-[#D2EAF4] rounded-full flex items-center justify-center text-[#246e72] font-semibold">
-                  SJ
-                </div>
+                <div className="w-10 h-10 bg-[#D2EAF4] rounded-full flex items-center justify-center text-[#246e72] font-semibold">SJ</div>
               </div>
             </div>
           </div>
         </header>
 
-        {/* Main Content */}
         <main className="p-4 lg:p-8 space-y-6">
           {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-            {summaryCards.map((card, index) => {
-              const Icon = card.icon;
-              return (
-                <div key={index} className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <p className="text-sm text-gray-600 mb-1">{card.title}</p>
-                      <h3 className="text-3xl font-bold text-gray-800">{card.value}</h3>
-                    </div>
-                    <div className={`p-3 rounded-lg ${card.bgColor}`}>
-                      <Icon className={card.color} size={24} />
-                    </div>
+            {summaryCards.map((card, index) => (
+              <div key={index} className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">{card.title}</p>
+                    <h3 className="text-3xl font-bold text-gray-800">{card.value}</h3>
+                  </div>
+                  <div className={`p-3 rounded-lg ${card.bg} ${card.color}`}>
+                    <card.icon size={24} />
                   </div>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
 
           {/* Tasks Table */}
@@ -195,51 +212,58 @@ const StaffTask = () => {
               <h3 className="text-xl font-bold text-gray-800">Task List</h3>
             </div>
 
-            {/* Table Controls */}
+            {/* --- UPDATED TABLE CONTROLS (Matches Orders Page Theme) --- */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
               <div className="flex flex-wrap items-center gap-3">
                 <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Search tasks..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full sm:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm"
-                  />
+                  <button 
+                    onClick={() => setShowFilterDropdown(!showFilterDropdown)} 
+                    className={`px-4 py-2 rounded-lg transition-colors font-medium flex items-center space-x-2 text-sm ${activeFilter !== 'All' ? 'bg-teal-100 text-teal-800 border border-teal-200' : 'bg-[#246e72] text-white hover:bg-teal-700'}`}
+                  >
+                    <Filter size={18} />
+                    <span>{activeFilter === 'All' ? 'Filter' : activeFilter}</span>
+                  </button>
+                  {showFilterDropdown && (
+                    <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                      <div className="py-1">
+                        <button onClick={() => handleFilterSelect('All')} className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-gray-700 font-medium">All Tasks</button>
+                      </div>
+                      
+                      <div className="border-t border-gray-100 my-1"></div>
+                      <div className="px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">By Status</div>
+                      {['Pending', 'In Progress', 'Completed', 'Overdue'].map(status => (
+                        <button key={status} onClick={() => handleFilterSelect(status)} className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-gray-700">{status}</button>
+                      ))}
+
+                      <div className="border-t border-gray-100 my-1"></div>
+                      <div className="px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">By Priority</div>
+                      {['High', 'Medium', 'Low'].map(prio => (
+                         <button key={prio} onClick={() => handleFilterSelect(prio)} className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-gray-700">{prio}</button>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
-                <select
-                  value={filterPriority}
-                  onChange={(e) => setFilterPriority(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm"
-                >
-                  <option value="All">All Priority</option>
-                  <option value="High">High</option>
-                  <option value="Medium">Medium</option>
-                  <option value="Low">Low</option>
-                </select>
-
-                <select
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm"
-                >
-                  <option value="All">All Status</option>
-                  <option value="Pending">Pending</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Completed">Completed</option>
-                  <option value="Overdue">Overdue</option>
-                </select>
-
-                <select
-                  value={entriesPerPage}
-                  onChange={(e) => setEntriesPerPage(Number(e.target.value))}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm"
-                >
+                <select value={entriesPerPage} onChange={(e) => setEntriesPerPage(Number(e.target.value))} className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm">
                   <option value={10}>Show 10</option>
                   <option value={50}>Show 50</option>
                   <option value={100}>Show 100</option>
                 </select>
+
+                <div className="relative">
+                  <button onClick={() => setShowExportDropdown(!showExportDropdown)} className="bg-[#246e72] text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors font-medium flex items-center space-x-2 text-sm">
+                    <Download size={18} /><span>Export</span>
+                  </button>
+                  {showExportDropdown && (
+                    <div className="absolute top-full left-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                      <button className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm text-gray-700">Excel</button>
+                      <button className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm text-gray-700">PDF</button>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="w-full sm:w-auto">
+                <input type="text" placeholder="Search tasks..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full sm:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm" />
               </div>
             </div>
 
@@ -260,7 +284,7 @@ const StaffTask = () => {
                   {displayedTasks.map(task => (
                     <tr key={task.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                       <td className="py-4 px-4 text-sm text-gray-800 font-medium">{task.title}</td>
-                      <td className="py-4 px-4 text-sm text-gray-600">{task.description}</td>
+                      <td className="py-4 px-4 text-sm text-gray-600 max-w-xs truncate">{task.description}</td>
                       <td className="py-4 px-4">
                         <span className={`px-3 py-1 rounded-full text-xs font-medium ${getPriorityStyle(task.priority)}`}>
                           {task.priority}
@@ -274,17 +298,17 @@ const StaffTask = () => {
                       </td>
                       <td className="py-4 px-4">
                         <div className="flex space-x-2">
-                          <button
-                            onClick={() => handleViewTask(task)}
-                            title="View Details"
-                            className="w-8 h-8 bg-[#246e72] text-white rounded-lg hover:bg-[#1a5256] transition-colors flex items-center justify-center"
+                          <button 
+                            onClick={() => handleViewTask(task)} 
+                            title="View Details" 
+                            className="w-8 h-8 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center"
                           >
                             <Eye size={16} />
                           </button>
-                          <button
-                            onClick={() => handleUpdateTask(task)}
-                            title="Update Status"
-                            className="w-8 h-8 bg-[#246e72] text-white rounded-lg hover:bg-[#1a5256] transition-colors flex items-center justify-center"
+                          <button 
+                            onClick={() => handleEditClick(task)} 
+                            title="Request Status Change" 
+                            className="w-8 h-8 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center"
                           >
                             <Edit size={16} />
                           </button>
@@ -298,47 +322,138 @@ const StaffTask = () => {
 
             {/* Pagination */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
-              <p className="text-sm text-gray-600">
-                Showing {displayedTasks.length} of {filteredTasks.length} tasks
-              </p>
-              
+              <p className="text-sm text-gray-600">Showing {displayedTasks.length} of {filteredTasks.length} tasks</p>
               <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                  disabled={currentPage === 1}
-                  className="px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1 text-sm"
-                >
-                  <ChevronLeft size={16} />
-                  <span className="hidden sm:inline">Previous</span>
-                </button>
-                
-                {[...Array(totalPages)].map((_, index) => (
-                  <button
-                    key={index + 1}
-                    onClick={() => setCurrentPage(index + 1)}
-                    className={`w-10 h-10 rounded-lg transition-colors text-sm font-medium ${
-                      currentPage === index + 1
-                        ? 'bg-[#246e72] text-white'
-                        : 'border border-gray-300 hover:bg-gray-50 text-gray-700'
-                    }`}
-                  >
-                    {index + 1}
-                  </button>
-                ))}
-                
-                <button
-                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1 text-sm"
-                >
-                  <span className="hidden sm:inline">Next</span>
-                  <ChevronRight size={16} />
-                </button>
+                <button onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} disabled={currentPage === 1} className="p-1 rounded-md bg-gray-100 disabled:opacity-50"><ChevronLeft size={18} /></button>
+                <button onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} disabled={currentPage === totalPages} className="p-1 rounded-md bg-gray-100 disabled:opacity-50"><ChevronRight size={18} /></button>
               </div>
             </div>
           </div>
         </main>
       </div>
+
+      {/* --- VIEW TASK MODAL (Preview Only) --- */}
+      {isViewModalOpen && viewTask && (
+        <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full overflow-hidden">
+            <div className="bg-[#246e72] px-6 py-4 flex justify-between items-center">
+              <h3 className="text-lg font-bold text-white">Task Preview</h3>
+              <button onClick={() => setIsViewModalOpen(false)} className="text-white hover:bg-teal-700 p-1 rounded-full">
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Title</label>
+                <p className="text-gray-800 font-bold text-xl">{viewTask.title}</p>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Description</label>
+                <p className="text-gray-700 bg-gray-50 p-3 rounded border border-gray-100 mt-1">
+                  {viewTask.description}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Priority</label>
+                  <div className="mt-1">
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getPriorityStyle(viewTask.priority)}`}>
+                      {viewTask.priority}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</label>
+                  <div className="mt-1">
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusStyle(viewTask.status)}`}>
+                      {viewTask.status}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Due Date</label>
+                <p className="text-gray-800 font-medium">{viewTask.deadline}</p>
+              </div>
+            </div>
+
+            <div className="bg-gray-50 px-6 py-4 flex justify-end">
+              <button onClick={() => setIsViewModalOpen(false)} className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-medium">Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- STATUS REQUEST MODAL (Restricted Edit) --- */}
+      {isStatusModalOpen && taskToUpdate && (
+        <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden">
+            <div className="bg-[#246e72] px-6 py-4 flex justify-between items-center">
+              <h3 className="text-lg font-bold text-white">Update Task Status</h3>
+              <button onClick={() => setIsStatusModalOpen(false)} className="text-white hover:bg-teal-700 p-1 rounded-full">
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
+                <div className="flex items-start">
+                  <AlertTriangle className="text-yellow-500 mr-2 shrink-0" size={20} />
+                  <p className="text-sm text-yellow-700">
+                    <strong>Note:</strong> You can only request a status change. The Admin must approve this request before the task status is updated.
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Task Title</label>
+                <input 
+                  type="text" 
+                  value={taskToUpdate.title} 
+                  disabled 
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Current Status</label>
+                <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium mb-2 ${getStatusStyle(taskToUpdate.status)}`}>
+                  {taskToUpdate.status}
+                </span>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">New Status Request</label>
+                <select 
+                  value={newStatus} 
+                  onChange={(e) => setNewStatus(e.target.value)} 
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none"
+                >
+                  <option value="Pending">Pending</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Completed">Completed</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
+              <button onClick={() => setIsStatusModalOpen(false)} className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">Cancel</button>
+              <button 
+                onClick={handleRequestStatusChange} 
+                className="px-4 py-2 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center space-x-2"
+              >
+                <Send size={16} />
+                <span>Send Request</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

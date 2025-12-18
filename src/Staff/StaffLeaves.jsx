@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { 
   CalendarCheck, Clock, CheckCircle, XCircle,
-  ChevronLeft, ChevronRight, Menu
+  ChevronLeft, ChevronRight, Menu, Filter, Download
 } from 'lucide-react';
-import StaffSidebar from './StaffSidebar'; // Import the component
+import StaffSidebar from './StaffSidebar';
 
 const StaffLeaves = () => {
   // UI State
@@ -11,7 +11,11 @@ const StaffLeaves = () => {
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // --- UPDATED FILTER STATE ---
   const [filterStatus, setFilterStatus] = useState('All');
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  const [showExportDropdown, setShowExportDropdown] = useState(false);
 
   // Form Data
   const [formData, setFormData] = useState({
@@ -32,62 +36,91 @@ const StaffLeaves = () => {
   // Leave History Data
   const [leaveData] = useState([
     { 
-      id: 1, 
-      type: 'Sick Leave', 
-      fromDate: '2024-01-15', 
-      toDate: '2024-01-16', 
-      status: 'Approved',
-      remarks: 'Medical certificate verified'
+      id: 1, type: 'Sick Leave', fromDate: '2024-01-15', toDate: '2024-01-16', 
+      status: 'Approved', remarks: 'Medical certificate verified'
     },
     { 
-      id: 2, 
-      type: 'Casual Leave', 
-      fromDate: '2024-01-10', 
-      toDate: '2024-01-10', 
-      status: 'Approved',
-      remarks: 'Personal work'
+      id: 2, type: 'Casual Leave', fromDate: '2024-01-10', toDate: '2024-01-10', 
+      status: 'Approved', remarks: 'Personal work'
     },
     { 
-      id: 3, 
-      type: 'Annual Leave', 
-      fromDate: '2024-02-05', 
-      toDate: '2024-02-07', 
-      status: 'Pending',
-      remarks: 'Awaiting manager approval'
+      id: 3, type: 'Annual Leave', fromDate: '2024-02-05', toDate: '2024-02-07', 
+      status: 'Pending', remarks: 'Awaiting manager approval'
     },
     { 
-      id: 4, 
-      type: 'Sick Leave', 
-      fromDate: '2024-01-20', 
-      toDate: '2024-01-21', 
-      status: 'Rejected',
-      remarks: 'Insufficient documentation'
+      id: 4, type: 'Sick Leave', fromDate: '2024-01-20', toDate: '2024-01-21', 
+      status: 'Rejected', remarks: 'Insufficient documentation'
     },
     { 
-      id: 5, 
-      type: 'Casual Leave', 
-      fromDate: '2024-01-25', 
-      toDate: '2024-01-25', 
-      status: 'Pending',
-      remarks: 'Family function'
+      id: 5, type: 'Casual Leave', fromDate: '2024-01-25', toDate: '2024-01-25', 
+      status: 'Pending', remarks: 'Family function'
     },
     { 
-      id: 6, 
-      type: 'Annual Leave', 
-      fromDate: '2024-03-10', 
-      toDate: '2024-03-15', 
-      status: 'Approved',
-      remarks: 'Vacation planned'
-    }
+      id: 6, type: 'Annual Leave', fromDate: '2024-03-10', toDate: '2024-03-15', 
+      status: 'Approved', remarks: 'Vacation planned'
+    },
+    { 
+      id: 7, type: 'Sick Leave', fromDate: '2024-04-01', toDate: '2024-04-02', 
+      status: 'Approved', remarks: 'Flu recovery'
+    },
+    { 
+      id: 8, type: 'Casual Leave', fromDate: '2024-04-10', toDate: '2024-04-10', 
+      status: 'Approved', remarks: 'Personal errands'
+    },
+    {
+      id: 9, type: 'Annual Leave', fromDate: '2024-05-20', toDate: '2024-05-25',
+      status: 'Pending', remarks: 'Family trip planned'
+    },
+    {
+      id: 10, type: 'Sick Leave', fromDate: '2024-06-05', toDate: '2024-06-06',
+      status: 'Approved', remarks: 'Dental surgery recovery'
+    },
+    {
+      id: 11, type: 'Casual Leave', fromDate: '2024-06-15', toDate: '2024-06-15',
+      status: 'Rejected', remarks: 'Exceeded casual leave quota'
+    },
+    { 
+      id: 12, type: 'Annual Leave', fromDate: '2024-07-01', toDate: '2024-07-05',
+      status: 'Approved', remarks: 'Summer vacation'
+    },
+    {
+      id: 13, type: 'Sick Leave', fromDate: '2024-07-10', toDate: '2024-07-11',
+      status: 'Pending', remarks: 'Under medical observation'
+    },
+    {
+      id: 14, type: 'Casual Leave', fromDate: '2024-07-20', toDate: '2024-07-20',
+      status: 'Approved', remarks: 'Household work'
+    },
+    {
+      id: 15, type: 'Annual Leave', fromDate: '2024-08-15', toDate: '2024-08-20',
+      status: 'Approved', remarks: 'Traveling abroad'
+    },
+    {
+      id: 16, type: 'Sick Leave', fromDate: '2024-08-25', toDate: '2024-08-26',
+      status: 'Rejected', remarks: 'No medical proof provided'
+    },
+    {
+      id: 17, type: 'Casual Leave', fromDate: '2024-09-05', toDate: '2024-09-05',
+      status: 'Pending', remarks: 'Attending a wedding'
+    },
+    { 
+      id: 18, type: 'Annual Leave', fromDate: '2024-09-15', toDate: '2024-09-20',
+      status: 'Approved', remarks: 'Visiting family'
+    },
+    { 
+      id: 19, type: 'Sick Leave', fromDate: '2024-10-01', toDate: '2024-10-02',
+      status: 'Approved', remarks: 'Surgery recovery'
+    },
+    {
+      id: 20, type: 'Casual Leave', fromDate: '2024-10-10', toDate: '2024-10-10',
+      status: 'Approved', remarks: 'Personal commitments'
+    } 
   ]);
 
   // Handlers
   const handleFormChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleApplyLeave = () => {
@@ -97,6 +130,13 @@ const StaffLeaves = () => {
     }
     alert(`Leave application submitted:\nType: ${formData.type}\nFrom: ${formData.startDate}\nTo: ${formData.endDate}\nReason: ${formData.reason}`);
     setFormData({ type: '', startDate: '', endDate: '', reason: '' });
+  };
+
+  // --- Filter Handler ---
+  const handleFilterSelect = (status) => {
+    setFilterStatus(status);
+    setShowFilterDropdown(false);
+    setCurrentPage(1);
   };
 
   // Calculate duration between dates
@@ -136,15 +176,9 @@ const StaffLeaves = () => {
   return (
     <div className="flex h-screen bg-[#D2EAF4]">
       
-      {/* Replaced Manual Sidebar with Component */}
-      <StaffSidebar 
-        isSidebarOpen={isSidebarOpen} 
-        setIsSidebarOpen={setIsSidebarOpen} 
-      />
+      <StaffSidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
 
-      {/* Main Content */}
       <div className="flex-1 overflow-auto">
-        {/* Header */}
         <header className="bg-[#21696d] shadow-sm sticky top-0 z-30">
           <div className="flex items-center justify-between px-4 lg:px-8 py-4">
             <div className="flex items-center space-x-4">
@@ -168,7 +202,6 @@ const StaffLeaves = () => {
           </div>
         </header>
 
-        {/* Main Content */}
         <main className="p-4 lg:p-8 space-y-6">
           {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
@@ -270,7 +303,7 @@ const StaffLeaves = () => {
               <h3 className="text-xl font-bold text-gray-800">Leave History</h3>
             </div>
 
-            {/* Table Controls */}
+            {/* --- UPDATED TABLE CONTROLS (MATCHES ADMIN THEME) --- */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
               <div className="flex flex-wrap items-center gap-3">
                 <div className="relative">
@@ -283,16 +316,23 @@ const StaffLeaves = () => {
                   />
                 </div>
 
-                <select
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm"
-                >
-                  <option value="All">All Status</option>
-                  <option value="Approved">Approved</option>
-                  <option value="Pending">Pending</option>
-                  <option value="Rejected">Rejected</option>
-                </select>
+                <div className="relative">
+                  <button 
+                    onClick={() => setShowFilterDropdown(!showFilterDropdown)} 
+                    className={`px-4 py-2 rounded-lg transition-colors font-medium flex items-center space-x-2 text-sm ${filterStatus !== 'All' ? 'bg-teal-100 text-teal-800 border border-teal-200' : 'bg-[#246e72] text-white hover:bg-teal-700'}`}
+                  >
+                    <Filter size={18} />
+                    <span>{filterStatus === 'All' ? 'Filter Status' : filterStatus}</span>
+                  </button>
+                  {showFilterDropdown && (
+                    <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                      <button onClick={() => handleFilterSelect('All')} className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-gray-700">All Status</button>
+                      <button onClick={() => handleFilterSelect('Approved')} className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-gray-700">Approved</button>
+                      <button onClick={() => handleFilterSelect('Pending')} className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-gray-700">Pending</button>
+                      <button onClick={() => handleFilterSelect('Rejected')} className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-gray-700">Rejected</button>
+                    </div>
+                  )}
+                </div>
 
                 <select
                   value={entriesPerPage}
@@ -303,6 +343,22 @@ const StaffLeaves = () => {
                   <option value={50}>Show 50</option>
                   <option value={100}>Show 100</option>
                 </select>
+
+                <div className="relative">
+                  <button 
+                    onClick={() => setShowExportDropdown(!showExportDropdown)} 
+                    className="bg-[#246e72] text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors font-medium flex items-center space-x-2 text-sm"
+                  >
+                    <Download size={18} />
+                    <span>Export</span>
+                  </button>
+                  {showExportDropdown && (
+                    <div className="absolute top-full left-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                      <button className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm text-gray-700">Excel</button>
+                      <button className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm text-gray-700">PDF</button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
