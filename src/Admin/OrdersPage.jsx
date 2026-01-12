@@ -556,7 +556,8 @@ const OrdersPage = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [orderToDelete, setOrderToDelete] = useState(null);
   const [newDistributorName, setNewDistributorName] = useState(''); // New state for distributor
-
+  const [IsEditModal, setIsEditModal] = useState(false); // State for Edit Modal
+  const [editOrderData, setEditOrderData] = useState(null); // State for order being edited
   const [orders, setOrders] = useState([]);
 
   // Initialize distributors state
@@ -569,6 +570,8 @@ const OrdersPage = () => {
     'Global Health Pharma'
   ]);
 
+
+  
   // ORDER FORM
   const [formData, setFormData] = useState({
     date: '',
@@ -662,6 +665,12 @@ const OrdersPage = () => {
     }
   };
 
+  const formatDateForInput = (timestamp) => {
+    if (!timestamp) return "";
+    const date = new Date(timestamp);
+    return date.toISOString().split("T")[0];
+  };
+
   // ADD NEW DISTRIBUTOR
   const handleAddDistributor = () => {
     if (!newDistributorName.trim()) {
@@ -703,6 +712,44 @@ const OrdersPage = () => {
         : [...prev, orderId]
     );
   };
+
+  const handleEditItemChange = (index, field, value) => {
+    const updatedItems = [...editOrderData.items];
+    updatedItems[index][field] = value;
+    setEditOrderData({ ...editOrderData, items: updatedItems });
+  };
+
+  const handleAddEditItemRow = () => {
+    setEditOrderData({
+      ...editOrderData,
+      items: [...editOrderData.items, { itemName: "", distributor: "", quantity: "" }]
+    });
+  };
+
+  const handleRemoveEditItemRow = (index) => {
+    const updatedItems = editOrderData.items.filter((_, i) => i !== index);
+    setEditOrderData({ ...editOrderData, items: updatedItems });
+  };
+
+  const handleUpdateOrder = async () => {
+    try {
+      // await axios.put(`/api/orders/${editOrderData._id}`, editOrderData);
+      console.log("Updated Order:", editOrderData);
+
+      setIsEditModal(false);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+// function to return date dd-mm-yyyy
+const formatDate = (dateStr) => {
+  const date = new Date(dateStr);
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}-${month}-${year}`;
+};
 
   return (
     <div className="flex h-screen bg-[#D2EAF4]">
@@ -941,7 +988,7 @@ const OrdersPage = () => {
                 </thead>
                 <tbody>
                   {displayedOrders.map(order => (
-                    <tr key={order.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                    <tr key={order._id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                       <td className="py-4 px-4">
                         <input
                           type="checkbox"
@@ -950,7 +997,7 @@ const OrdersPage = () => {
                           className="w-4 h-4 text-[#246e72] border-gray-300 rounded"
                         />
                       </td>
-                      <td className="py-4 px-4 text-sm text-gray-700">{order.date}</td>
+                      <td className="py-4 px-4 text-sm text-gray-700">{formatDate(order.date)}</td>
                       <td className="py-4 px-4 text-sm text-gray-700">{order.phone}</td>
                       <td className="py-4 px-4 text-sm text-gray-700">
                         <ul className="space-y-2">
@@ -969,7 +1016,11 @@ const OrdersPage = () => {
                       </td>
                       <td className="py-4 px-4">
                         <div className="flex space-x-2">
-                          <button className="w-8 h-8 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center">
+                          <button className="w-8 h-8 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center"
+                          onClick={()=>{
+                            setIsEditModal(true);
+                            setEditOrderData(JSON.parse(JSON.stringify(order)));}}
+                          >
                             <Edit size={16} />
                           </button>
                           <button onClick={() => {
@@ -1077,7 +1128,7 @@ const OrdersPage = () => {
 
       {/* Delete Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl p-6 w-80">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">
               Confirm Delete
@@ -1106,6 +1157,143 @@ const OrdersPage = () => {
           </div>
         </div>
       )}
+
+      {IsEditModal && editOrderData && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl p-6">
+
+            {/* Header */}
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-gray-800">Edit Order</h2>
+              <button onClick={() => setIsEditModal(false)}>
+                <X />
+              </button>
+            </div>
+
+            {/* Order Fields */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div>
+                <label className="text-sm font-medium">Date</label>
+                <input
+                  type="date"
+                  value={formatDateForInput(editOrderData.date)}
+                  onChange={(e) =>
+                    setEditOrderData({
+                      ...editOrderData,
+                      date: e.target.value, // becomes YYYY-MM-DD
+                    })
+                  }
+                  className="w-full border rounded-lg px-3 py-2"
+                />
+
+              </div>
+
+
+              <div>
+                <label className="text-sm font-medium">Phone</label>
+                <input
+                  type="text"
+                  value={editOrderData.phone}
+                  onChange={(e) =>
+                    setEditOrderData({ ...editOrderData, phone: e.target.value })
+                  }
+                  className="w-full border rounded-lg px-3 py-2"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Advance</label>
+                <input
+                  type="number"
+                  value={editOrderData.advance}
+                  onChange={(e) =>
+                    setEditOrderData({ ...editOrderData, advance: e.target.value })
+                  }
+                  className="w-full border rounded-lg px-3 py-2"
+                />
+              </div>
+            </div>
+
+            {/* Items */}
+            <h4 className="font-semibold text-gray-700 mb-3">Order Items</h4>
+
+            {editOrderData.items.map((item, index) => (
+              <div
+                key={index}
+                className="grid grid-cols-1 md:grid-cols-12 gap-3 mb-3"
+              >
+                <div className="md:col-span-4">
+                  <input
+                    type="text"
+                    value={item.itemName}
+                    onChange={(e) => handleEditItemChange(index, "itemName", e.target.value)}
+                    className="w-full border rounded-lg px-3 py-2 text-sm"
+                  />
+                </div>
+
+                <div className="md:col-span-4">
+                  <select
+                    value={item.distributor}
+                    onChange={(e) => handleEditItemChange(index, "distributor", e.target.value)}
+                    className="w-full border rounded-lg px-3 py-2 text-sm"
+                  >
+                    <option value="">Select Distributor</option>
+                    {distributors.map(d => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="md:col-span-2">
+                  <input
+                    type="number"
+                    value={item.quantity}
+                    onChange={(e) => handleEditItemChange(index, "quantity", e.target.value)}
+                    className="w-full border rounded-lg px-3 py-2 text-sm"
+                  />
+                </div>
+
+                <div className="md:col-span-2 flex items-center justify-center gap-2">
+                  <button
+                    onClick={handleAddEditItemRow}
+                    className="w-8 h-8 bg-[#246e72] text-white rounded-lg flex items-center justify-center"
+                  >
+                    +
+                  </button>
+
+                  {editOrderData.items.length > 1 && (
+                    <button
+                      onClick={() => handleRemoveEditItemRow(index)}
+                      className="w-8 h-8 bg-red-500 text-white rounded-lg flex items-center justify-center"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                </div>
+
+              </div>
+            ))}
+
+            {/* Footer */}
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => setIsEditModal(false)}
+                className="px-4 py-2 bg-gray-200 rounded-lg"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={handleUpdateOrder}
+                className="px-4 py-2 bg-[#246e72] text-white rounded-lg"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

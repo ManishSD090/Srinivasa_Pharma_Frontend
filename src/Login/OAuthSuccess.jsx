@@ -1,30 +1,39 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 const OAuthSuccess = () => {
     const navigate = useNavigate();
+    const hasRun = useRef(false);
 
     useEffect(() => {
+        if (hasRun.current) return;
+        hasRun.current = true;
+
         const params = new URLSearchParams(window.location.search);
-        console.log(params);
 
         const token = params.get("token");
         const user = params.get("user");
 
         if (!token || !user) {
-            navigate("/");
+            console.warn("OAuth callback already handled or missing params");
             return;
         }
 
-        const parsedUser = JSON.parse(decodeURIComponent(user));
+        let parsedUser;
+        try {
+            parsedUser = JSON.parse(decodeURIComponent(user));
+        } catch (err) {
+            console.error("Failed to parse user:", err);
+            return;
+        }
 
         localStorage.setItem("token", token);
         localStorage.setItem("user", JSON.stringify(parsedUser));
 
         if (parsedUser.role === "admin") {
-            navigate("/admin/dashboard");
+            navigate("/admin/dashboard", { replace: true });
         } else {
-            navigate("/staff/dashboard");
+            navigate("/staff/dashboard", { replace: true });
         }
     }, [navigate]);
 

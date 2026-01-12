@@ -1,386 +1,2550 @@
+
+
+// // import React, { useState, useEffect } from 'react';
+// // import {
+// //   ChevronLeft, ChevronRight, Download,
+// //   X, AlertCircle, Eye, FileText,
+// //   Edit2, Trash2, Menu, CheckCircle, Clock
+// // } from 'lucide-react';
+// // import AdminSidebar from './AdminSidebar';
+// // import api from '../services/api'; // Ensure this path is correct
+
+// // const PayrollAttendancePage = () => {
+// //   // --- UI State ---
+// //   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+// //   const [showAttendanceModal, setShowAttendanceModal] = useState(false);
+// //   const [showExportDropdown, setShowExportDropdown] = useState(false);
+// //   const [activeFilter, setActiveFilter] = useState('current');
+// //   const [loading, setLoading] = useState(false);
+
+// //   // --- Data State ---
+// //   const [staffMembers, setStaffMembers] = useState([]);
+// //   const [selectedStaff, setSelectedStaff] = useState(''); // ID of staff being viewed
+
+// //   // Date State
+// //   const [currentDate, setCurrentDate] = useState(new Date());
+// //   const [viewDate, setViewDate] = useState(new Date()); // For the calendar month view
+
+// //   // Attendance Data for the Calendar (Selected Staff)
+// //   const [attendanceMap, setAttendanceMap] = useState({});
+// //   const [selectedDateDetails, setSelectedDateDetails] = useState(null); // Data for the modal
+// //   const [selectedDateDay, setSelectedDateDay] = useState(null); // The day number clicked
+// //   const [adminComment, setAdminComment] = useState('');
+
+// //   // Admin's Personal Attendance (Today's Card)
+// //   const [myAttendance, setMyAttendance] = useState({
+// //     status: 'absent',
+// //     punchIn: null,
+// //     punchOut: null,
+// //     totalHours: 0,
+// //     isPunchedIn: false
+// //   });
+
+// //   // Payroll State
+// //   const [payrollItems, setPayrollItems] = useState([
+// //     { id: 1, label: 'Base Salary', amount: 35000.00, type: 'addition', editable: false },
+// //     { id: 2, label: 'House Rent Allowance', amount: 12000.00, type: 'addition', editable: true },
+// //     { id: 3, label: 'Professional Tax', amount: -200.00, type: 'deduction', editable: false },
+// //   ]);
+// //   const [editingItem, setEditingItem] = useState(null);
+// //   const [manualBonus, setManualBonus] = useState('');
+// //   const [manualDeduction, setManualDeduction] = useState('');
+// //   const [payrollNotes, setPayrollNotes] = useState('');
+// //   const [itemInputs, setItemInputs] = useState({ label: '', amount: '' }); // Temp state for editing
+
+// //   // --- Initialization ---
+// //   useEffect(() => {
+// //     fetchInitialData();
+// //   }, []);
+
+// //   useEffect(() => {
+// //     if (selectedStaff) {
+// //       fetchStaffCalendar(selectedStaff, viewDate);
+// //       // In a real app, you would also fetch specific payroll structure for this staff here
+// //     }
+// //   }, [selectedStaff, viewDate]);
+
+// //   // --- API Calls ---
+
+// //   const fetchInitialData = async () => {
+// //     try {
+// //       setLoading(true);
+// //       // 1. Fetch Staff List
+// //       const staffRes = await api.get('/staff'); // Assuming /staff returns all staff
+// //       const staffList = staffRes.data.staff || staffRes.data || [];
+// //       setStaffMembers(staffList);
+// //       if (staffList.length > 0) setSelectedStaff(staffList[0]._id);
+
+// //       // 2. Fetch Admin's Own Attendance for "Today's Card"
+// //       const myAttRes = await api.get('/attendance/today');
+// //       const myAtt = myAttRes.data.attendance || {};
+
+// //       setMyAttendance({
+// //         status: myAtt.status || 'absent',
+// //         punchIn: myAtt.punchInTime,
+// //         punchOut: myAtt.punchOutTime,
+// //         totalHours: myAtt.totalHours || 0,
+// //         isPunchedIn: !!myAtt.punchInTime && !myAtt.punchOutTime
+// //       });
+
+// //     } catch (error) {
+// //       console.error("Error loading initial data", error);
+// //     } finally {
+// //       setLoading(false);
+// //     }
+// //   };
+
+// //   const fetchStaffCalendar = async (staffId, date) => {
+// //     try {
+// //       const monthStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+// //       // Matches route: /admin/attendance/calendar/:staffId/:month
+// //       const res = await api.get(`/admin/attendance/calendar/${staffId}/${monthStr}`);
+
+// //       // Transform array to map for easy calendar lookup: { "15": { status: 'present', ... } }
+// //       const map = {};
+// //       const data = res.data.data || res.data || []; // Adjust based on actual API response structure
+
+// //       // Assuming API returns array of attendance objects
+// //       if (Array.isArray(data)) {
+// //         data.forEach(record => {
+// //           const d = new Date(record.date).getDate();
+// //           map[d] = record;
+// //         });
+// //       }
+// //       setAttendanceMap(map);
+// //     } catch (error) {
+// //       console.error("Error fetching calendar", error);
+// //     }
+// //   };
+
+// //   const handlePunchInOut = async () => {
+// //     try {
+// //       const endpoint = myAttendance.isPunchedIn ? '/attendance/punch-out' : '/attendance/punch-in';
+// //       const res = await api.post(endpoint);
+
+// //       if (res.data) {
+// //         // Refresh my stats
+// //         const myAttRes = await api.get('/attendance/today');
+// //         const myAtt = myAttRes.data.attendance || {};
+// //         setMyAttendance({
+// //           status: myAtt.status || 'absent',
+// //           punchIn: myAtt.punchInTime,
+// //           punchOut: myAtt.punchOutTime,
+// //           totalHours: myAtt.totalHours || 0,
+// //           isPunchedIn: !!myAtt.punchInTime && !myAtt.punchOutTime
+// //         });
+// //         alert(myAttendance.isPunchedIn ? "Punched Out Successfully" : "Punched In Successfully");
+// //       }
+// //     } catch (error) {
+// //       console.error("Punch Error", error);
+// //       alert("Failed to update attendance status");
+// //     }
+// //   };
+
+// //   const handleSaveComment = async () => {
+// //     if (!selectedDateDetails?._id) return;
+// //     try {
+// //       // Matches route: router.put("/admin/attendance/:attendanceId/comment", ...)
+// //       await api.put(`/admin/attendance/${selectedDateDetails._id}/comment`, {
+// //         comment: adminComment
+// //       });
+// //       alert("Comment saved successfully");
+// //       setShowAttendanceModal(false);
+// //       fetchStaffCalendar(selectedStaff, viewDate); // Refresh calendar
+// //     } catch (error) {
+// //       console.error("Error saving comment", error);
+// //       alert("Failed to save comment");
+// //     }
+// //   };
+
+// //   // --- Payroll Logic ---
+
+// //   const calculateNetPayable = () => {
+// //     const total = payrollItems.reduce((sum, item) => sum + item.amount, 0);
+// //     const bonus = parseFloat(manualBonus) || 0;
+// //     const deduction = parseFloat(manualDeduction) || 0;
+// //     return total + bonus - deduction;
+// //   };
+
+// //   const handleEditItem = (item) => {
+// //     setEditingItem(item);
+// //     setItemInputs({ label: item.label, amount: Math.abs(item.amount) });
+// //   };
+
+// //   const handleSaveItem = (id) => {
+// //     const newAmount = parseFloat(itemInputs.amount) || 0;
+// //     const originalItem = payrollItems.find(i => i.id === id);
+// //     const finalAmount = originalItem.type === 'deduction' ? -Math.abs(newAmount) : Math.abs(newAmount);
+
+// //     setPayrollItems(payrollItems.map(item =>
+// //       item.id === id ? { ...item, label: itemInputs.label, amount: finalAmount } : item
+// //     ));
+// //     setEditingItem(null);
+// //   };
+
+// //   const handleDeleteItem = (id) => {
+// //     setPayrollItems(payrollItems.filter(item => item.id !== id));
+// //   };
+
+// //   const addNewPayrollItem = (type) => {
+// //     const newItem = {
+// //       id: Date.now(),
+// //       label: type === 'addition' ? 'New Bonus' : 'New Deduction',
+// //       amount: 0,
+// //       type: type,
+// //       editable: true
+// //     };
+// //     setPayrollItems([...payrollItems, newItem]);
+// //     setEditingItem(newItem);
+// //     setItemInputs({ label: newItem.label, amount: 0 });
+// //   };
+
+// //   // --- Calendar Helpers ---
+
+// //   const getAttendanceColor = (status) => {
+// //     if (status === 'present') return 'bg-green-500';
+// //     if (status === 'absent') return 'bg-red-500';
+// //     if (status === 'leave') return 'bg-yellow-500';
+// //     if (status === 'halfday') return 'bg-orange-500';
+// //     return 'bg-gray-300';
+// //   };
+
+// //   const handleDateClick = (day) => {
+// //     const record = attendanceMap[day];
+// //     if (record) {
+// //       setSelectedDateDay(day);
+// //       setSelectedDateDetails(record);
+// //       setAdminComment(record.adminComment || '');
+// //       setShowAttendanceModal(true);
+// //     }
+// //   };
+
+// //   const handleMonthChange = (direction) => {
+// //     const newDate = new Date(viewDate);
+// //     newDate.setMonth(newDate.getMonth() + direction);
+// //     setViewDate(newDate);
+// //   };
+
+// //   // Calendar Construction
+// //   const daysInMonth = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate();
+// //   const firstDayOfWeek = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1).getDay();
+// //   const weeks = [];
+// //   let week = new Array(firstDayOfWeek).fill(null);
+
+// //   for (let day = 1; day <= daysInMonth; day++) {
+// //     week.push(day);
+// //     if (week.length === 7) {
+// //       weeks.push(week);
+// //       week = [];
+// //     }
+// //   }
+// //   if (week.length > 0) {
+// //     while (week.length < 7) week.push(null);
+// //     weeks.push(week);
+// //   }
+
+// //   // --- Derived Stats for Summary Card ---
+// //   const stats = Object.values(attendanceMap).reduce((acc, curr) => {
+// //     acc[curr.status] = (acc[curr.status] || 0) + 1;
+// //     return acc;
+// //   }, {});
+// //   const presentDays = stats['present'] || 0;
+// //   const absentDays = stats['absent'] || 0;
+// //   const leaveDays = stats['leave'] || 0;
+// //   // Calculate attendance rate simply
+// //   const totalRecorded = presentDays + absentDays + leaveDays;
+// //   const rate = totalRecorded ? Math.round((presentDays / totalRecorded) * 100) : 0;
+
+// //   // Static History Data (Mocked for UI consistency)
+// //   const payrollHistory = [
+// //     { id: 1, month: 'November 2024', generatedDate: 'Dec 1, 2024', netAmount: 32450.00, status: 'Paid' },
+// //     { id: 2, month: 'October 2024', generatedDate: 'Nov 1, 2024', netAmount: 34500.00, status: 'Paid' },
+// //     { id: 3, month: 'September 2024', generatedDate: 'Oct 1, 2024', netAmount: 31800.00, status: 'Unpaid' }
+// //   ];
+
+// //   const adminProfile = JSON.parse(localStorage.getItem('user') || '{}');
+
+// //   return (
+// //     <div className="flex h-screen bg-[#D2EAF4]">
+
+// //       <AdminSidebar
+// //         isSidebarOpen={isSidebarOpen}
+// //         setIsSidebarOpen={setIsSidebarOpen}
+// //       />
+
+// //       <div className="flex-1 overflow-auto">
+// //         <header className="bg-[#21696d] shadow-sm sticky top-0 z-30">
+// //           <div className="flex items-center justify-between px-4 lg:px-8 py-4">
+// //             <div className="flex items-center space-x-4">
+// //               <button
+// //                 className="lg:hidden text-white"
+// //                 onClick={() => setIsSidebarOpen(true)}
+// //               >
+// //                 <Menu size={24} />
+// //               </button>
+// //               <h2 className="text-2xl font-bold text-white">Payroll & Attendance</h2>
+// //             </div>
+// //             <div className="flex items-center space-x-4">
+// //               <span className="text-sm text-white hidden sm:block">Welcome back,</span>
+// //               <div className="flex items-center space-x-2">
+// //                 <span className="text-sm font-medium text-white hidden sm:block">
+// //                   {adminProfile.name || 'Admin User'}
+// //                 </span>
+// //                 <div className="w-10 h-10 bg-[#D2EAF4] rounded-full flex items-center justify-center text-[#246e72] font-semibold">
+// //                   {adminProfile.name ? adminProfile.name.substring(0, 2).toUpperCase() : 'AD'}
+// //                 </div>
+// //               </div>
+// //             </div>
+// //           </div>
+// //         </header>
+
+// //         <main className="p-4 lg:p-8 space-y-6">
+// //           <div className="bg-white rounded-xl shadow-md p-6">
+// //             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+// //               <div>
+// //                 <label className="block text-sm font-medium text-gray-700 mb-2">Select Staff</label>
+// //                 <select
+// //                   value={selectedStaff}
+// //                   onChange={(e) => setSelectedStaff(e.target.value)}
+// //                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none"
+// //                 >
+// //                   <option value="" disabled>Select a staff member</option>
+// //                   {staffMembers.map(staff => (
+// //                     <option key={staff._id} value={staff._id}>{staff.name}</option>
+// //                   ))}
+// //                 </select>
+// //               </div>
+
+// //               <div>
+// //                 <label className="block text-sm font-medium text-gray-700 mb-2">Period</label>
+// //                 <div className="flex items-center space-x-2">
+// //                   <button onClick={() => handleMonthChange(-1)} className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50"><ChevronLeft size={20} /></button>
+// //                   <select className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" disabled>
+// //                     <option>{viewDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</option>
+// //                   </select>
+// //                   <button onClick={() => handleMonthChange(1)} className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50"><ChevronRight size={20} /></button>
+// //                 </div>
+// //               </div>
+
+// //               <div className="flex items-end space-x-2">
+// //                 <button onClick={() => setActiveFilter('current')} className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeFilter === 'current' ? 'bg-[#246e72] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>Current Month</button>
+// //                 <button onClick={() => setActiveFilter('last')} className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeFilter === 'last' ? 'bg-[#246e72] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>Last Month</button>
+// //               </div>
+
+// //               <div className="flex items-end relative">
+// //                 <button onClick={() => setShowExportDropdown(!showExportDropdown)} className="w-full bg-[#246e72] text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors font-medium flex items-center justify-center space-x-2">
+// //                   <Download size={18} />
+// //                   <span>Export</span>
+// //                 </button>
+// //                 {showExportDropdown && (
+// //                   <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+// //                     <button className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-gray-700">Export Attendance (Excel)</button>
+// //                     <button className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-gray-700">Export Payroll (PDF)</button>
+// //                   </div>
+// //                 )}
+// //               </div>
+// //             </div>
+// //           </div>
+
+// //           {/* --- UPDATED TODAY'S ATTENDANCE CARD WITH BUTTON --- */}
+// //           <div className="bg-white rounded-xl shadow-md p-6">
+// //             <h3 className="text-xl font-bold text-gray-800 mb-4">Today's Attendance (Me)</h3>
+// //             <div>
+// //               <p className="text-lg font-semibold text-gray-700 mb-1">
+// //                 {currentDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+// //               </p>
+// //               <p className="text-sm text-gray-500 mb-4">Current Time: {currentDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+
+// //               <div className="space-y-3 mb-4">
+// //                 <div className="flex items-center justify-between">
+// //                   <span className="text-sm text-gray-600">Status:</span>
+// //                   <span className={`px-3 py-1 rounded-full text-xs font-medium ${myAttendance.isPunchedIn ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
+// //                     {myAttendance.isPunchedIn ? 'Punched In' : 'Punched Out'}
+// //                   </span>
+// //                 </div>
+// //                 <div className="flex items-center justify-between">
+// //                   <span className="text-sm text-gray-600">Punch In:</span>
+// //                   <span className="text-sm font-semibold text-gray-800">
+// //                     {myAttendance.punchIn ? new Date(myAttendance.punchIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:-- --'}
+// //                   </span>
+// //                 </div>
+// //                 <div className="flex items-center justify-between">
+// //                   <span className="text-sm text-gray-600">Punch Out:</span>
+// //                   <span className="text-sm font-semibold text-gray-800">
+// //                     {myAttendance.punchOut ? new Date(myAttendance.punchOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:-- --'}
+// //                   </span>
+// //                 </div>
+// //               </div>
+
+// //               {/* --- NEW BUTTON HERE --- */}
+// //               <button
+// //                 onClick={handlePunchInOut}
+// //                 disabled={loading}
+// //                 className="w-full bg-[#246e72] text-white py-3 rounded-lg hover:bg-[#1a5256] transition-colors font-medium mb-6 disabled:opacity-70"
+// //               >
+// //                 {myAttendance.isPunchedIn ? 'Punch Out' : 'Punch In'}
+// //               </button>
+// //               {/* ----------------------- */}
+
+// //               <div className="mt-2 pt-6 border-t border-gray-200">
+// //                 <p className="text-sm text-gray-600 mb-2">Hours Worked Today</p>
+// //                 <p className="text-3xl font-bold text-[#246e72] mb-2">{myAttendance.totalHours.toFixed(2)}h / 9h</p>
+// //                 <div className="w-full bg-gray-200 rounded-full h-4 mb-4">
+// //                   <div
+// //                     className="bg-[#246e72] h-4 rounded-full transition-all duration-300"
+// //                     style={{ width: `${Math.min((myAttendance.totalHours / 9) * 100, 100)}%` }}
+// //                   />
+// //                 </div>
+// //                 <div className="bg-[#D2EAF4] rounded-lg p-4">
+// //                   <div className="flex items-start space-x-2">
+// //                     <CheckCircle className="text-green-600 mt-0.5" size={20} />
+// //                     <div>
+// //                       <p className="text-sm font-semibold text-gray-800">Status Update</p>
+// //                       <p className="text-xs text-gray-600">
+// //                         {myAttendance.isPunchedIn ? "You are currently working." : "You are currently away."}
+// //                       </p>
+// //                     </div>
+// //                   </div>
+// //                 </div>
+// //               </div>
+// //             </div>
+// //           </div>
+// //           {/* --- END UPDATED CARD --- */}
+
+// //           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+// //             <div className="lg:col-span-2 bg-white rounded-xl shadow-md p-6">
+// //               <h2 className="text-xl font-bold text-gray-800 mb-4">
+// //                 {viewDate.toLocaleString('default', { month: 'long', year: 'numeric' })} Attendance (Staff)
+// //               </h2>
+
+// //               <div className="overflow-x-auto">
+// //                 <div className="min-w-full">
+// //                   <div className="grid grid-cols-7 gap-2 mb-2">
+// //                     {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+// //                       <div key={day} className="text-center text-sm font-semibold text-gray-600 py-2">{day}</div>
+// //                     ))}
+// //                   </div>
+
+// //                   {weeks.map((week, weekIndex) => (
+// //                     <div key={weekIndex} className="grid grid-cols-7 gap-2 mb-2">
+// //                       {week.map((day, dayIndex) => (
+// //                         <div key={dayIndex} onClick={() => day && handleDateClick(day)} className={`relative aspect-square border rounded-lg flex flex-col items-center justify-center ${day ? 'cursor-pointer hover:bg-gray-50' : 'bg-gray-50'} ${day === new Date().getDate() && viewDate.getMonth() === new Date().getMonth() ? 'ring-2 ring-[#246e72]' : ''}`}>
+// //                           {day && (
+// //                             <>
+// //                               <span className="text-sm font-medium text-gray-700">{day}</span>
+// //                               {attendanceMap[day] && <div className={`w-2 h-2 rounded-full mt-1 ${getAttendanceColor(attendanceMap[day].status)}`} />}
+// //                             </>
+// //                           )}
+// //                         </div>
+// //                       ))}
+// //                     </div>
+// //                   ))}
+
+// //                   <div className="flex items-center justify-center space-x-4 mt-4 text-sm flex-wrap">
+// //                     <div className="flex items-center space-x-2">
+// //                       <div className="w-3 h-3 rounded-full bg-green-500" />
+// //                       <span className="text-gray-600">Present</span>
+// //                     </div>
+// //                     <div className="flex items-center space-x-2">
+// //                       <div className="w-3 h-3 rounded-full bg-red-500" />
+// //                       <span className="text-gray-600">Absent</span>
+// //                     </div>
+// //                     <div className="flex items-center space-x-2">
+// //                       <div className="w-3 h-3 rounded-full bg-yellow-500" />
+// //                       <span className="text-gray-600">Approved Leave</span>
+// //                     </div>
+// //                   </div>
+// //                 </div>
+// //               </div>
+// //             </div>
+
+// //             <div className="space-y-6">
+// //               <div className="bg-white rounded-xl shadow-md p-6">
+// //                 <h3 className="text-lg font-bold text-gray-800 mb-4">Monthly Summary</h3>
+// //                 <div className="space-y-3">
+// //                   <div className="flex justify-between items-center"><span className="text-sm text-gray-600">Total Days in Month</span><span className="text-lg font-bold text-gray-800">{daysInMonth}</span></div>
+// //                   <div className="flex justify-between items-center"><span className="text-sm text-gray-600">Present Days</span><span className="text-lg font-bold text-green-600">{presentDays}</span></div>
+// //                   <div className="flex justify-between items-center"><span className="text-sm text-gray-600">Approved Leaves</span><span className="text-lg font-bold text-yellow-600">{leaveDays}</span></div>
+// //                   <div className="flex justify-between items-center"><span className="text-sm text-gray-600">Absent Days</span><span className="text-lg font-bold text-red-600">{absentDays}</span></div>
+// //                   <div className="pt-3 border-t border-gray-200">
+// //                     <div className="flex justify-between items-center mb-2">
+// //                       <span className="text-sm font-medium text-gray-700">Attendance Rate</span>
+// //                       <span className="text-lg font-bold text-[#246e72]">{rate}%</span>
+// //                     </div>
+// //                     <div className="w-full bg-gray-200 rounded-full h-2">
+// //                       <div className="bg-[linear-gradient(180deg,#05303B_-50.4%,#2B7C7E_20.34%,#91D8C1_80.01%)] h-2 rounded-full" style={{ width: `${rate}%` }} />
+// //                     </div>
+// //                   </div>
+// //                 </div>
+// //               </div>
+
+// //               <div className="bg-white rounded-xl shadow-md p-6">
+// //                 <h3 className="text-lg font-bold text-gray-800 mb-4">Alerts and Notifications</h3>
+// //                 <div className="space-y-3">
+// //                   {absentDays > 3 && (
+// //                     <div className="bg-red-50 border-l-4 border-red-400 p-3 rounded">
+// //                       <div className="flex items-start space-x-2">
+// //                         <AlertCircle className="text-red-600 mt-0.5" size={16} />
+// //                         <div>
+// //                           <p className="text-sm font-semibold text-gray-800">High Absenteeism</p>
+// //                           <p className="text-xs text-gray-600">Staff has more than 3 absences this month.</p>
+// //                         </div>
+// //                       </div>
+// //                     </div>
+// //                   )}
+// //                   <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded">
+// //                     <div className="flex items-start space-x-2">
+// //                       <AlertCircle className="text-yellow-600 mt-0.5" size={16} />
+// //                       <div>
+// //                         <p className="text-sm font-semibold text-gray-800">Hours Requirement</p>
+// //                         <p className="text-xs text-gray-600">Monthly target: 160 hrs</p>
+// //                       </div>
+// //                     </div>
+// //                   </div>
+// //                 </div>
+// //               </div>
+// //             </div>
+// //           </div>
+
+// //           <div className="bg-white rounded-xl shadow-md p-6">
+// //             <h2 className="text-xl font-bold text-gray-800 mb-6">Payroll Calculation - {viewDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</h2>
+// //             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+// //               <div>
+// //                 <h3 className="text-lg font-semibold text-gray-700 mb-4">Salary Breakdown</h3>
+// //                 <div className="space-y-3">
+// //                   {payrollItems.map(item => (
+// //                     <div key={item.id}>
+// //                       {editingItem?.id === item.id ? (
+// //                         <div className="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg">
+// //                           <input
+// //                             type="text"
+// //                             value={itemInputs.label}
+// //                             onChange={(e) => setItemInputs({ ...itemInputs, label: e.target.value })}
+// //                             className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none"
+// //                           />
+// //                           <input
+// //                             type="number"
+// //                             step="0.01"
+// //                             value={itemInputs.amount}
+// //                             onChange={(e) => setItemInputs({ ...itemInputs, amount: e.target.value })}
+// //                             className="w-24 px-2 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none"
+// //                           />
+// //                           <button onClick={() => handleSaveItem(item.id)} className="px-3 py-1 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 text-xs font-medium">Save</button>
+// //                         </div>
+// //                       ) : (
+// //                         <div className="flex justify-between items-center p-2 hover:bg-gray-50 rounded-lg">
+// //                           <span className="text-sm text-gray-700">{item.label}</span>
+// //                           <div className="flex items-center space-x-2">
+// //                             <span className={`text-sm font-semibold ${item.amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>{item.amount >= 0 ? '+' : ''}{item.amount.toFixed(2)}</span>
+// //                             {item.editable && (
+// //                               <>
+// //                                 <button onClick={() => handleEditItem(item)} className="p-1 text-blue-600 hover:bg-blue-50 rounded"><Edit2 size={14} /></button>
+// //                                 <button onClick={() => handleDeleteItem(item.id)} className="p-1 text-red-600 hover:bg-red-50 rounded"><Trash2 size={14} /></button>
+// //                               </>
+// //                             )}
+// //                           </div>
+// //                         </div>
+// //                       )}
+// //                     </div>
+// //                   ))}
+
+// //                   <div className="flex space-x-2 mt-4">
+// //                     <button onClick={() => addNewPayrollItem('addition')} className="flex-1 px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-sm font-medium">+ Add Addition</button>
+// //                     <button onClick={() => addNewPayrollItem('deduction')} className="flex-1 px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium">+ Add Deduction</button>
+// //                   </div>
+
+// //                   <div className="pt-4 border-t-2 border-gray-300 mt-4">
+// //                     <div className="flex justify-between items-center">
+// //                       <span className="text-lg font-bold text-gray-800">Net Payable Amount</span>
+// //                       <span className="text-2xl font-bold text-[#246e72]">₹{calculateNetPayable().toFixed(2)}</span>
+// //                     </div>
+// //                   </div>
+// //                 </div>
+// //               </div>
+
+// //               <div>
+// //                 <h3 className="text-lg font-semibold text-gray-700 mb-4">Payroll Actions</h3>
+// //                 <div className="space-y-4">
+// //                   <button onClick={() => alert("Simulating Salary Slip Generation...")} className="w-full bg-[#246e72] text-white px-6 py-3 rounded-lg hover:bg-teal-700 transition-colors font-medium flex items-center justify-center space-x-2">
+// //                     <FileText size={20} />
+// //                     <span>Generate Salary Slip</span>
+// //                   </button>
+
+// //                   <button className="w-full bg-gray-700 text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors font-medium flex items-center justify-center space-x-2">
+// //                     <Download size={20} />
+// //                     <span>Download Payslip (PDF)</span>
+// //                   </button>
+
+// //                   <button className="w-full border-2 border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors font-medium flex items-center justify-center space-x-2">
+// //                     <Eye size={20} />
+// //                     <span>View Salary History</span>
+// //                   </button>
+
+// //                   <div className="pt-4">
+// //                     <h4 className="text-sm font-semibold text-gray-700 mb-3">Manual Adjustments (One-time)</h4>
+// //                     <div className="space-y-3">
+// //                       <div>
+// //                         <label className="block text-xs text-gray-600 mb-1">Additional Bonus</label>
+// //                         <input type="number" step="0.01" value={manualBonus} onChange={(e) => setManualBonus(e.target.value)} placeholder="0.00" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
+// //                       </div>
+// //                       <div>
+// //                         <label className="block text-xs text-gray-600 mb-1">Additional Deduction</label>
+// //                         <input type="number" step="0.01" value={manualDeduction} onChange={(e) => setManualDeduction(e.target.value)} placeholder="0.00" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
+// //                       </div>
+// //                       <div>
+// //                         <label className="block text-xs text-gray-600 mb-1">Notes</label>
+// //                         <textarea value={payrollNotes} onChange={(e) => setPayrollNotes(e.target.value)} placeholder="Add notes for adjustments..." rows="3" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none resize-none" />
+// //                       </div>
+// //                     </div>
+// //                   </div>
+// //                 </div>
+// //               </div>
+// //             </div>
+// //           </div>
+
+// //           <div className="bg-white rounded-xl shadow-md p-6">
+// //             <div className="flex items-center justify-between mb-6">
+// //               <h2 className="text-xl font-bold text-gray-800">Past Payroll Records</h2>
+// //               <button className="px-4 py-2 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 text-sm font-medium">Export All</button>
+// //             </div>
+
+// //             <div className="overflow-x-auto">
+// //               <table className="w-full">
+// //                 <thead>
+// //                   <tr className="border-b border-gray-200">
+// //                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Month</th>
+// //                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Generated Date</th>
+// //                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Net Amount</th>
+// //                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Status</th>
+// //                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Actions</th>
+// //                   </tr>
+// //                 </thead>
+// //                 <tbody>
+// //                   {payrollHistory.map(record => (
+// //                     <tr key={record.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+// //                       <td className="py-4 px-4 text-sm text-gray-700">{record.month}</td>
+// //                       <td className="py-4 px-4 text-sm text-gray-700">{record.generatedDate}</td>
+// //                       <td className="py-4 px-4 text-sm font-semibold text-gray-800">₹{record.netAmount.toFixed(2)}</td>
+// //                       <td className="py-4 px-4">
+// //                         <span className={`px-3 py-1 rounded-full text-xs font-medium ${record.status === 'Paid' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{record.status}</span>
+// //                       </td>
+// //                       <td className="py-4 px-4">
+// //                         <div className="flex space-x-2">
+// //                           <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Eye size={16} /></button>
+// //                           <button className="p-2 text-[#246e72] hover:bg-teal-50 rounded-lg transition-colors"><Download size={16} /></button>
+// //                         </div>
+// //                       </td>
+// //                     </tr>
+// //                   ))}
+// //                 </tbody>
+// //               </table>
+// //             </div>
+// //           </div>
+// //         </main>
+// //       </div>
+
+// //       {showAttendanceModal && selectedDateDetails && (
+// //         <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50 p-4">
+// //           <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+// //             <div className="flex items-center justify-between mb-4">
+// //               <h3 className="text-xl font-bold text-gray-800">
+// //                 Attendance - {viewDate.toLocaleString('default', { month: 'short' })} {selectedDateDay}
+// //               </h3>
+// //               <button onClick={() => setShowAttendanceModal(false)} className="text-gray-400 hover:text-gray-600"><X size={24} /></button>
+// //             </div>
+
+// //             <div className="space-y-4">
+// //               <div className="bg-[#D2EAF4] rounded-lg p-4">
+// //                 <div className="space-y-2">
+// //                   <div className="flex justify-between text-sm"><span className="text-gray-600">Status:</span><span className="font-medium text-gray-800 capitalize">{selectedDateDetails.status}</span></div>
+// //                   <div className="flex justify-between text-sm">
+// //                     <span className="text-gray-600">Punch In:</span>
+// //                     <span className="font-medium text-gray-800">
+// //                       {selectedDateDetails.punchInTime ? new Date(selectedDateDetails.punchInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+// //                     </span>
+// //                   </div>
+// //                   <div className="flex justify-between text-sm">
+// //                     <span className="text-gray-600">Punch Out:</span>
+// //                     <span className="font-medium text-gray-800">
+// //                       {selectedDateDetails.punchOutTime ? new Date(selectedDateDetails.punchOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+// //                     </span>
+// //                   </div>
+// //                   <div className="flex justify-between text-sm"><span className="text-gray-600">Total Hours:</span><span className="font-medium text-gray-800">{selectedDateDetails.totalHours || 0} hrs</span></div>
+// //                 </div>
+// //               </div>
+
+// //               <div>
+// //                 <label className="block text-sm font-medium text-gray-700 mb-2">Admin Comment</label>
+// //                 <textarea
+// //                   value={adminComment}
+// //                   onChange={(e) => setAdminComment(e.target.value)}
+// //                   placeholder="Add your comment..."
+// //                   rows="3"
+// //                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none resize-none"
+// //                 />
+// //               </div>
+
+// //               <button onClick={handleSaveComment} className="w-full bg-[#246e72] text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors font-medium">Save Comment</button>
+// //             </div>
+// //           </div>
+// //         </div>
+// //       )}
+// //     </div>
+// //   );
+// // };
+
+// // export default PayrollAttendancePage;
+
+
+
+// import React, { useEffect, useState } from 'react';
+// import {
+//   ChevronLeft, ChevronRight, Download,
+//   X, AlertCircle, Eye, FileText,
+//   Edit2, Trash2, Menu, CheckCircle, Clock,
+//   Loader2, User, Calendar, Briefcase
+// } from 'lucide-react';
+// import AdminSidebar from './AdminSidebar';
+// import api from '../services/api';
+
+// const PayrollAttendancePage = () => {
+//   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+//   const [selectedStaff, setSelectedStaff] = useState('');
+//   const [selectedMonth, setSelectedMonth] = useState('');
+//   const [selectedDate, setSelectedDate] = useState(null);
+//   const [showAttendanceModal, setShowAttendanceModal] = useState(false);
+//   const [showExportDropdown, setShowExportDropdown] = useState(false);
+//   const [activeFilter, setActiveFilter] = useState('current');
+
+//   // Data States
+//   const [staffMembers, setStaffMembers] = useState([]);
+//   const [payrollItems, setPayrollItems] = useState([]);
+//   const [editingItem, setEditingItem] = useState(null);
+//   const [manualBonus, setManualBonus] = useState('0.00');
+//   const [manualDeduction, setManualDeduction] = useState('0.00');
+//   const [payrollNotes, setPayrollNotes] = useState('');
+
+//   // Attendance States
+//   const [attendanceData, setAttendanceData] = useState({});
+//   const [attendanceCalendar, setAttendanceCalendar] = useState({});
+//   const [todayAttendance, setTodayAttendance] = useState(null);
+//   const [monthlySummary, setMonthlySummary] = useState({
+//     totalWorkingDays: 0,
+//     presentDays: 0,
+//     approvedLeaves: 0,
+//     absentDays: 0,
+//     lateArrivals: 0,
+//     attendanceRate: 0,
+//     totalHours: 0
+//   });
+
+//   // Payroll States
+//   const [payrollDetails, setPayrollDetails] = useState(null);
+//   const [payrollHistory, setPayrollHistory] = useState([]);
+//   const [currentPayroll, setCurrentPayroll] = useState(null);
+
+//   // UI States
+//   const [loading, setLoading] = useState({
+//     staff: false,
+//     attendance: false,
+//     payroll: false,
+//     summary: false,
+//     history: false,
+//     punch: false,
+//     generate: false
+//   });
+
+//   const [error, setError] = useState(null);
+//   const [comment, setComment] = useState('');
+
+//   // Generate calendar grid
+//   const [calendarDays, setCalendarDays] = useState([]);
+//   const [currentDate, setCurrentDate] = useState(new Date());
+
+//   // Format month for display
+//   const formatMonthDisplay = (date) => {
+//     return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+//   };
+
+//   // Format month for API (like "December-2024")
+//   const formatMonthForAPI = (date) => {
+//     const month = date.toLocaleString('default', { month: 'long' });
+//     const year = date.getFullYear();
+//     return `${month}-${year}`;
+//   };
+
+//   // Fetch all staff members
+//   const fetchStaffMembers = async () => {
+//     try {
+//       setLoading(prev => ({ ...prev, staff: true }));
+//       const response = await api.get('/staff');
+//       setStaffMembers(response.data);
+
+//       // Select first staff by default
+//       if (response.data.length > 0 && !selectedStaff) {
+//         setSelectedStaff(response.data[0]._id);
+//       }
+//     } catch (err) {
+//       console.error('Error fetching staff:', err);
+//       setError('Failed to load staff members');
+//     } finally {
+//       setLoading(prev => ({ ...prev, staff: false }));
+//     }
+//   };
+
+//   // Fetch today's attendance for selected staff
+//   const fetchTodayAttendance = async () => {
+//     if (!selectedStaff) return;
+
+//     try {
+//       setLoading(prev => ({ ...prev, attendance: true }));
+//       const response = await api.get(`/admin/attendance/today/${selectedStaff}`);
+//       const data = response.data;
+
+//       const formattedData = {
+//         date: new Date().toLocaleDateString('en-US', {
+//           weekday: 'long',
+//           year: 'numeric',
+//           month: 'long',
+//           day: 'numeric'
+//         }),
+//         currentTime: new Date().toLocaleTimeString('en-US', {
+//           hour: '2-digit',
+//           minute: '2-digit'
+//         }),
+//         punchInTime: data.punchInTime ?
+//           new Date(data.punchInTime).toLocaleTimeString('en-US', {
+//             hour: '2-digit',
+//             minute: '2-digit'
+//           }) : '--:-- --',
+//         punchOutTime: data.punchOutTime ?
+//           new Date(data.punchOutTime).toLocaleTimeString('en-US', {
+//             hour: '2-digit',
+//             minute: '2-digit'
+//           }) : '--:-- --',
+//         hoursWorked: data.hoursWorked || 0,
+//         targetHours: data.targetHours || 8,
+//         status: data.status || 'Not Checked In',
+//         raw: data
+//       };
+
+//       setTodayAttendance(formattedData);
+//     } catch (err) {
+//       console.error('Error fetching today attendance:', err);
+//       setTodayAttendance(null);
+//     } finally {
+//       setLoading(prev => ({ ...prev, attendance: false }));
+//     }
+//   };
+
+//   // Fetch attendance calendar for selected staff and month
+//   const fetchAttendanceCalendar = async () => {
+//     if (!selectedStaff || !selectedMonth) return;
+
+//     try {
+//       setLoading(prev => ({ ...prev, attendance: true }));
+//       const monthKey = formatMonthForAPI(currentDate);
+//       const response = await api.get(`/admin/attendance/calendar/${selectedStaff}/${monthKey}`);
+//       const data = response.data;
+
+//       // Convert array to object for easier lookup
+//       const calendarMap = {};
+//       data.forEach(record => {
+//         const day = new Date(record.date).getDate();
+//         calendarMap[day] = record.status || null;
+//       });
+
+//       setAttendanceCalendar(calendarMap);
+//       generateCalendarGrid(currentDate);
+//     } catch (err) {
+//       console.error('Error fetching calendar:', err);
+//       setAttendanceCalendar({});
+//       generateCalendarGrid(currentDate);
+//     } finally {
+//       setLoading(prev => ({ ...prev, attendance: false }));
+//     }
+//   };
+
+//   // Fetch monthly summary
+//   const fetchMonthlySummary = async () => {
+//     if (!selectedStaff || !selectedMonth) return;
+
+//     try {
+//       setLoading(prev => ({ ...prev, summary: true }));
+//       const monthKey = formatMonthForAPI(currentDate);
+
+//       // Fetch attendance records for the month
+//       const response = await api.get(`/admin/attendance/calendar/${selectedStaff}/${monthKey}`);
+//       const records = response.data;
+
+//       // Calculate summary
+//       const presentDays = records.filter(r => r.status === 'present').length;
+//       const leaveDays = records.filter(r => r.status === 'leave').length;
+//       const absentDays = records.filter(r => r.status === 'absent').length;
+//       const lateDays = records.filter(r => r.isLate).length;
+//       const totalHours = records.reduce((sum, r) => sum + (r.totalHours || 0), 0);
+//       const totalWorkingDays = 22; // This should be calculated based on business days
+//       const attendanceRate = totalWorkingDays > 0 ? (presentDays / totalWorkingDays) * 100 : 0;
+
+//       setMonthlySummary({
+//         totalWorkingDays,
+//         presentDays,
+//         approvedLeaves: leaveDays,
+//         absentDays,
+//         lateArrivals: lateDays,
+//         attendanceRate,
+//         totalHours
+//       });
+//     } catch (err) {
+//       console.error('Error fetching summary:', err);
+//     } finally {
+//       setLoading(prev => ({ ...prev, summary: false }));
+//     }
+//   };
+
+//   // Fetch payroll details
+//   const fetchPayrollDetails = async () => {
+//     if (!selectedStaff || !selectedMonth) return;
+
+//     try {
+//       setLoading(prev => ({ ...prev, payroll: true }));
+//       const monthKey = formatMonthForAPI(currentDate);
+//       const response = await api.get(`/payroll/${selectedStaff}/${monthKey}`);
+//       const data = response.data;
+
+//       setCurrentPayroll(data);
+
+//       // Convert payroll items to local state format
+//       const items = [];
+
+//       // Base salary
+//       items.push({
+//         id: 'base',
+//         label: 'Base Salary',
+//         amount: data.baseSalary || 3500,
+//         type: 'addition',
+//         editable: false
+//       });
+
+//       // Additions
+//       data.additions?.forEach((item, index) => {
+//         items.push({
+//           id: `add-${index}`,
+//           label: item.label,
+//           amount: item.amount,
+//           type: 'addition',
+//           editable: true
+//         });
+//       });
+
+//       // Deductions
+//       data.deductions?.forEach((item, index) => {
+//         items.push({
+//           id: `ded-${index}`,
+//           label: item.label,
+//           amount: item.amount,
+//           type: 'deduction',
+//           editable: true
+//         });
+//       });
+
+//       setPayrollItems(items);
+//       setManualBonus(data.manualBonus?.toString() || '0.00');
+//       setManualDeduction(data.manualDeduction?.toString() || '0.00');
+//       setPayrollNotes(data.notes || '');
+//     } catch (err) {
+//       console.error('Error fetching payroll:', err);
+//       if (err.response?.status !== 404) {
+//         setError('Failed to load payroll details');
+//       }
+//       // Initialize with default items if no payroll exists
+//       setPayrollItems([
+//         { id: 1, label: 'Base Salary', amount: 3500.00, type: 'addition', editable: false },
+//         { id: 2, label: 'Overtime', amount: 0, type: 'addition', editable: true },
+//         { id: 3, label: 'Advances Taken', amount: 0, type: 'deduction', editable: true },
+//       ]);
+//     } finally {
+//       setLoading(prev => ({ ...prev, payroll: false }));
+//     }
+//   };
+
+//   // Fetch payroll history
+//   const fetchPayrollHistory = async () => {
+//     if (!selectedStaff) return;
+
+//     try {
+//       setLoading(prev => ({ ...prev, history: true }));
+//       const response = await api.get(`/payroll/history/${selectedStaff}`);
+//       const history = response.data.map(record => ({
+//         id: record._id,
+//         month: record.month,
+//         generatedDate: new Date(record.createdAt).toLocaleDateString('en-US', {
+//           month: 'short',
+//           day: 'numeric',
+//           year: 'numeric'
+//         }),
+//         netAmount: record.netAmount,
+//         status: record.status
+//       }));
+
+//       setPayrollHistory(history);
+//     } catch (err) {
+//       console.error('Error fetching payroll history:', err);
+//       setPayrollHistory([]);
+//     } finally {
+//       setLoading(prev => ({ ...prev, history: false }));
+//     }
+//   };
+
+//   // Generate calendar grid
+//   const generateCalendarGrid = (date) => {
+//     const year = date.getFullYear();
+//     const month = date.getMonth();
+
+//     const firstDay = new Date(year, month, 1);
+//     const lastDay = new Date(year, month + 1, 0);
+//     const daysInMonth = lastDay.getDate();
+//     const firstDayOfWeek = firstDay.getDay();
+
+//     const weeks = [];
+//     let week = new Array(firstDayOfWeek).fill(null);
+
+//     for (let day = 1; day <= daysInMonth; day++) {
+//       week.push(day);
+//       if (week.length === 7) {
+//         weeks.push(week);
+//         week = [];
+//       }
+//     }
+
+//     if (week.length > 0) {
+//       while (week.length < 7) week.push(null);
+//       weeks.push(week);
+//     }
+
+//     setCalendarDays(weeks);
+//   };
+
+//   // Handle punch in/out for staff
+//   const handlePunchAction = async () => {
+//     if (!selectedStaff) {
+//       alert('Please select a staff member');
+//       return;
+//     }
+
+//     try {
+//       setLoading(prev => ({ ...prev, punch: true }));
+
+//       // This would require a separate endpoint for admin to punch for staff
+//       // For now, we'll use the same endpoint but with staff ID
+//       if (todayAttendance?.raw?.punchInTime && !todayAttendance?.raw?.punchOutTime) {
+//         // Punch out
+//         await api.post('/attendance/punch-out', { staffId: selectedStaff });
+//       } else {
+//         // Punch in
+//         await api.post('/attendance/punch-in', { staffId: selectedStaff });
+//       }
+
+//       // Refresh attendance data
+//       await fetchTodayAttendance();
+//       await fetchAttendanceCalendar();
+//       await fetchMonthlySummary();
+
+//     } catch (err) {
+//       const errorMsg = err.response?.data?.message || 'Failed to process punch action';
+//       alert(`Error: ${errorMsg}`);
+//     } finally {
+//       setLoading(prev => ({ ...prev, punch: false }));
+//     }
+//   };
+
+//   // Generate payroll
+//   const handleGeneratePayroll = async () => {
+//     if (!selectedStaff || !selectedMonth) return;
+
+//     try {
+//       setLoading(prev => ({ ...prev, generate: true }));
+//       const monthKey = formatMonthForAPI(currentDate);
+//       const response = await api.post(`/payroll/generate/${selectedStaff}/${monthKey}`);
+
+//       // Refresh payroll data
+//       await fetchPayrollDetails();
+//       alert('Payroll generated successfully!');
+//     } catch (err) {
+//       const errorMsg = err.response?.data?.message || 'Failed to generate payroll';
+//       alert(`Error: ${errorMsg}`);
+//     } finally {
+//       setLoading(prev => ({ ...prev, generate: false }));
+//     }
+//   };
+
+//   // Update payroll item
+//   const handleSaveItem = async (id, newLabel, newAmount) => {
+//     if (!currentPayroll) return;
+
+//     try {
+//       // Update in backend
+//       await api.put(`/payroll/${currentPayroll._id}/item/${id}`, {
+//         label: newLabel,
+//         amount: Math.abs(newAmount)
+//       });
+
+//       // Update local state
+//       setPayrollItems(payrollItems.map(item =>
+//         item.id === id ? { ...item, label: newLabel, amount: parseFloat(newAmount) } : item
+//       ));
+//       setEditingItem(null);
+//     } catch (err) {
+//       alert('Failed to update payroll item');
+//     }
+//   };
+
+//   // Add new payroll item
+//   const addNewPayrollItem = async (type) => {
+//     if (!currentPayroll) return;
+
+//     try {
+//       const newItem = {
+//         label: type === 'addition' ? 'New Addition' : 'New Deduction',
+//         amount: 0,
+//         type: type
+//       };
+
+//       const response = await api.post(`/payroll/${currentPayroll._id}/item`, newItem);
+
+//       // Update local state
+//       const updatedItem = {
+//         id: response.data._id || Date.now().toString(),
+//         ...newItem,
+//         editable: true
+//       };
+
+//       setPayrollItems([...payrollItems, updatedItem]);
+//       setEditingItem(updatedItem);
+//     } catch (err) {
+//       alert('Failed to add payroll item');
+//     }
+//   };
+
+//   // Delete payroll item
+//   const handleDeleteItem = async (id) => {
+//     if (!currentPayroll) return;
+
+//     try {
+//       await api.delete(`/payroll/${currentPayroll._id}/item/${id}`);
+//       setPayrollItems(payrollItems.filter(item => item.id !== id));
+//     } catch (err) {
+//       alert('Failed to delete payroll item');
+//     }
+//   };
+
+//   // Save comment for attendance
+//   const handleSaveComment = async () => {
+//     if (!selectedDate) return;
+
+//     try {
+//       // Find attendance record for the selected date
+//       // This would require fetching the attendance record ID
+//       // For now, we'll use a simplified approach
+//       alert('Comment saved! (Backend integration needed for specific date)');
+//       setShowAttendanceModal(false);
+//     } catch (err) {
+//       alert('Failed to save comment');
+//     }
+//   };
+
+//   // Export functions
+//   const handleExport = async (type) => {
+//     try {
+//       if (type === 'attendance') {
+//         const monthKey = formatMonthForAPI(currentDate);
+//         const response = await api.get(`/attendance/export/${monthKey}/csv`, {
+//           responseType: 'blob',
+//           params: { staffId: selectedStaff }
+//         });
+
+//         const url = window.URL.createObjectURL(new Blob([response.data]));
+//         const link = document.createElement('a');
+//         link.href = url;
+//         link.setAttribute('download', `attendance_${monthKey}_${selectedStaff}.csv`);
+//         document.body.appendChild(link);
+//         link.click();
+//         link.remove();
+//       } else if (type === 'payroll' && currentPayroll) {
+//         const response = await api.get(`/payroll/export/${currentPayroll._id}/pdf`, {
+//           responseType: 'blob'
+//         });
+
+//         const url = window.URL.createObjectURL(new Blob([response.data]));
+//         const link = document.createElement('a');
+//         link.href = url;
+//         link.setAttribute('download', `payroll_${currentPayroll.month}_${selectedStaff}.pdf`);
+//         document.body.appendChild(link);
+//         link.click();
+//         link.remove();
+//       }
+
+//       alert(`Export completed!`);
+//       setShowExportDropdown(false);
+//     } catch (err) {
+//       alert(`Failed to export: ${err.response?.data?.message || err.message}`);
+//     }
+//   };
+
+//   // Calculate progress percentage
+//   const calculateProgress = () => {
+//     if (!todayAttendance) return 0;
+//     return Math.min(100, (todayAttendance.hoursWorked / todayAttendance.targetHours) * 100);
+//   };
+
+//   // Get attendance color
+//   const getAttendanceColor = (status) => {
+//     if (status === 'present') return 'bg-green-500';
+//     if (status === 'absent') return 'bg-red-500';
+//     if (status === 'leave') return 'bg-yellow-500';
+//     if (status === 'halfday') return 'bg-orange-500';
+//     return 'bg-gray-300';
+//   };
+
+//   // Get status style
+//   const getStatusStyle = (status) => {
+//     const styles = {
+//       'Present': 'bg-green-100 text-green-700',
+//       'present': 'bg-green-100 text-green-700',
+//       'Absent': 'bg-red-100 text-red-700',
+//       'absent': 'bg-red-100 text-red-700',
+//       'On Leave': 'bg-yellow-100 text-yellow-700',
+//       'leave': 'bg-yellow-100 text-yellow-700',
+//       'Half Day': 'bg-orange-100 text-orange-700',
+//       'halfday': 'bg-orange-100 text-orange-700',
+//       'Not Checked In': 'bg-gray-100 text-gray-700'
+//     };
+//     return styles[status] || 'bg-gray-100 text-gray-700';
+//   };
+
+//   // Calculate net payable
+//   const calculateNetPayable = () => {
+//     const total = payrollItems.reduce((sum, item) => {
+//       return item.type === 'addition' ? sum + item.amount : sum - Math.abs(item.amount);
+//     }, 0);
+//     return total + parseFloat(manualBonus || 0) - parseFloat(manualDeduction || 0);
+//   };
+
+//   // Handle date click for modal
+//   const handleDateClick = (date) => {
+//     if (attendanceCalendar[date]) {
+//       setSelectedDate(date);
+//       setShowAttendanceModal(true);
+//     }
+//   };
+
+//   // Handle month navigation
+//   const handleMonthChange = (direction) => {
+//     const newDate = new Date(currentDate);
+//     if (direction === 'prev') {
+//       newDate.setMonth(newDate.getMonth() - 1);
+//     } else {
+//       newDate.setMonth(newDate.getMonth() + 1);
+//     }
+//     setCurrentDate(newDate);
+//   };
+
+//   // Initialize
+//   useEffect(() => {
+//     fetchStaffMembers();
+//   }, []);
+
+//   // Fetch data when staff or month changes
+//   useEffect(() => {
+//     if (selectedStaff) {
+//       setSelectedMonth(formatMonthForAPI(currentDate));
+//       fetchTodayAttendance();
+//       fetchAttendanceCalendar();
+//       fetchMonthlySummary();
+//       fetchPayrollDetails();
+//       fetchPayrollHistory();
+//     }
+//   }, [selectedStaff, currentDate]);
+
+//   return (
+//     <div className="flex h-screen bg-[#D2EAF4]">
+//       <AdminSidebar
+//         isSidebarOpen={isSidebarOpen}
+//         setIsSidebarOpen={setIsSidebarOpen}
+//       />
+
+//       <div className="flex-1 overflow-auto">
+//         <header className="bg-[#21696d] shadow-sm sticky top-0 z-30">
+//           <div className="flex items-center justify-between px-4 lg:px-8 py-4">
+//             <div className="flex items-center space-x-4">
+//               <button
+//                 className="lg:hidden text-white"
+//                 onClick={() => setIsSidebarOpen(true)}
+//               >
+//                 <Menu size={24} />
+//               </button>
+//               <h2 className="text-2xl font-bold text-white">Payroll & Attendance</h2>
+//             </div>
+//             <div className="flex items-center space-x-4">
+//               <span className="text-sm text-white hidden sm:block">Welcome back,</span>
+//               <div className="flex items-center space-x-2">
+//                 <span className="text-sm font-medium text-white hidden sm:block">Dr. Admin</span>
+//                 <div className="w-10 h-10 bg-[#D2EAF4] rounded-full flex items-center justify-center text-[#246e72] font-semibold">
+//                   DA
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+//         </header>
+
+//         <main className="p-4 lg:p-8 space-y-6">
+//           {/* Error Alert */}
+//           {error && (
+//             <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+//               <div className="flex items-center">
+//                 <AlertCircle className="h-5 w-5 text-red-500 mr-3" />
+//                 <p className="text-red-700">{error}</p>
+//               </div>
+//             </div>
+//           )}
+
+//           <div className="bg-white rounded-xl shadow-md p-6">
+//             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-700 mb-2">Select Staff</label>
+//                 {loading.staff ? (
+//                   <div className="flex items-center space-x-2">
+//                     <Loader2 className="h-4 w-4 animate-spin" />
+//                     <span className="text-sm text-gray-500">Loading staff...</span>
+//                   </div>
+//                 ) : (
+//                   <select
+//                     value={selectedStaff}
+//                     onChange={(e) => setSelectedStaff(e.target.value)}
+//                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none"
+//                   >
+//                     <option value="">Select a staff member</option>
+//                     {staffMembers.map(staff => (
+//                       <option key={staff._id} value={staff._id}>
+//                         {staff.name}
+//                       </option>
+//                     ))}
+//                   </select>
+//                 )}
+//               </div>
+
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-700 mb-2">Period</label>
+//                 <div className="flex items-center space-x-2">
+//                   <button
+//                     onClick={() => handleMonthChange('prev')}
+//                     className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+//                   >
+//                     <ChevronLeft size={20} />
+//                   </button>
+//                   <select
+//                     value={formatMonthDisplay(currentDate)}
+//                     onChange={(e) => {
+//                       // Parse the month from display format
+//                       const [month, year] = e.target.value.split(' ');
+//                       const newDate = new Date(`${month} 1, ${year}`);
+//                       setCurrentDate(newDate);
+//                     }}
+//                     className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none"
+//                   >
+//                     {/* Generate 6 months of options */}
+//                     {[...Array(6)].map((_, i) => {
+//                       const date = new Date();
+//                       date.setMonth(date.getMonth() - i);
+//                       return (
+//                         <option key={i} value={formatMonthDisplay(date)}>
+//                           {formatMonthDisplay(date)}
+//                         </option>
+//                       );
+//                     })}
+//                   </select>
+//                   <button
+//                     onClick={() => handleMonthChange('next')}
+//                     className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+//                   >
+//                     <ChevronRight size={20} />
+//                   </button>
+//                 </div>
+//               </div>
+
+//               <div className="flex items-end space-x-2">
+//                 <button
+//                   onClick={() => setActiveFilter('current')}
+//                   className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeFilter === 'current' ? 'bg-[#246e72] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+//                 >
+//                   Current Month
+//                 </button>
+//                 <button
+//                   onClick={() => setActiveFilter('last')}
+//                   className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeFilter === 'last' ? 'bg-[#246e72] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+//                 >
+//                   Last Month
+//                 </button>
+//               </div>
+
+//               <div className="flex items-end relative">
+//                 <button
+//                   onClick={() => setShowExportDropdown(!showExportDropdown)}
+//                   className="w-full bg-[#246e72] text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors font-medium flex items-center justify-center space-x-2"
+//                 >
+//                   <Download size={18} />
+//                   <span>Export</span>
+//                 </button>
+//                 {showExportDropdown && (
+//                   <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+//                     <button
+//                       onClick={() => handleExport('attendance')}
+//                       className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-gray-700"
+//                     >
+//                       Export Attendance (Excel)
+//                     </button>
+//                     <button
+//                       onClick={() => handleExport('payroll')}
+//                       className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-gray-700"
+//                     >
+//                       Export Payroll (PDF)
+//                     </button>
+//                   </div>
+//                 )}
+//               </div>
+//             </div>
+//           </div>
+
+//           {/* Today's Attendance Card */}
+//           <div className="bg-white rounded-xl shadow-md p-6">
+//             <h3 className="text-xl font-bold text-gray-800 mb-4">Today's Attendance</h3>
+//             {loading.attendance ? (
+//               <div className="flex items-center justify-center py-12">
+//                 <Loader2 className="h-8 w-8 animate-spin text-[#246e72]" />
+//               </div>
+//             ) : todayAttendance ? (
+//               <div>
+//                 <p className="text-lg font-semibold text-gray-700 mb-1">{todayAttendance.date}</p>
+//                 <p className="text-sm text-gray-500 mb-4">Current Time: {todayAttendance.currentTime}</p>
+
+//                 <div className="space-y-3 mb-4">
+//                   <div className="flex items-center justify-between">
+//                     <span className="text-sm text-gray-600">Status:</span>
+//                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusStyle(todayAttendance.status)}`}>
+//                       {todayAttendance.status}
+//                     </span>
+//                   </div>
+//                   <div className="flex items-center justify-between">
+//                     <span className="text-sm text-gray-600">Punch In:</span>
+//                     <span className="text-sm font-semibold text-gray-800">{todayAttendance.punchInTime}</span>
+//                   </div>
+//                   <div className="flex items-center justify-between">
+//                     <span className="text-sm text-gray-600">Punch Out:</span>
+//                     <span className="text-sm font-semibold text-gray-800">{todayAttendance.punchOutTime}</span>
+//                   </div>
+//                 </div>
+
+//                 <button
+//                   onClick={handlePunchAction}
+//                   disabled={loading.punch || !selectedStaff}
+//                   className={`w-full py-3 rounded-lg font-medium flex items-center justify-center space-x-2 transition-colors mb-6 ${todayAttendance?.raw?.punchInTime && !todayAttendance?.raw?.punchOutTime
+//                     ? 'bg-red-600 hover:bg-red-700 text-white'
+//                     : 'bg-[#246e72] hover:bg-[#1a5256] text-white'
+//                     } disabled:opacity-50 disabled:cursor-not-allowed`}
+//                 >
+//                   {loading.punch ? (
+//                     <Loader2 className="h-5 w-5 animate-spin" />
+//                   ) : (
+//                     <>
+//                       {todayAttendance?.raw?.punchInTime && !todayAttendance?.raw?.punchOutTime ? (
+//                         <>
+//                           <span>Punch Out</span>
+//                         </>
+//                       ) : (
+//                         <>
+//                           <span>Punch In</span>
+//                         </>
+//                       )}
+//                     </>
+//                   )}
+//                 </button>
+
+//                 <div className="mt-2 pt-6 border-t border-gray-200">
+//                   <p className="text-sm text-gray-600 mb-2">Hours Worked Today</p>
+//                   <p className="text-3xl font-bold text-[#246e72] mb-2">
+//                     {todayAttendance.hoursWorked.toFixed(1)}h / {todayAttendance.targetHours}h
+//                   </p>
+//                   <div className="w-full bg-gray-200 rounded-full h-4 mb-4">
+//                     <div
+//                       className="bg-[#246e72] h-4 rounded-full transition-all duration-300"
+//                       style={{ width: `${calculateProgress()}%` }}
+//                     />
+//                   </div>
+//                   <div className="bg-[#D2EAF4] rounded-lg p-4">
+//                     <div className="flex items-start space-x-2">
+//                       <CheckCircle className="text-green-600 mt-0.5" size={20} />
+//                       <div>
+//                         <p className="text-sm font-semibold text-gray-800">
+//                           {calculateProgress() >= 100 ? 'Target Achieved!' : 'On Track!'}
+//                         </p>
+//                         <p className="text-xs text-gray-600">
+//                           Completed {Math.round(calculateProgress())}% of target hours
+//                         </p>
+//                       </div>
+//                     </div>
+//                   </div>
+//                 </div>
+//               </div>
+//             ) : (
+//               <div className="text-center py-8 text-gray-500">
+//                 {selectedStaff ? 'No attendance record for today' : 'Select a staff member to view attendance'}
+//               </div>
+//             )}
+//           </div>
+
+//           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+//             <div className="lg:col-span-2 bg-white rounded-xl shadow-md p-6">
+//               <h2 className="text-xl font-bold text-gray-800 mb-4">{formatMonthDisplay(currentDate)} Attendance</h2>
+
+//               {loading.attendance ? (
+//                 <div className="flex items-center justify-center py-12">
+//                   <Loader2 className="h-8 w-8 animate-spin text-[#246e72]" />
+//                 </div>
+//               ) : (
+//                 <div className="overflow-x-auto">
+//                   <div className="min-w-full">
+//                     <div className="grid grid-cols-7 gap-2 mb-2">
+//                       {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+//                         <div key={day} className="text-center text-sm font-semibold text-gray-600 py-2">{day}</div>
+//                       ))}
+//                     </div>
+
+//                     {calendarDays.map((week, weekIndex) => (
+//                       <div key={weekIndex} className="grid grid-cols-7 gap-2 mb-2">
+//                         {week.map((day, dayIndex) => {
+//                           const today = new Date();
+//                           const isToday = day === today.getDate() &&
+//                             currentDate.getMonth() === today.getMonth() &&
+//                             currentDate.getFullYear() === today.getFullYear();
+
+//                           return (
+//                             <div
+//                               key={dayIndex}
+//                               onClick={() => day && handleDateClick(day)}
+//                               className={`relative aspect-square border rounded-lg flex flex-col items-center justify-center ${day ? 'cursor-pointer hover:bg-gray-50' : 'bg-gray-50'} ${isToday ? 'ring-2 ring-[#246e72]' : ''}`}
+//                             >
+//                               {day && (
+//                                 <>
+//                                   <span className={`text-sm font-medium ${isToday ? 'text-[#246e72]' : 'text-gray-700'}`}>
+//                                     {day}
+//                                   </span>
+//                                   {attendanceCalendar[day] && (
+//                                     <div
+//                                       className={`w-2 h-2 rounded-full mt-1 ${getAttendanceColor(attendanceCalendar[day])}`}
+//                                       title={attendanceCalendar[day]}
+//                                     />
+//                                   )}
+//                                 </>
+//                               )}
+//                             </div>
+//                           );
+//                         })}
+//                       </div>
+//                     ))}
+
+//                     <div className="flex items-center justify-center space-x-4 mt-4 text-sm flex-wrap">
+//                       <div className="flex items-center space-x-2">
+//                         <div className="w-3 h-3 rounded-full bg-green-500" />
+//                         <span className="text-gray-600">Present</span>
+//                       </div>
+//                       <div className="flex items-center space-x-2">
+//                         <div className="w-3 h-3 rounded-full bg-red-500" />
+//                         <span className="text-gray-600">Absent</span>
+//                       </div>
+//                       <div className="flex items-center space-x-2">
+//                         <div className="w-3 h-3 rounded-full bg-yellow-500" />
+//                         <span className="text-gray-600">Approved Leave</span>
+//                       </div>
+//                     </div>
+//                   </div>
+//                 </div>
+//               )}
+//             </div>
+
+//             <div className="space-y-6">
+//               <div className="bg-white rounded-xl shadow-md p-6">
+//                 <h3 className="text-lg font-bold text-gray-800 mb-4">Monthly Summary</h3>
+//                 {loading.summary ? (
+//                   <div className="flex items-center justify-center py-8">
+//                     <Loader2 className="h-6 w-6 animate-spin text-[#246e72]" />
+//                   </div>
+//                 ) : (
+//                   <div className="space-y-3">
+//                     <div className="flex justify-between items-center">
+//                       <span className="text-sm text-gray-600">Total Working Days</span>
+//                       <span className="text-lg font-bold text-gray-800">{monthlySummary.totalWorkingDays}</span>
+//                     </div>
+//                     <div className="flex justify-between items-center">
+//                       <span className="text-sm text-gray-600">Present Days</span>
+//                       <span className="text-lg font-bold text-green-600">{monthlySummary.presentDays}</span>
+//                     </div>
+//                     <div className="flex justify-between items-center">
+//                       <span className="text-sm text-gray-600">Approved Leaves</span>
+//                       <span className="text-lg font-bold text-yellow-600">{monthlySummary.approvedLeaves}</span>
+//                     </div>
+//                     <div className="flex justify-between items-center">
+//                       <span className="text-sm text-gray-600">Absent Days</span>
+//                       <span className="text-lg font-bold text-red-600">{monthlySummary.absentDays}</span>
+//                     </div>
+//                     <div className="flex justify-between items-center">
+//                       <span className="text-sm text-gray-600">Late Arrivals</span>
+//                       <span className="text-lg font-bold text-orange-600">{monthlySummary.lateArrivals}</span>
+//                     </div>
+//                     <div className="pt-3 border-t border-gray-200">
+//                       <div className="flex justify-between items-center mb-2">
+//                         <span className="text-sm font-medium text-gray-700">Attendance Rate</span>
+//                         <span className="text-lg font-bold text-[#246e72]">{monthlySummary.attendanceRate.toFixed(1)}%</span>
+//                       </div>
+//                       <div className="w-full bg-gray-200 rounded-full h-2">
+//                         <div
+//                           className="bg-[linear-gradient(180deg,#05303B_-50.4%,#2B7C7E_20.34%,#91D8C1_80.01%)] h-2 rounded-full"
+//                           style={{ width: `${monthlySummary.attendanceRate}%` }}
+//                         />
+//                       </div>
+//                     </div>
+//                   </div>
+//                 )}
+//               </div>
+
+//               <div className="bg-white rounded-xl shadow-md p-6">
+//                 <h3 className="text-lg font-bold text-gray-800 mb-4">Alerts and Notifications</h3>
+//                 <div className="space-y-3">
+//                   {selectedStaff && monthlySummary.absentDays > 0 && (
+//                     <div className="bg-red-50 border-l-4 border-red-400 p-3 rounded">
+//                       <div className="flex items-start space-x-2">
+//                         <AlertCircle className="text-red-600 mt-0.5" size={16} />
+//                         <div>
+//                           <p className="text-sm font-semibold text-gray-800">Absent Days Detected</p>
+//                           <p className="text-xs text-gray-600">{monthlySummary.absentDays} absent day(s) this month</p>
+//                         </div>
+//                       </div>
+//                     </div>
+//                   )}
+
+//                   {selectedStaff && monthlySummary.lateArrivals > 0 && (
+//                     <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded">
+//                       <div className="flex items-start space-x-2">
+//                         <AlertCircle className="text-yellow-600 mt-0.5" size={16} />
+//                         <div>
+//                           <p className="text-sm font-semibold text-gray-800">Late Arrivals</p>
+//                           <p className="text-xs text-gray-600">{monthlySummary.lateArrivals} late arrival(s) this month</p>
+//                         </div>
+//                       </div>
+//                     </div>
+//                   )}
+
+//                   {!currentPayroll && selectedStaff && (
+//                     <div className="bg-blue-50 border-l-4 border-blue-400 p-3 rounded">
+//                       <div className="flex items-start space-x-2">
+//                         <AlertCircle className="text-blue-600 mt-0.5" size={16} />
+//                         <div>
+//                           <p className="text-sm font-semibold text-gray-800">Payroll Not Generated</p>
+//                           <p className="text-xs text-gray-600">Generate payroll for this month</p>
+//                         </div>
+//                       </div>
+//                     </div>
+//                   )}
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+
+//           <div className="bg-white rounded-xl shadow-md p-6">
+//             <div className="flex items-center justify-between mb-6">
+//               <h2 className="text-xl font-bold text-gray-800">Payroll Calculation - {formatMonthDisplay(currentDate)}</h2>
+//               {!currentPayroll && selectedStaff && (
+//                 <button
+//                   onClick={handleGeneratePayroll}
+//                   disabled={loading.generate}
+//                   className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium flex items-center space-x-2"
+//                 >
+//                   {loading.generate ? (
+//                     <Loader2 className="h-4 w-4 animate-spin" />
+//                   ) : (
+//                     <>
+//                       <FileText size={16} />
+//                       <span>Generate Payroll</span>
+//                     </>
+//                   )}
+//                 </button>
+//               )}
+//             </div>
+
+//             {loading.payroll ? (
+//               <div className="flex items-center justify-center py-12">
+//                 <Loader2 className="h-8 w-8 animate-spin text-[#246e72]" />
+//               </div>
+//             ) : (
+//               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+//                 <div>
+//                   <h3 className="text-lg font-semibold text-gray-700 mb-4">Salary Breakdown</h3>
+//                   <div className="space-y-3">
+//                     {payrollItems.map(item => (
+//                       <div key={item.id}>
+//                         {editingItem?.id === item.id ? (
+//                           <div className="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg">
+//                             <input
+//                               type="text"
+//                               defaultValue={item.label}
+//                               className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none"
+//                               id={`label-${item.id}`}
+//                             />
+//                             <input
+//                               type="number"
+//                               step="0.01"
+//                               defaultValue={Math.abs(item.amount)}
+//                               className="w-24 px-2 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none"
+//                               id={`amount-${item.id}`}
+//                             />
+//                             <button
+//                               onClick={() => {
+//                                 const newLabel = document.getElementById(`label-${item.id}`).value;
+//                                 const newAmount = document.getElementById(`amount-${item.id}`).value;
+//                                 handleSaveItem(item.id, newLabel, item.type === 'deduction' ? -Math.abs(newAmount) : Math.abs(newAmount));
+//                               }}
+//                               className="px-3 py-1 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 text-xs font-medium"
+//                             >
+//                               Save
+//                             </button>
+//                           </div>
+//                         ) : (
+//                           <div className="flex justify-between items-center p-2 hover:bg-gray-50 rounded-lg">
+//                             <span className="text-sm text-gray-700">{item.label}</span>
+//                             <div className="flex items-center space-x-2">
+//                               <span className={`text-sm font-semibold ${item.type === 'addition' ? 'text-green-600' : 'text-red-600'}`}>
+//                                 {item.type === 'addition' ? '+' : '-'}${Math.abs(item.amount).toFixed(2)}
+//                               </span>
+//                               {item.editable && (
+//                                 <>
+//                                   <button
+//                                     onClick={() => setEditingItem(item)}
+//                                     className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+//                                   >
+//                                     <Edit2 size={14} />
+//                                   </button>
+//                                   <button
+//                                     onClick={() => handleDeleteItem(item.id)}
+//                                     className="p-1 text-red-600 hover:bg-red-50 rounded"
+//                                   >
+//                                     <Trash2 size={14} />
+//                                   </button>
+//                                 </>
+//                               )}
+//                             </div>
+//                           </div>
+//                         )}
+//                       </div>
+//                     ))}
+
+//                     <div className="flex space-x-2 mt-4">
+//                       <button
+//                         onClick={() => addNewPayrollItem('addition')}
+//                         className="flex-1 px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-sm font-medium"
+//                       >
+//                         + Add Addition
+//                       </button>
+//                       <button
+//                         onClick={() => addNewPayrollItem('deduction')}
+//                         className="flex-1 px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
+//                       >
+//                         + Add Deduction
+//                       </button>
+//                     </div>
+
+//                     <div className="pt-4 border-t-2 border-gray-300 mt-4">
+//                       <div className="flex justify-between items-center">
+//                         <span className="text-lg font-bold text-gray-800">Net Payable Amount</span>
+//                         <span className="text-2xl font-bold text-[#246e72]">${calculateNetPayable().toFixed(2)}</span>
+//                       </div>
+//                     </div>
+//                   </div>
+//                 </div>
+
+//                 <div>
+//                   <h3 className="text-lg font-semibold text-gray-700 mb-4">Payroll Actions</h3>
+//                   <div className="space-y-4">
+//                     <button
+//                       onClick={() => handleExport('payroll')}
+//                       disabled={!currentPayroll}
+//                       className="w-full bg-[#246e72] text-white px-6 py-3 rounded-lg hover:bg-teal-700 transition-colors font-medium flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+//                     >
+//                       <FileText size={20} />
+//                       <span>Generate Salary Slip</span>
+//                     </button>
+
+//                     <button
+//                       onClick={() => handleExport('payroll')}
+//                       disabled={!currentPayroll}
+//                       className="w-full bg-gray-700 text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors font-medium flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+//                     >
+//                       <Download size={20} />
+//                       <span>Download Payslip (PDF)</span>
+//                     </button>
+
+//                     <button className="w-full border-2 border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors font-medium flex items-center justify-center space-x-2">
+//                       <Eye size={20} />
+//                       <span>View Salary History</span>
+//                     </button>
+
+//                     <div className="pt-4">
+//                       <h4 className="text-sm font-semibold text-gray-700 mb-3">Manual Adjustments</h4>
+//                       <div className="space-y-3">
+//                         <div>
+//                           <label className="block text-xs text-gray-600 mb-1">Additional Bonus</label>
+//                           <input
+//                             type="number"
+//                             step="0.01"
+//                             value={manualBonus}
+//                             onChange={(e) => setManualBonus(e.target.value)}
+//                             placeholder="0.00"
+//                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none"
+//                           />
+//                         </div>
+//                         <div>
+//                           <label className="block text-xs text-gray-600 mb-1">Additional Deduction</label>
+//                           <input
+//                             type="number"
+//                             step="0.01"
+//                             value={manualDeduction}
+//                             onChange={(e) => setManualDeduction(e.target.value)}
+//                             placeholder="0.00"
+//                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none"
+//                           />
+//                         </div>
+//                         <div>
+//                           <label className="block text-xs text-gray-600 mb-1">Notes</label>
+//                           <textarea
+//                             value={payrollNotes}
+//                             onChange={(e) => setPayrollNotes(e.target.value)}
+//                             placeholder="Add notes for adjustments..."
+//                             rows="3"
+//                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none resize-none"
+//                           />
+//                         </div>
+//                       </div>
+//                     </div>
+//                   </div>
+//                 </div>
+//               </div>
+//             )}
+//           </div>
+
+//           <div className="bg-white rounded-xl shadow-md p-6">
+//             <div className="flex items-center justify-between mb-6">
+//               <h2 className="text-xl font-bold text-gray-800">Past Payroll Records</h2>
+//               <button className="px-4 py-2 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 text-sm font-medium">
+//                 Export All
+//               </button>
+//             </div>
+
+//             {loading.history ? (
+//               <div className="flex items-center justify-center py-12">
+//                 <Loader2 className="h-8 w-8 animate-spin text-[#246e72]" />
+//               </div>
+//             ) : payrollHistory.length === 0 ? (
+//               <div className="text-center py-12 text-gray-500">
+//                 {selectedStaff ? 'No payroll history found' : 'Select a staff member to view payroll history'}
+//               </div>
+//             ) : (
+//               <div className="overflow-x-auto">
+//                 <table className="w-full">
+//                   <thead>
+//                     <tr className="border-b border-gray-200">
+//                       <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Month</th>
+//                       <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Generated Date</th>
+//                       <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Net Amount</th>
+//                       <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Status</th>
+//                       <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Actions</th>
+//                     </tr>
+//                   </thead>
+//                   <tbody>
+//                     {payrollHistory.map(record => (
+//                       <tr key={record.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+//                         <td className="py-4 px-4 text-sm text-gray-700">{record.month}</td>
+//                         <td className="py-4 px-4 text-sm text-gray-700">{record.generatedDate}</td>
+//                         <td className="py-4 px-4 text-sm font-semibold text-gray-800">${record.netAmount.toFixed(2)}</td>
+//                         <td className="py-4 px-4">
+//                           <span className={`px-3 py-1 rounded-full text-xs font-medium ${record.status === 'Paid' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+//                             {record.status}
+//                           </span>
+//                         </td>
+//                         <td className="py-4 px-4">
+//                           <div className="flex space-x-2">
+//                             <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+//                               <Eye size={16} />
+//                             </button>
+//                             <button className="p-2 text-[#246e72] hover:bg-teal-50 rounded-lg transition-colors">
+//                               <Download size={16} />
+//                             </button>
+//                           </div>
+//                         </td>
+//                       </tr>
+//                     ))}
+//                   </tbody>
+//                 </table>
+//               </div>
+//             )}
+//           </div>
+//         </main>
+//       </div>
+
+//       {showAttendanceModal && (
+//         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+//           <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+//             <div className="flex items-center justify-between mb-4">
+//               <h3 className="text-xl font-bold text-gray-800">Attendance Details - {selectedDate} {formatMonthDisplay(currentDate)}</h3>
+//               <button onClick={() => setShowAttendanceModal(false)} className="text-gray-400 hover:text-gray-600">
+//                 <X size={24} />
+//               </button>
+//             </div>
+
+//             <div className="space-y-4">
+//               <div className="bg-[#D2EAF4] rounded-lg p-4">
+//                 <div className="space-y-2">
+//                   <div className="flex justify-between text-sm">
+//                     <span className="text-gray-600">Status:</span>
+//                     <span className="font-medium text-gray-800 capitalize">{attendanceCalendar[selectedDate]}</span>
+//                   </div>
+//                   <div className="flex justify-between text-sm">
+//                     <span className="text-gray-600">Punch In:</span>
+//                     <span className="font-medium text-gray-800">09:05 AM</span>
+//                   </div>
+//                   <div className="flex justify-between text-sm">
+//                     <span className="text-gray-600">Punch Out:</span>
+//                     <span className="font-medium text-gray-800">06:15 PM</span>
+//                   </div>
+//                   <div className="flex justify-between text-sm">
+//                     <span className="text-gray-600">Total Hours:</span>
+//                     <span className="font-medium text-gray-800">9 hours 10 mins</span>
+//                   </div>
+//                 </div>
+//               </div>
+
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-700 mb-2">Admin Comment</label>
+//                 <textarea
+//                   value={comment}
+//                   onChange={(e) => setComment(e.target.value)}
+//                   placeholder="Add your comment..."
+//                   rows="3"
+//                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none resize-none"
+//                 />
+//               </div>
+
+//               <button
+//                 onClick={handleSaveComment}
+//                 className="w-full bg-[#246e72] text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors font-medium"
+//               >
+//                 Save Comment
+//               </button>
+//             </div>
+//           </div>
+//         </div>
+//       )}
+//     </div>
+//   );
+// };
+
+// export default PayrollAttendancePage;
+
 import React, { useState, useEffect } from 'react';
 import {
   ChevronLeft, ChevronRight, Download,
   X, AlertCircle, Eye, FileText,
-  Edit2, Trash2, Menu, CheckCircle, Clock
+  Edit2, Trash2, Menu, CheckCircle, Clock, Loader2,
+  LogIn, LogOut
 } from 'lucide-react';
 import AdminSidebar from './AdminSidebar';
 import api from '../services/api';
-import {
-  fetchPayrollDetails,
-  fetchPayrollHistory,
-  addPayrollItem,
-  updatePayrollItem,
-  deletePayrollItem,
-  generatePayroll,
-  fetchAdminCalendar,
-  addAttendanceComment
-} from '../services/payroll.api';
 
 const PayrollAttendancePage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [selectedStaff, setSelectedStaff] = useState('');
-  const [selectedMonth, setSelectedMonth] = useState('December 2024');
+  const [selectedStaff, setSelectedStaff] = useState('all');
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
   const [showAttendanceModal, setShowAttendanceModal] = useState(false);
   const [showExportDropdown, setShowExportDropdown] = useState(false);
   const [activeFilter, setActiveFilter] = useState('current');
 
-  const [staffMembers, setStaffMembers] = useState([]);
-  const [attendanceData, setAttendanceData] = useState({});
-  const [monthlySummary, setMonthlySummary] = useState(null);
-  const [payroll, setPayroll] = useState(null);
-  const [payrollItems, setPayrollItems] = useState([]);
-  const [payrollHistory, setPayrollHistory] = useState([]);
+  // Loading states
   const [loading, setLoading] = useState({
     staff: false,
-    attendance: false,
+    today: false,
+    calendar: false,
+    summary: false,
     payroll: false,
-    history: false
+    history: false,
+    punch: false,
+    export: false
   });
 
+  // Data states
+  const [staffMembers, setStaffMembers] = useState([]);
+  const [todayAttendance, setTodayAttendance] = useState(null);
+  const [attendanceCalendar, setAttendanceCalendar] = useState({});
+  const [monthlySummary, setMonthlySummary] = useState({
+    totalWorkingDays: 0,
+    presentDays: 0,
+    leaveDays: 0,
+    absentDays: 0,
+    lateDays: 0,
+    attendanceRate: 0
+  });
+  const [payrollData, setPayrollData] = useState(null);
+  const [payrollHistory, setPayrollHistory] = useState([]);
+  const [calendarDays, setCalendarDays] = useState([]);
+  const [user, setUser] = useState({ name: 'Admin', initials: 'AD' });
+  const [attendanceModalData, setAttendanceModalData] = useState(null);
+  const [adminComment, setAdminComment] = useState('');
+
+  // Payroll editing states
   const [editingItem, setEditingItem] = useState(null);
   const [manualBonus, setManualBonus] = useState('0.00');
   const [manualDeduction, setManualDeduction] = useState('0.00');
   const [payrollNotes, setPayrollNotes] = useState('');
-  const [adminComment, setAdminComment] = useState('');
 
-  // Format month for API
-  const formatMonthKey = (monthString) => {
-    const [month, year] = monthString.split(' ');
+  // Format month key for API
+  const formatMonthKey = (date) => {
+    const month = date.toLocaleString('default', { month: 'long' });
+    const year = date.getFullYear();
     return `${month}-${year}`;
   };
 
+  // Fetch user data
+  const fetchUserData = async () => {
+    try {
+      const response = await api.get('/auth/me');
+      const userData = response.data;
+      const initials = userData.name
+        ?.split(' ')
+        .map(n => n[0])
+        .join('')
+        .toUpperCase()
+        .substring(0, 2) || 'AD';
+
+      setUser({
+        name: userData.name || 'Admin',
+        initials
+      });
+    } catch (err) {
+      console.error('Failed to fetch user data:', err);
+    }
+  };
+
   // Fetch all staff members
-  useEffect(() => {
-    const fetchStaff = async () => {
+  const fetchStaffMembers = async () => {
+    try {
       setLoading(prev => ({ ...prev, staff: true }));
-      try {
-        const res = await api.get('/staff');
-        setStaffMembers(res.data);
-        if (res.data.length > 0) {
-          setSelectedStaff(res.data[0]._id);
-        }
-      } catch (error) {
-        console.error('Error fetching staff:', error);
-      } finally {
-        setLoading(prev => ({ ...prev, staff: false }));
+
+      const response = await api.get('/staff');
+      console.log("Staff Members :", response);
+
+      const allStaff = (response.data || []).map(staff => ({
+        ...staff,
+        _id: staff.userId?._id,      // ✅ use userId._id everywhere
+        staffDocId: staff._id        // optional: keep staff document id
+      }));
+
+      setStaffMembers([
+        { _id: 'all', name: 'All Staff' },
+        ...allStaff
+      ]);
+
+      if (allStaff.length > 0 && selectedStaff === 'all') {
+        setSelectedStaff(allStaff[0]._id);
       }
-    };
-    fetchStaff();
-  }, []);
+
+    } catch (err) {
+      console.error('Error fetching staff:', err);
+    } finally {
+      setLoading(prev => ({ ...prev, staff: false }));
+    }
+  };
+
+
+  // Fetch today's attendance
+  const fetchTodayAttendance = async () => {
+    if (selectedStaff === 'all') return;
+
+    try {
+      setLoading(prev => ({ ...prev, today: true }));
+      const response = await api.get('/attendance/today');
+      const data = response.data;
+
+      const formattedData = {
+        date: new Date().toLocaleDateString('en-US', {
+          weekday: 'long',
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric'
+        }),
+        currentTime: new Date().toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        punchInTime: data.punchInTime ?
+          new Date(data.punchInTime).toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit'
+          }) : '--:-- --',
+        punchOutTime: data.punchOutTime ?
+          new Date(data.punchOutTime).toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit'
+          }) : '--:-- --',
+        hoursWorked: data.hoursWorked || 0,
+        targetHours: data.targetHours || 10,
+        status: data.status || 'Not Checked In',
+        raw: data
+      };
+
+      setTodayAttendance(formattedData);
+    } catch (err) {
+      console.error('Error fetching today attendance:', err);
+      setTodayAttendance(null);
+    } finally {
+      setLoading(prev => ({ ...prev, today: false }));
+    }
+  };
 
   // Fetch attendance calendar
-  useEffect(() => {
-    if (!selectedStaff) return;
+  const fetchCalendar = async () => {
+    if (selectedStaff === 'all') return;
 
-    const fetchCalendar = async () => {
-      setLoading(prev => ({ ...prev, attendance: true }));
-      try {
-        const monthKey = formatMonthKey(selectedMonth);
-        const res = await fetchAdminCalendar(selectedStaff, monthKey);
+    try {
+      setLoading(prev => ({ ...prev, calendar: true }));
+      const monthKey = formatMonthKey(currentDate);
+      const response = await api.get(`/admin/attendance/calendar/${selectedStaff}/${monthKey}`);
+      console.log("Calendar Response :",response);
+      const data = response.data;
 
-        const map = {};
-        res.data.forEach(r => {
-          const day = new Date(r.date).getDate();
-          map[day] = r;
-        });
+      const calendarMap = {};
+      data.forEach(record => {
+        const day = new Date(record.date).getDate();
+        calendarMap[day] = record.status?.toLowerCase() || null;
+      });
 
-        setAttendanceData(map);
 
-        // Calculate monthly summary
-        const presentDays = res.data.filter(r => r.status === 'present').length;
-        const absentDays = res.data.filter(r => r.status === 'absent').length;
-        const leaveDays = res.data.filter(r => r.status === 'leave').length;
-        const totalHours = res.data.reduce((sum, r) => sum + (r.totalHours || 0), 0);
-        const attendanceRate = Math.round((presentDays / res.data.length) * 100);
+      setAttendanceCalendar(calendarMap);
+      generateCalendarGrid(currentDate);
+    } catch (err) {
+      console.error('Error fetching calendar:', err);
+      generateCalendarGrid(currentDate);
+    } finally {
+      setLoading(prev => ({ ...prev, calendar: false }));
+    }
+  };
 
-        setMonthlySummary({
-          totalWorkingDays: res.data.length,
-          presentDays,
-          leaveDays,
-          absentDays,
-          lateDays: res.data.filter(r => r.isLate).length,
-          attendanceRate,
-          totalHours
-        });
-      } catch (error) {
-        console.error('Error fetching attendance calendar:', error);
-      } finally {
-        setLoading(prev => ({ ...prev, attendance: false }));
+  // Generate calendar grid
+  const generateCalendarGrid = (date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const firstDayOfWeek = firstDay.getDay();
+
+    const weeks = [];
+    let week = new Array(firstDayOfWeek).fill(null);
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      week.push(day);
+      if (week.length === 7) {
+        weeks.push(week);
+        week = [];
       }
-    };
+    }
 
-    fetchCalendar();
-  }, [selectedStaff, selectedMonth]);
+    if (week.length > 0) {
+      while (week.length < 7) week.push(null);
+      weeks.push(week);
+    }
 
-  // Fetch payroll details
-  useEffect(() => {
-    if (!selectedStaff) return;
+    setCalendarDays(weeks);
+  };
 
-    const fetchPayroll = async () => {
+  // Fetch monthly summary
+  // const fetchMonthlySummary = async () => {
+  //   if (selectedStaff === 'all') {
+  //     generateCalendarGrid(currentDate);
+  //     setAttendanceCalendar({});
+  //     return;
+  //   }
+
+
+  //   try {
+  //     setLoading(prev => ({ ...prev, summary: true }));
+  //     const monthKey = formatMonthKey(currentDate);
+  //     const response = await api.get(`/attendance/summary/${monthKey}`);
+  //     const data = response.data;
+  //     console.log("Response :",response);
+
+  //     const totalWorkingDays = new Date(
+  //       currentDate.getFullYear(),
+  //       currentDate.getMonth() + 1,
+  //       0
+  //     ).getDate();
+
+  //     const attendanceRate = totalWorkingDays > 0
+  //       ? ((data.presentDays || 0) / totalWorkingDays) * 100
+  //       : 0;
+
+  //     setMonthlySummary({
+  //       totalWorkingDays,
+  //       presentDays: data.presentDays || 0,
+  //       leaveDays: data.leaveDays || 0,
+  //       absentDays: data.absentDays || 0,
+  //       lateDays: data.lateDays || 0,
+  //       attendanceRate: attendanceRate.toFixed(0)
+  //     });
+  //   } catch (err) {
+  //     console.error('Error fetching summary:', err);
+  //   } finally {
+  //     setLoading(prev => ({ ...prev, summary: false }));
+  //   }
+  // };
+  // Fetch monthly summary
+  const fetchMonthlySummary = async () => {
+    if (selectedStaff === 'all') {
+      generateCalendarGrid(currentDate);
+      setAttendanceCalendar({});
+      return;
+    }
+
+    try {
+      setLoading(prev => ({ ...prev, summary: true }));
+      const monthKey = formatMonthKey(currentDate);
+
+      // Use the new route for selected staff
+      const response = await api.get(`/attendance/summary/${selectedStaff}/${monthKey}`);
+      const data = response.data;
+      console.log("Staff Summary Response:", data);
+
+      setMonthlySummary({
+        totalWorkingDays: data.totalWorkingDays || 0,
+        presentDays: data.presentDays || 0,
+        leaveDays: data.leaveDays || 0,
+        absentDays: data.absentDays || 0,
+        lateDays: data.lateDays || 0,
+        overtimeHours: data.overtimeHours || 0,
+        totalHours: data.totalHours || 0,
+        attendanceRate: data.attendanceRate || 0
+      });
+    } catch (err) {
+      console.error('Error fetching staff summary:', err);
+
+      // Fallback to default values
+      const daysInMonth = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth() + 1,
+        0
+      ).getDate();
+
+      setMonthlySummary({
+        totalWorkingDays: daysInMonth,
+        presentDays: 0,
+        leaveDays: 0,
+        absentDays: 0,
+        lateDays: 0,
+        attendanceRate: 0
+      });
+    } finally {
+      setLoading(prev => ({ ...prev, summary: false }));
+    }
+  };
+
+  // Fetch payroll data
+  const fetchPayrollData = async () => {
+    if (selectedStaff === 'all') return;
+
+    try {
       setLoading(prev => ({ ...prev, payroll: true }));
-      try {
-        const monthKey = formatMonthKey(selectedMonth);
-        const res = await fetchPayrollDetails(selectedStaff, monthKey);
+      const monthKey = formatMonthKey(currentDate);
+      const response = await api.get(`/payroll/${selectedStaff}/${monthKey}`);
+      const data = response.data;
 
-        setPayroll(res.data);
-        setPayrollItems([
-          {
-            id: 'baseSalary',
-            label: 'Base Salary',
-            amount: res.data.baseSalary,
-            type: 'addition',
-            editable: false
-          },
-          ...res.data.additions.map((a, index) => ({
-            ...a,
-            id: `addition-${index}`,
-            editable: true
-          })),
-          ...res.data.deductions.map((d, index) => ({
-            ...d,
-            id: `deduction-${index}`,
-            amount: -Math.abs(d.amount),
-            editable: true
-          }))
-        ]);
-
-        setManualBonus(res.data.manualBonus?.toString() || '0.00');
-        setManualDeduction(res.data.manualDeduction?.toString() || '0.00');
-      } catch (error) {
-        console.error('Error fetching payroll:', error);
-        setPayroll(null);
-        setPayrollItems([]);
-      } finally {
-        setLoading(prev => ({ ...prev, payroll: false }));
-      }
-    };
-
-    fetchPayroll();
-  }, [selectedStaff, selectedMonth]);
+      setPayrollData(data);
+      setManualBonus(data.manualBonus?.toString() || '0.00');
+      setManualDeduction(data.manualDeduction?.toString() || '0.00');
+      setPayrollNotes(data.notes || '');
+    } catch (err) {
+      console.error('Error fetching payroll:', err);
+      setPayrollData(null);
+    } finally {
+      setLoading(prev => ({ ...prev, payroll: false }));
+    }
+  };
 
   // Fetch payroll history
-  useEffect(() => {
-    if (!selectedStaff) return;
+  const fetchPayrollHistory = async () => {
+    if (selectedStaff === 'all') return;
 
-    const fetchHistory = async () => {
+    try {
       setLoading(prev => ({ ...prev, history: true }));
-      try {
-        const res = await fetchPayrollHistory(selectedStaff);
-        setPayrollHistory(res.data);
-      } catch (error) {
-        console.error('Error fetching payroll history:', error);
-        setPayrollHistory([]);
-      } finally {
-        setLoading(prev => ({ ...prev, history: false }));
-      }
-    };
 
-    fetchHistory();
-  }, [selectedStaff]);
+      // selectedStaff is already userId._id ✅
+      const response = await api.get(`/payroll/history/${selectedStaff}`);
 
-  const calculateNetPayable = () => {
-    if (!payroll) return 0;
-    const total = payrollItems.reduce((sum, item) => sum + item.amount, 0);
-    return total + parseFloat(manualBonus || 0) - parseFloat(manualDeduction || 0);
-  };
-
-  const getAttendanceColor = (status) => {
-    if (status === 'present') return 'bg-green-500';
-    if (status === 'absent') return 'bg-red-500';
-    if (status === 'leave') return 'bg-yellow-500';
-    return 'bg-gray-300';
-  };
-
-  const handleDateClick = (date) => {
-    const record = attendanceData[date];
-    if (record) {
-      setSelectedDate(record);
-      setAdminComment(record.adminComment || '');
-      setShowAttendanceModal(true);
+      setPayrollHistory(response.data || []);
+    } catch (err) {
+      console.error('Error fetching payroll history:', err);
+      setPayrollHistory([]);
+    } finally {
+      setLoading(prev => ({ ...prev, history: false }));
     }
   };
 
-  const handleEditItem = (item) => {
-    setEditingItem(item);
-  };
 
-  const handleSaveItem = async (id, newLabel, newAmount) => {
-    if (!payroll) return;
-
+  // Handle punch in/out
+  const handlePunchAction = async () => {
     try {
-      // Find the actual item in payroll
-      const isAddition = id.startsWith('addition-');
-      const isDeduction = id.startsWith('deduction-');
-      const index = isAddition
-        ? parseInt(id.split('-')[1])
-        : isDeduction
-          ? parseInt(id.split('-')[1])
-          : -1;
+      setLoading(prev => ({ ...prev, punch: true }));
 
-      if (isAddition && index >= 0) {
-        await updatePayrollItem(payroll._id, payroll.additions[index]._id, {
-          label: newLabel,
-          amount: Math.abs(parseFloat(newAmount))
-        });
-      } else if (isDeduction && index >= 0) {
-        await updatePayrollItem(payroll._id, payroll.deductions[index]._id, {
-          label: newLabel,
-          amount: Math.abs(parseFloat(newAmount))
-        });
+      if (todayAttendance?.raw?.punchInTime && !todayAttendance?.raw?.punchOutTime) {
+        await api.post('/attendance/punch-out');
+      } else {
+        await api.post('/attendance/punch-in');
       }
 
-      // Refresh payroll data
-      const monthKey = formatMonthKey(selectedMonth);
-      const res = await fetchPayrollDetails(selectedStaff, monthKey);
-      setPayroll(res.data);
-    } catch (error) {
-      console.error('Error updating payroll item:', error);
-      alert('Failed to update payroll item');
-    }
-
-    setEditingItem(null);
-  };
-
-  const handleDeleteItem = async (id) => {
-    if (!payroll) return;
-
-    try {
-      const isAddition = id.startsWith('addition-');
-      const isDeduction = id.startsWith('deduction-');
-      const index = isAddition
-        ? parseInt(id.split('-')[1])
-        : isDeduction
-          ? parseInt(id.split('-')[1])
-          : -1;
-
-      if (isAddition && index >= 0) {
-        await deletePayrollItem(payroll._id, payroll.additions[index]._id);
-      } else if (isDeduction && index >= 0) {
-        await deletePayrollItem(payroll._id, payroll.deductions[index]._id);
-      }
-
-      // Refresh payroll data
-      const monthKey = formatMonthKey(selectedMonth);
-      const res = await fetchPayrollDetails(selectedStaff, monthKey);
-      setPayroll(res.data);
-    } catch (error) {
-      console.error('Error deleting payroll item:', error);
-      alert('Failed to delete payroll item');
+      await fetchTodayAttendance();
+      await fetchCalendar();
+      await fetchMonthlySummary();
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || 'Failed to process punch action';
+      alert(`Error: ${errorMsg}`);
+    } finally {
+      setLoading(prev => ({ ...prev, punch: false }));
     }
   };
 
-  const addNewPayrollItem = async (type) => {
-    if (!payroll) {
-      alert('Please generate payroll first');
-      return;
+  // Handle month change
+  const handleMonthChange = (direction) => {
+    const newDate = new Date(currentDate);
+    if (direction === 'prev') {
+      newDate.setMonth(newDate.getMonth() - 1);
+    } else {
+      newDate.setMonth(newDate.getMonth() + 1);
     }
-
-    try {
-      await addPayrollItem(payroll._id, {
-        label: type === 'addition' ? 'New Addition' : 'New Deduction',
-        amount: 0,
-        type: type
-      });
-
-      // Refresh payroll data
-      const monthKey = formatMonthKey(selectedMonth);
-      const res = await fetchPayrollDetails(selectedStaff, monthKey);
-      setPayroll(res.data);
-    } catch (error) {
-      console.error('Error adding payroll item:', error);
-      alert('Failed to add payroll item');
-    }
+    setCurrentDate(newDate);
   };
 
+  // Generate payroll
   const handleGeneratePayroll = async () => {
-    if (!selectedStaff) {
-      alert('Please select a staff member');
+    if (selectedStaff === 'all') {
+      alert('Please select a specific staff member');
       return;
     }
 
     try {
-      const monthKey = formatMonthKey(selectedMonth);
-      await generatePayroll(selectedStaff, monthKey);
+      const monthKey = formatMonthKey(currentDate);
+      await api.post(`/payroll/generate/${selectedStaff}/${monthKey}`);
       alert('Payroll generated successfully!');
-
-      // Refresh payroll data
-      const res = await fetchPayrollDetails(selectedStaff, monthKey);
-      setPayroll(res.data);
-    } catch (error) {
-      console.error('Error generating payroll:', error);
-      alert(error.response?.data?.message || 'Failed to generate payroll');
+      await fetchPayrollData();
+      await fetchPayrollHistory();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to generate payroll');
     }
   };
 
-  const handleSaveComment = async () => {
-    if (!selectedDate) return;
+  // Update payroll item
+  const handleSaveItem = async (itemId, newLabel, newAmount) => {
+    if (!payrollData) return;
 
     try {
-      await addAttendanceComment(selectedDate._id, adminComment);
-      alert('Comment saved successfully');
-      setShowAttendanceModal(false);
-
-      // Refresh attendance data
-      const monthKey = formatMonthKey(selectedMonth);
-      const res = await fetchAdminCalendar(selectedStaff, monthKey);
-      const map = {};
-      res.data.forEach(r => {
-        const day = new Date(r.date).getDate();
-        map[day] = r;
+      await api.put(`/payroll/${payrollData._id}/item/${itemId}`, {
+        label: newLabel,
+        amount: parseFloat(newAmount)
       });
-      setAttendanceData(map);
-    } catch (error) {
-      console.error('Error saving comment:', error);
+      await fetchPayrollData();
+      setEditingItem(null);
+    } catch (err) {
+      alert('Failed to update item');
+    }
+  };
+
+  // Delete payroll item
+  const handleDeleteItem = async (itemId) => {
+    if (!payrollData || !window.confirm('Delete this item?')) return;
+
+    try {
+      await api.delete(`/payroll/${payrollData._id}/item/${itemId}`);
+      await fetchPayrollData();
+    } catch (err) {
+      alert('Failed to delete item');
+    }
+  };
+
+  // Add payroll item
+  const addNewPayrollItem = async (type) => {
+    if (!payrollData) {
+      alert('Generate payroll first');
+      return;
+    }
+
+    try {
+      const label = type === 'addition' ? 'New Addition' : 'New Deduction';
+      await api.post(`/payroll/${payrollData._id}/item`, {
+        label,
+        amount: 0,
+        type
+      });
+      await fetchPayrollData();
+    } catch (err) {
+      alert('Failed to add item');
+    }
+  };
+
+  // Handle date click in calendar
+  const handleDateClick = async (day) => {
+    if (!attendanceCalendar[day] || selectedStaff === 'all') return;
+
+    try {
+      const monthKey = formatMonthKey(currentDate);
+      const response = await api.get(`/admin/attendance/calendar/${selectedStaff}/${monthKey}`);
+      const records = response.data;
+
+      const record = records.find(r => new Date(r.date).getDate() === day);
+      if (record) {
+        setAttendanceModalData(record);
+        setAdminComment(record.adminComment || '');
+        setSelectedDate(day);
+        setShowAttendanceModal(true);
+      }
+    } catch (err) {
+      console.error('Error fetching attendance details:', err);
+    }
+  };
+
+  // Save admin comment
+  const handleSaveComment = async () => {
+    if (!attendanceModalData) return;
+
+    try {
+      await api.put(`/admin/attendance/${attendanceModalData._id}/comment`, {
+        comment: adminComment
+      });
+      alert('Comment saved successfully!');
+      setShowAttendanceModal(false);
+      await fetchCalendar();
+    } catch (err) {
       alert('Failed to save comment');
     }
   };
 
-  const handleExport = async (type) => {
+  // Export attendance
+  const handleExportAttendance = async (format) => {
+    if (selectedStaff === 'all') {
+      alert('Please select a specific staff member');
+      return;
+    }
+
     try {
-      const monthKey = formatMonthKey(selectedMonth);
-      const response = await api.get(`/attendance/export/${monthKey}/${type}`, {
-        responseType: 'blob',
-        params: { staffId: selectedStaff }
+      setLoading(prev => ({ ...prev, export: true }));
+      const monthKey = formatMonthKey(currentDate);
+      const response = await api.get(`/attendance/export/${monthKey}/${format}`, {
+        responseType: 'blob'
       });
 
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `attendance_${monthKey}_${new Date().toISOString().split('T')[0]}.${type}`);
+      link.setAttribute('download', `attendance_${monthKey}.${format}`);
       document.body.appendChild(link);
       link.click();
       link.remove();
 
-      alert(`${type.toUpperCase()} export completed!`);
+      setShowExportDropdown(false);
     } catch (err) {
-      alert(`Failed to export ${type}: ${err.response?.data?.message || err.message}`);
+      alert('Failed to export attendance');
+    } finally {
+      setLoading(prev => ({ ...prev, export: false }));
     }
   };
 
-  // Generate calendar
-  const daysInMonth = 31;
-  const firstDayOfWeek = 0;
-  const weeks = [];
-  let week = new Array(firstDayOfWeek).fill(null);
-
-  for (let day = 1; day <= daysInMonth; day++) {
-    week.push(day);
-    if (week.length === 7) {
-      weeks.push(week);
-      week = [];
+  // Export payroll
+  const handleExportPayroll = async () => {
+    if (!payrollData) {
+      alert('No payroll data available');
+      return;
     }
-  }
-  if (week.length > 0) {
-    while (week.length < 7) week.push(null);
-    weeks.push(week);
-  }
+
+    try {
+      const response = await api.get(`/payroll/export/${payrollData._id}/pdf`, {
+        responseType: 'blob'
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `payroll_${formatMonthKey(currentDate)}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      setShowExportDropdown(false);
+    } catch (err) {
+      alert('Failed to export payroll');
+    }
+  };
+
+  // Utility functions
+  const getAttendanceColor = (status = '') => {
+    const normalized = status.toLowerCase();
+
+    const colors = {
+      'present': 'bg-green-500',
+      'absent': 'bg-red-500',
+      'leave': 'bg-yellow-500',
+      'on leave': 'bg-yellow-500',
+      'half day': 'bg-orange-500',
+      'halfday': 'bg-orange-500',
+      'late': 'bg-purple-500'
+    };
+
+    return colors[normalized] || 'bg-gray-300';
+  };
+
+
+
+  const calculateNetPayable = () => {
+    if (!payrollData) return 0;
+    return payrollData.netAmount || 0;
+  };
+
+  const calculateProgress = () => {
+    if (!todayAttendance) return 0;
+    return Math.min(100, (todayAttendance.hoursWorked / todayAttendance.targetHours) * 100);
+  };
+
+  // Effects
+  useEffect(() => {
+    fetchUserData();
+    fetchStaffMembers();
+  }, []);
+
+  useEffect(() => {
+    if (selectedStaff && selectedStaff !== 'all') {
+      fetchTodayAttendance();
+      fetchCalendar();
+      fetchMonthlySummary();
+      fetchPayrollData();
+      fetchPayrollHistory();
+    }
+  }, [selectedStaff, currentDate]);
 
   return (
     <div className="flex h-screen bg-[#D2EAF4]">
-
-      {/* Replaced Manual Sidebar with Component */}
       <AdminSidebar
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
@@ -401,9 +2565,9 @@ const PayrollAttendancePage = () => {
             <div className="flex items-center space-x-4">
               <span className="text-sm text-white hidden sm:block">Welcome back,</span>
               <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium text-white hidden sm:block">Dr. Admin</span>
+                <span className="text-sm font-medium text-white hidden sm:block">{user.name}</span>
                 <div className="w-10 h-10 bg-[#D2EAF4] rounded-full flex items-center justify-center text-[#246e72] font-semibold">
-                  DA
+                  {user.initials}
                 </div>
               </div>
             </div>
@@ -411,6 +2575,7 @@ const PayrollAttendancePage = () => {
         </header>
 
         <main className="p-4 lg:p-8 space-y-6">
+          {/* Filter Controls */}
           <div className="bg-white rounded-xl shadow-md p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
@@ -422,9 +2587,7 @@ const PayrollAttendancePage = () => {
                   disabled={loading.staff}
                 >
                   {staffMembers.map(staff => (
-                    <option key={staff._id} value={staff._id}>
-                      {staff.name}
-                    </option>
+                    <option key={staff._id} value={staff._id}>{staff.name}</option>
                   ))}
                 </select>
               </div>
@@ -433,35 +2596,17 @@ const PayrollAttendancePage = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Period</label>
                 <div className="flex items-center space-x-2">
                   <button
+                    onClick={() => handleMonthChange('prev')}
                     className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                    onClick={() => {
-                      // Previous month logic
-                      const [month, year] = selectedMonth.split(' ');
-                      const date = new Date(`${month} 1, ${year}`);
-                      date.setMonth(date.getMonth() - 1);
-                      setSelectedMonth(`${date.toLocaleString('default', { month: 'long' })} ${date.getFullYear()}`);
-                    }}
                   >
                     <ChevronLeft size={20} />
                   </button>
-                  <select
-                    value={selectedMonth}
-                    onChange={(e) => setSelectedMonth(e.target.value)}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none"
-                  >
-                    <option>December 2024</option>
-                    <option>November 2024</option>
-                    <option>October 2024</option>
-                  </select>
+                  <span className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-center text-sm font-medium">
+                    {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                  </span>
                   <button
+                    onClick={() => handleMonthChange('next')}
                     className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                    onClick={() => {
-                      // Next month logic
-                      const [month, year] = selectedMonth.split(' ');
-                      const date = new Date(`${month} 1, ${year}`);
-                      date.setMonth(date.getMonth() + 1);
-                      setSelectedMonth(`${date.toLocaleString('default', { month: 'long' })} ${date.getFullYear()}`);
-                    }}
                   >
                     <ChevronRight size={20} />
                   </button>
@@ -487,20 +2632,21 @@ const PayrollAttendancePage = () => {
                 <button
                   onClick={() => setShowExportDropdown(!showExportDropdown)}
                   className="w-full bg-[#246e72] text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors font-medium flex items-center justify-center space-x-2"
+                  disabled={loading.export}
                 >
-                  <Download size={18} />
+                  {loading.export ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
                   <span>Export</span>
                 </button>
                 {showExportDropdown && (
                   <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
                     <button
-                      onClick={() => handleExport('csv')}
+                      onClick={() => handleExportAttendance('csv')}
                       className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-gray-700"
                     >
                       Export Attendance (Excel)
                     </button>
                     <button
-                      onClick={() => handleExport('pdf')}
+                      onClick={() => handleExportPayroll()}
                       className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-gray-700"
                     >
                       Export Payroll (PDF)
@@ -511,44 +2657,109 @@ const PayrollAttendancePage = () => {
             </div>
           </div>
 
-          {/* TODAY'S ATTENDANCE CARD - ADMIN VIEW ONLY */}
+          {/* Today's Attendance */}
           <div className="bg-white rounded-xl shadow-md p-6">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">Today's Overview</h3>
-            <div>
-              <p className="text-lg font-semibold text-gray-700 mb-1">
-                {new Date().toLocaleDateString('en-US', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
-              </p>
-              <p className="text-sm text-gray-500 mb-4">
-                Current Time: {new Date().toLocaleTimeString('en-US', {
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}
-              </p>
+            <h3 className="text-xl font-bold text-gray-800 mb-4">Today's Attendance</h3>
 
-              <div className="bg-[#D2EAF4] rounded-lg p-4">
-                <div className="flex items-start space-x-2">
-                  <CheckCircle className="text-green-600 mt-0.5" size={20} />
-                  <div>
-                    <p className="text-sm font-semibold text-gray-800">Admin View</p>
-                    <p className="text-xs text-gray-600">This panel shows attendance and payroll overview for selected staff</p>
+            {loading.today ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-[#246e72]" />
+              </div>
+            ) : todayAttendance ? (
+              <div>
+                <p className="text-lg font-semibold text-gray-700 mb-1">{todayAttendance.date}</p>
+                <p className="text-sm text-gray-500 mb-4">Current Time: {todayAttendance.currentTime}</p>
+
+                <div className="space-y-3 mb-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Status:</span>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${todayAttendance.raw?.punchInTime && !todayAttendance.raw?.punchOutTime
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-gray-100 text-gray-700'
+                      }`}>
+                      {todayAttendance.status}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Punch In:</span>
+                    <span className="text-sm font-semibold text-gray-800">{todayAttendance.punchInTime}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Punch Out:</span>
+                    <span className="text-sm font-semibold text-gray-800">{todayAttendance.punchOutTime}</span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handlePunchAction}
+                  disabled={loading.punch}
+                  className={`w-full py-3 rounded-lg font-medium flex items-center justify-center space-x-2 transition-colors mb-6 ${todayAttendance?.raw?.punchInTime && !todayAttendance?.raw?.punchOutTime
+                      ? 'bg-red-600 hover:bg-red-700 text-white'
+                      : 'bg-[#246e72] hover:bg-[#1a5256] text-white'
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  {loading.punch ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <>
+                      {todayAttendance?.raw?.punchInTime && !todayAttendance?.raw?.punchOutTime ? (
+                        <>
+                          <LogOut size={20} />
+                          <span>Punch Out</span>
+                        </>
+                      ) : (
+                        <>
+                          <LogIn size={20} />
+                          <span>Punch In</span>
+                        </>
+                      )}
+                    </>
+                  )}
+                </button>
+
+                <div className="pt-6 border-t border-gray-200">
+                  <p className="text-sm text-gray-600 mb-2">Hours Worked Today</p>
+                  <p className="text-3xl font-bold text-[#246e72] mb-2">
+                    {todayAttendance.hoursWorked.toFixed(1)}h / {todayAttendance.targetHours}h
+                  </p>
+                  <div className="w-full bg-gray-200 rounded-full h-4 mb-4">
+                    <div
+                      className="bg-[#246e72] h-4 rounded-full transition-all duration-300"
+                      style={{ width: `${calculateProgress()}%` }}
+                    />
+                  </div>
+                  <div className="bg-[#D2EAF4] rounded-lg p-4">
+                    <div className="flex items-start space-x-2">
+                      <CheckCircle className="text-green-600 mt-0.5" size={20} />
+                      <div>
+                        <p className="text-sm font-semibold text-gray-800">
+                          {calculateProgress() >= 100 ? 'Target Achieved!' : 'On Track!'}
+                        </p>
+                        <p className="text-xs text-gray-600">
+                          You've completed {Math.round(calculateProgress())}% of your target hours
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                {selectedStaff === 'all' ? 'Please select a staff member' : 'No attendance data available'}
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Attendance Calendar */}
             <div className="lg:col-span-2 bg-white rounded-xl shadow-md p-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">{selectedMonth} Attendance</h2>
+              <h2 className="text-xl font-bold text-gray-800 mb-4">
+                {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} Attendance
+              </h2>
 
-              {loading.attendance ? (
+              {loading.calendar ? (
                 <div className="flex items-center justify-center py-12">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#246e72]"></div>
+                  <Loader2 className="h-8 w-8 animate-spin text-[#246e72]" />
                 </div>
               ) : (
                 <div className="overflow-x-auto">
@@ -559,27 +2770,39 @@ const PayrollAttendancePage = () => {
                       ))}
                     </div>
 
-                    {weeks.map((week, weekIndex) => (
+                    {calendarDays.map((week, weekIndex) => (
                       <div key={weekIndex} className="grid grid-cols-7 gap-2 mb-2">
-                        {week.map((day, dayIndex) => (
-                          <div
-                            key={dayIndex}
-                            onClick={() => day && handleDateClick(day)}
-                            className={`relative aspect-square border rounded-lg flex flex-col items-center justify-center ${day && attendanceData[day] ? 'cursor-pointer hover:bg-gray-50' : 'bg-gray-50'} ${day === new Date().getDate() && selectedMonth.includes(new Date().getFullYear().toString()) ? 'ring-2 ring-[#246e72]' : ''}`}
-                          >
-                            {day && (
-                              <>
-                                <span className="text-sm font-medium text-gray-700">{day}</span>
-                                {attendanceData[day] && (
-                                  <div
-                                    className={`w-2 h-2 rounded-full mt-1 ${getAttendanceColor(attendanceData[day].status)}`}
-                                    title={attendanceData[day].status}
-                                  />
-                                )}
-                              </>
-                            )}
-                          </div>
-                        ))}
+                        {week.map((day, dayIndex) => {
+                          const today = new Date();
+                          const isToday = day === today.getDate() &&
+                            currentDate.getMonth() === today.getMonth() &&
+                            currentDate.getFullYear() === today.getFullYear();
+
+                          return (
+                            <div
+                              key={dayIndex}
+                              onClick={() => day && handleDateClick(day)}
+                              className={`relative aspect-square border rounded-lg flex flex-col items-center justify-center ${day ? 'cursor-pointer hover:bg-gray-50' : 'bg-gray-50'
+                                } ${isToday ? 'ring-2 ring-[#246e72]' : ''}`}
+                            >
+                              {day && (
+                                <>
+                                  <span className={`text-sm font-medium ${isToday ? 'text-[#246e72]' : 'text-gray-700'
+                                    }`}>
+                                    {day}
+                                  </span>
+                                  {attendanceCalendar[day] && (
+                                    <div
+                                      className={`w-2 h-2 rounded-full mt-1 ${getAttendanceColor(attendanceCalendar[day])
+                                        }`}
+                                      title={attendanceCalendar[day]}
+                                    />
+                                  )}
+                                </>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     ))}
 
@@ -594,7 +2817,11 @@ const PayrollAttendancePage = () => {
                       </div>
                       <div className="flex items-center space-x-2">
                         <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                        <span className="text-gray-600">Approved Leave</span>
+                        <span className="text-gray-600">On Leave</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-3 h-3 rounded-full bg-orange-500" />
+                        <span className="text-gray-600">Half Day</span>
                       </div>
                     </div>
                   </div>
@@ -602,39 +2829,52 @@ const PayrollAttendancePage = () => {
               )}
             </div>
 
+            {/* Monthly Summary */}
             <div className="space-y-6">
               <div className="bg-white rounded-xl shadow-md p-6">
                 <h3 className="text-lg font-bold text-gray-800 mb-4">Monthly Summary</h3>
-                {loading.attendance ? (
+                {loading.summary ? (
                   <div className="flex items-center justify-center py-8">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#246e72]"></div>
+                    <Loader2 className="h-6 w-6 animate-spin text-[#246e72]" />
                   </div>
-                ) : monthlySummary ? (
+                ) : (
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">Total Working Days</span>
-                      <span className="text-lg font-bold text-gray-800">{monthlySummary.totalWorkingDays}</span>
+                      <span className="text-lg font-bold text-gray-800">
+                        {monthlySummary.totalWorkingDays}
+                      </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">Present Days</span>
-                      <span className="text-lg font-bold text-green-600">{monthlySummary.presentDays}</span>
+                      <span className="text-lg font-bold text-green-600">
+                        {monthlySummary.presentDays}
+                      </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">Approved Leaves</span>
-                      <span className="text-lg font-bold text-yellow-600">{monthlySummary.leaveDays}</span>
+                      <span className="text-lg font-bold text-yellow-600">
+                        {monthlySummary.leaveDays}
+                      </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">Absent Days</span>
-                      <span className="text-lg font-bold text-red-600">{monthlySummary.absentDays}</span>
+                      <span className="text-lg font-bold text-red-600">
+                        {monthlySummary.absentDays}
+                      </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">Late Arrivals</span>
-                      <span className="text-lg font-bold text-orange-600">{monthlySummary.lateDays}</span>
+                      <span className="text-lg font-bold text-orange-600">
+                        {monthlySummary.lateDays}
+                      </span>
                     </div>
                     <div className="pt-3 border-t border-gray-200">
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-sm font-medium text-gray-700">Attendance Rate</span>
-                        <span className="text-lg font-bold text-[#246e72]">{monthlySummary.attendanceRate}%</span>
+                        <span className="text-lg font-bold text-[#246e72]">
+                          {monthlySummary.attendanceRate}%
+                        </span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
@@ -644,130 +2884,238 @@ const PayrollAttendancePage = () => {
                       </div>
                     </div>
                   </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    No summary data available
-                  </div>
                 )}
               </div>
 
+              {/* Alerts and Notifications */}
               <div className="bg-white rounded-xl shadow-md p-6">
                 <h3 className="text-lg font-bold text-gray-800 mb-4">Alerts and Notifications</h3>
                 <div className="space-y-3">
-                  <div className="bg-red-50 border-l-4 border-red-400 p-3 rounded">
-                    <div className="flex items-start space-x-2">
-                      <AlertCircle className="text-red-600 mt-0.5" size={16} />
-                      <div>
-                        <p className="text-sm font-semibold text-gray-800">Missing Punch Records</p>
-                        <p className="text-xs text-gray-600">Check for missing punch out records</p>
+                  {selectedStaff !== 'all' && monthlySummary.absentDays > 0 && (
+                    <div className="bg-red-50 border-l-4 border-red-400 p-3 rounded">
+                      <div className="flex items-start space-x-2">
+                        <AlertCircle className="text-red-600 mt-0.5" size={16} />
+                        <div>
+                          <p className="text-sm font-semibold text-gray-800">Missing Attendance</p>
+                          <p className="text-xs text-gray-600">
+                            {monthlySummary.absentDays} absent day(s) this month
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded">
-                    <div className="flex items-start space-x-2">
-                      <AlertCircle className="text-yellow-600 mt-0.5" size={16} />
-                      <div>
-                        <p className="text-sm font-semibold text-gray-800">Hours Requirement</p>
-                        <p className="text-xs text-gray-600">Monitor monthly hours completion</p>
+                  )}
+
+                  {selectedStaff !== 'all' && monthlySummary.lateDays > 0 && (
+                    <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded">
+                      <div className="flex items-start space-x-2">
+                        <AlertCircle className="text-yellow-600 mt-0.5" size={16} />
+                        <div>
+                          <p className="text-sm font-semibold text-gray-800">Late Arrivals</p>
+                          <p className="text-xs text-gray-600">
+                            {monthlySummary.lateDays} late arrival(s) this month
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
+
+                  {selectedStaff !== 'all' && !payrollData && (
+                    <div className="bg-blue-50 border-l-4 border-blue-400 p-3 rounded">
+                      <div className="flex items-start space-x-2">
+                        <AlertCircle className="text-blue-600 mt-0.5" size={16} />
+                        <div>
+                          <p className="text-sm font-semibold text-gray-800">Payroll Not Generated</p>
+                          <p className="text-xs text-gray-600">
+                            Generate payroll for {formatMonthKey(currentDate)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
 
+          {/* Payroll Calculation */}
           <div className="bg-white rounded-xl shadow-md p-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-6">Payroll Calculation - {selectedMonth}</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-800">
+                Payroll Calculation - {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+              </h2>
+              {selectedStaff !== 'all' && !payrollData && (
+                <button
+                  onClick={handleGeneratePayroll}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium flex items-center space-x-2"
+                >
+                  <FileText size={16} />
+                  <span>Generate Payroll</span>
+                </button>
+              )}
+            </div>
+
             {loading.payroll ? (
               <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#246e72]"></div>
+                <Loader2 className="h-8 w-8 animate-spin text-[#246e72]" />
               </div>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-700 mb-4">Salary Breakdown</h3>
                   <div className="space-y-3">
-                    {payrollItems.map(item => (
-                      <div key={item.id}>
-                        {editingItem?.id === item.id ? (
-                          <div className="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg">
-                            <input
-                              type="text"
-                              defaultValue={item.label}
-                              className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none"
-                              id={`label-${item.id}`}
-                            />
-                            <input
-                              type="number"
-                              step="0.01"
-                              defaultValue={Math.abs(item.amount)}
-                              className="w-24 px-2 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none"
-                              id={`amount-${item.id}`}
-                            />
-                            <button
-                              onClick={() => {
-                                const newLabel = document.getElementById(`label-${item.id}`).value;
-                                const newAmount = document.getElementById(`amount-${item.id}`).value;
-                                handleSaveItem(item.id, newLabel, item.type === 'deduction' ? -Math.abs(newAmount) : Math.abs(newAmount));
-                              }}
-                              className="px-3 py-1 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 text-xs font-medium"
-                            >
-                              Save
-                            </button>
+                    {payrollData ? (
+                      <>
+                        {/* Base Salary */}
+                        <div className="flex justify-between items-center p-2 hover:bg-gray-50 rounded-lg">
+                          <span className="text-sm text-gray-700">Base Salary</span>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm font-semibold text-green-600">
+                              +${payrollData.baseSalary?.toFixed(2) || '0.00'}
+                            </span>
                           </div>
-                        ) : (
-                          <div className="flex justify-between items-center p-2 hover:bg-gray-50 rounded-lg">
-                            <span className="text-sm text-gray-700">{item.label}</span>
-                            <div className="flex items-center space-x-2">
-                              <span className={`text-sm font-semibold ${item.amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                {item.amount >= 0 ? '+' : ''}{item.amount.toFixed(2)}
-                              </span>
-                              {item.editable && (
-                                <>
+                        </div>
+
+                        {/* Additions */}
+                        {payrollData.additions?.map((item, index) => (
+                          <div key={`add-${index}`}>
+                            {editingItem?.id === `add-${index}` ? (
+                              <div className="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg">
+                                <input
+                                  type="text"
+                                  defaultValue={item.label}
+                                  className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none"
+                                  id={`label-add-${index}`}
+                                />
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  defaultValue={Math.abs(item.amount)}
+                                  className="w-24 px-2 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none"
+                                  id={`amount-add-${index}`}
+                                />
+                                <button
+                                  onClick={() => {
+                                    const newLabel = document.getElementById(`label-add-${index}`).value;
+                                    const newAmount = document.getElementById(`amount-add-${index}`).value;
+                                    handleSaveItem(item._id || index, newLabel, newAmount);
+                                  }}
+                                  className="px-3 py-1 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 text-xs font-medium"
+                                >
+                                  Save
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex justify-between items-center p-2 hover:bg-gray-50 rounded-lg">
+                                <span className="text-sm text-gray-700">{item.label}</span>
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-sm font-semibold text-green-600">
+                                    +${Math.abs(item.amount).toFixed(2)}
+                                  </span>
                                   <button
-                                    onClick={() => handleEditItem(item)}
+                                    onClick={() => setEditingItem({ id: `add-${index}`, ...item })}
                                     className="p-1 text-blue-600 hover:bg-blue-50 rounded"
                                   >
                                     <Edit2 size={14} />
                                   </button>
                                   <button
-                                    onClick={() => handleDeleteItem(item.id)}
+                                    onClick={() => handleDeleteItem(item._id || index)}
                                     className="p-1 text-red-600 hover:bg-red-50 rounded"
                                   >
                                     <Trash2 size={14} />
                                   </button>
-                                </>
-                              )}
-                            </div>
+                                </div>
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    ))}
+                        ))}
 
-                    <div className="flex space-x-2 mt-4">
-                      <button
-                        onClick={() => addNewPayrollItem('addition')}
-                        className="flex-1 px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-sm font-medium"
-                      >
-                        + Add Addition
-                      </button>
-                      <button
-                        onClick={() => addNewPayrollItem('deduction')}
-                        className="flex-1 px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
-                      >
-                        + Add Deduction
-                      </button>
-                    </div>
-
-                    <div className="pt-4 border-t-2 border-gray-300 mt-4">
-                      <div className="flex justify-between items-center">
-                        <span className="text-lg font-bold text-gray-800">Net Payable Amount</span>
-                        <span className="text-2xl font-bold text-[#246e72]">
-                          ₹{calculateNetPayable().toFixed(2)}
-                        </span>
+                        {/* Deductions */}
+                        {payrollData.deductions?.map((item, index) => (
+                          <div key={`ded-${index}`}>
+                            {editingItem?.id === `ded-${index}` ? (
+                              <div className="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg">
+                                <input
+                                  type="text"
+                                  defaultValue={item.label}
+                                  className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none"
+                                  id={`label-ded-${index}`}
+                                />
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  defaultValue={Math.abs(item.amount)}
+                                  className="w-24 px-2 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none"
+                                  id={`amount-ded-${index}`}
+                                />
+                                <button
+                                  onClick={() => {
+                                    const newLabel = document.getElementById(`label-ded-${index}`).value;
+                                    const newAmount = document.getElementById(`amount-ded-${index}`).value;
+                                    handleSaveItem(item._id || `ded-${index}`, newLabel, -Math.abs(newAmount));
+                                  }}
+                                  className="px-3 py-1 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 text-xs font-medium"
+                                >
+                                  Save
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex justify-between items-center p-2 hover:bg-gray-50 rounded-lg">
+                                <span className="text-sm text-gray-700">{item.label}</span>
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-sm font-semibold text-red-600">
+                                    -${Math.abs(item.amount).toFixed(2)}
+                                  </span>
+                                  <button
+                                    onClick={() => setEditingItem({ id: `ded-${index}`, ...item })}
+                                    className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                                  >
+                                    <Edit2 size={14} />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteItem(item._id || `ded-${index}`)}
+                                    className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </>
+                    ) : (
+                      <div className="text-center py-4 text-gray-500">
+                        {selectedStaff === 'all' ? 'Select a staff member' : 'No payroll data available'}
                       </div>
-                    </div>
+                    )}
+
+                    {selectedStaff !== 'all' && payrollData && (
+                      <>
+                        <div className="flex space-x-2 mt-4">
+                          <button
+                            onClick={() => addNewPayrollItem('addition')}
+                            className="flex-1 px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-sm font-medium"
+                          >
+                            + Add Addition
+                          </button>
+                          <button
+                            onClick={() => addNewPayrollItem('deduction')}
+                            className="flex-1 px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
+                          >
+                            + Add Deduction
+                          </button>
+                        </div>
+
+                        <div className="pt-4 border-t-2 border-gray-300 mt-4">
+                          <div className="flex justify-between items-center">
+                            <span className="text-lg font-bold text-gray-800">Net Payable Amount</span>
+                            <span className="text-2xl font-bold text-[#246e72]">
+                              ${calculateNetPayable().toFixed(2)}
+                            </span>
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -775,19 +3123,18 @@ const PayrollAttendancePage = () => {
                   <h3 className="text-lg font-semibold text-gray-700 mb-4">Payroll Actions</h3>
                   <div className="space-y-4">
                     <button
-                      onClick={handleGeneratePayroll}
-                      className="w-full bg-[#246e72] text-white px-6 py-3 rounded-lg hover:bg-teal-700 transition-colors font-medium flex items-center justify-center space-x-2"
+                      onClick={() => handleExportPayroll()}
+                      disabled={!payrollData}
+                      className="w-full bg-[#246e72] text-white px-6 py-3 rounded-lg hover:bg-teal-700 transition-colors font-medium flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <FileText size={20} />
                       <span>Generate Salary Slip</span>
                     </button>
 
                     <button
-                      onClick={() => {
-                        // Download payslip logic
-                        alert('Download functionality will be implemented');
-                      }}
-                      className="w-full bg-gray-700 text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors font-medium flex items-center justify-center space-x-2"
+                      onClick={() => handleExportPayroll()}
+                      disabled={!payrollData}
+                      className="w-full bg-gray-700 text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors font-medium flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Download size={20} />
                       <span>Download Payslip (PDF)</span>
@@ -795,8 +3142,13 @@ const PayrollAttendancePage = () => {
 
                     <button
                       onClick={() => {
-                        // View history logic
-                        alert('View salary history');
+                        // View salary history
+                        if (selectedStaff !== 'all' && payrollHistory.length > 0) {
+                          // Scroll to history section
+                          document.querySelector('#payroll-history').scrollIntoView({ behavior: 'smooth' });
+                        } else {
+                          alert('No payroll history available');
+                        }
                       }}
                       className="w-full border-2 border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors font-medium flex items-center justify-center space-x-2"
                     >
@@ -804,55 +3156,78 @@ const PayrollAttendancePage = () => {
                       <span>View Salary History</span>
                     </button>
 
-                    <div className="pt-4">
-                      <h4 className="text-sm font-semibold text-gray-700 mb-3">Manual Adjustments</h4>
-                      <div className="space-y-3">
-                        <div>
-                          <label className="block text-xs text-gray-600 mb-1">Additional Bonus</label>
-                          <input
-                            type="number"
-                            step="0.01"
-                            value={manualBonus}
-                            onChange={(e) => setManualBonus(e.target.value)}
-                            placeholder="0.00"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs text-gray-600 mb-1">Additional Deduction</label>
-                          <input
-                            type="number"
-                            step="0.01"
-                            value={manualDeduction}
-                            onChange={(e) => setManualDeduction(e.target.value)}
-                            placeholder="0.00"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs text-gray-600 mb-1">Notes</label>
-                          <textarea
-                            value={payrollNotes}
-                            onChange={(e) => setPayrollNotes(e.target.value)}
-                            placeholder="Add notes for adjustments..."
-                            rows="3"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none resize-none"
-                          />
+                    {selectedStaff !== 'all' && payrollData && (
+                      <div className="pt-4">
+                        <h4 className="text-sm font-semibold text-gray-700 mb-3">Manual Adjustments</h4>
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-xs text-gray-600 mb-1">Additional Bonus</label>
+                            <input
+                              type="number"
+                              step="0.01"
+                              value={manualBonus}
+                              onChange={(e) => setManualBonus(e.target.value)}
+                              placeholder="0.00"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-gray-600 mb-1">Additional Deduction</label>
+                            <input
+                              type="number"
+                              step="0.01"
+                              value={manualDeduction}
+                              onChange={(e) => setManualDeduction(e.target.value)}
+                              placeholder="0.00"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-gray-600 mb-1">Notes</label>
+                            <textarea
+                              value={payrollNotes}
+                              onChange={(e) => setPayrollNotes(e.target.value)}
+                              placeholder="Add notes for adjustments..."
+                              rows="3"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none resize-none"
+                            />
+                          </div>
+                          <button
+                            onClick={async () => {
+                              try {
+                                // Save manual adjustments
+                                await api.put(`/payroll/${payrollData._id}`, {
+                                  manualBonus: parseFloat(manualBonus) || 0,
+                                  manualDeduction: parseFloat(manualDeduction) || 0,
+                                  notes: payrollNotes
+                                });
+                                alert('Adjustments saved successfully!');
+                                await fetchPayrollData();
+                              } catch (err) {
+                                alert('Failed to save adjustments');
+                              }
+                            }}
+                            className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                          >
+                            Save Adjustments
+                          </button>
                         </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               </div>
             )}
           </div>
 
-          <div className="bg-white rounded-xl shadow-md p-6">
+          {/* Payroll History */}
+          <div id="payroll-history" className="bg-white rounded-xl shadow-md p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-800">Past Payroll Records</h2>
               <button
-                className="px-4 py-2 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 text-sm font-medium"
-                onClick={() => alert('Export all functionality will be implemented')}
+                onClick={() => handleExportPayroll()}
+                disabled={!payrollData}
+                className="px-4 py-2 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Export All
               </button>
@@ -860,7 +3235,11 @@ const PayrollAttendancePage = () => {
 
             {loading.history ? (
               <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#246e72]"></div>
+                <Loader2 className="h-8 w-8 animate-spin text-[#246e72]" />
+              </div>
+            ) : payrollHistory.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                {selectedStaff === 'all' ? 'Select a staff member' : 'No payroll history available'}
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -875,7 +3254,7 @@ const PayrollAttendancePage = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {payrollHistory.map(record => (
+                    {payrollHistory.map((record) => (
                       <tr key={record._id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                         <td className="py-4 px-4 text-sm text-gray-700">{record.month}</td>
                         <td className="py-4 px-4 text-sm text-gray-700">
@@ -885,23 +3264,48 @@ const PayrollAttendancePage = () => {
                             year: 'numeric'
                           })}
                         </td>
-                        <td className="py-4 px-4 text-sm font-semibold text-gray-800">₹{record.netAmount?.toFixed(2)}</td>
+                        <td className="py-4 px-4 text-sm font-semibold text-gray-800">
+                          ${record.netAmount?.toFixed(2) || '0.00'}
+                        </td>
                         <td className="py-4 px-4">
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${record.netAmount > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                            {record.netAmount > 0 ? 'Generated' : 'Pending'}
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${record.status === 'Paid'
+                              ? 'bg-green-100 text-green-700'
+                              : record.status === 'Generated'
+                                ? 'bg-blue-100 text-blue-700'
+                                : 'bg-yellow-100 text-yellow-700'
+                            }`}>
+                            {record.status}
                           </span>
                         </td>
                         <td className="py-4 px-4">
                           <div className="flex space-x-2">
                             <button
+                              onClick={() => {
+                                // View details
+                                alert(`Viewing payroll for ${record.month}`);
+                              }}
                               className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                              onClick={() => alert('View details')}
                             >
                               <Eye size={16} />
                             </button>
                             <button
+                              onClick={async () => {
+                                try {
+                                  const response = await api.get(`/payroll/export/${record._id}/pdf`, {
+                                    responseType: 'blob'
+                                  });
+                                  const url = window.URL.createObjectURL(new Blob([response.data]));
+                                  const link = document.createElement('a');
+                                  link.href = url;
+                                  link.setAttribute('download', `payroll_${record.month}.pdf`);
+                                  document.body.appendChild(link);
+                                  link.click();
+                                  link.remove();
+                                } catch (err) {
+                                  alert('Failed to download payslip');
+                                }
+                              }}
                               className="p-2 text-[#246e72] hover:bg-teal-50 rounded-lg transition-colors"
-                              onClick={() => alert('Download')}
                             >
                               <Download size={16} />
                             </button>
@@ -909,13 +3313,6 @@ const PayrollAttendancePage = () => {
                         </td>
                       </tr>
                     ))}
-                    {payrollHistory.length === 0 && (
-                      <tr>
-                        <td colSpan="5" className="py-8 text-center text-gray-500">
-                          No payroll records found
-                        </td>
-                      </tr>
-                    )}
                   </tbody>
                 </table>
               </div>
@@ -924,17 +3321,18 @@ const PayrollAttendancePage = () => {
         </main>
       </div>
 
-      {showAttendanceModal && selectedDate && (
-        <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50 p-4">
+      {/* Attendance Details Modal */}
+      {showAttendanceModal && attendanceModalData && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-bold text-gray-800">
-                Attendance Details - {new Date(selectedDate.date).toLocaleDateString('en-US', {
-                  month: 'short',
-                  day: 'numeric'
-                })}
+                Attendance Details - {selectedDate} {currentDate.toLocaleDateString('en-US', { month: 'long' })}
               </h3>
-              <button onClick={() => setShowAttendanceModal(false)} className="text-gray-400 hover:text-gray-600">
+              <button
+                onClick={() => setShowAttendanceModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
                 <X size={24} />
               </button>
             </div>
@@ -944,39 +3342,40 @@ const PayrollAttendancePage = () => {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Status:</span>
-                    <span className="font-medium text-gray-800 capitalize">{selectedDate.status}</span>
+                    <span className="font-medium text-gray-800 capitalize">
+                      {attendanceModalData.status}
+                    </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Punch In:</span>
                     <span className="font-medium text-gray-800">
-                      {selectedDate.punchInTime
-                        ? new Date(selectedDate.punchInTime).toLocaleTimeString('en-US', {
+                      {attendanceModalData.punchInTime
+                        ? new Date(attendanceModalData.punchInTime).toLocaleTimeString('en-US', {
                           hour: '2-digit',
                           minute: '2-digit'
                         })
-                        : '--:-- --'
-                      }
+                        : '--:-- --'}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Punch Out:</span>
                     <span className="font-medium text-gray-800">
-                      {selectedDate.punchOutTime
-                        ? new Date(selectedDate.punchOutTime).toLocaleTimeString('en-US', {
+                      {attendanceModalData.punchOutTime
+                        ? new Date(attendanceModalData.punchOutTime).toLocaleTimeString('en-US', {
                           hour: '2-digit',
                           minute: '2-digit'
                         })
-                        : '--:-- --'
-                      }
+                        : '--:-- --'}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Total Hours:</span>
                     <span className="font-medium text-gray-800">
-                      {selectedDate.totalHours
-                        ? `${Math.floor(selectedDate.totalHours)}h ${Math.round((selectedDate.totalHours % 1) * 60)}m`
-                        : '0h 0m'
-                      }
+                      {attendanceModalData.totalHours
+                        ? `${Math.floor(attendanceModalData.totalHours)}h ${Math.round(
+                          (attendanceModalData.totalHours % 1) * 60
+                        )}m`
+                        : '0h 0m'}
                     </span>
                   </div>
                 </div>
