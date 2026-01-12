@@ -2,12 +2,17 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 function Login() {
+<<<<<<< HEAD
   const navigate = useNavigate();
+=======
+  const navigate = useNavigate()
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
 
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     remember: false
+<<<<<<< HEAD
   });
 
   const { email, password } = formData;
@@ -50,6 +55,21 @@ function Login() {
     } catch (error) {
       console.error("Login error:", error);
       alert("Server error");
+=======
+  })
+
+  const { email, password } = formData 
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (email === 'admin@gmail.com' && password === '1234') {
+      navigate('/admin/dashboard');
+    } else if (email === 'staff@gmail.com' && password === '1234') {
+      navigate('/staff/dashboard');
+    } else {
+      alert('Invalid credentials');
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
     }
   };
 
@@ -57,6 +77,7 @@ function Login() {
     const { name, value, type, checked } = e.target;
     setFormData({
       ...formData,
+<<<<<<< HEAD
       [name]: type === "checkbox" ? checked : value
     });
   };
@@ -67,11 +88,21 @@ function Login() {
     window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
   };
 
+=======
+      [name]: type === 'checkbox' ? checked : value
+    });
+  };
+
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
   return (
     <div className="min-h-screen flex ">
       {/* Left Side - Welcome Section */}
       <div className="hidden lg:flex lg:w-1/2 bg-[linear-gradient(180deg,#05303B_-50.4%,#2B7C7E_20.34%,#91D8C1_80.01%)] items-center justify-center p-12 relative overflow-hidden">
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
         <div className="relative z-10 text-center max-w-md">
           {/* Medical Image Placeholder */}
           <div className="mb-8 mx-auto w-64 h-64 bg-[#d2eaf4] bg-opacity-20 rounded-3xl flex items-center justify-center backdrop-blur-sm shadow-xl">
@@ -83,10 +114,17 @@ function Login() {
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
             Welcome to Srinivasa Pharma
           </h1>
+<<<<<<< HEAD
 
           <p className="text-white text-lg mb-8 leading-relaxed opacity-95">
             Your comprehensive medical store management solution. Streamline operations, manage inventory, and serve patients better.
           </p>
+=======
+          
+          <p className="text-white text-lg mb-8 leading-relaxed opacity-95">
+            Your comprehensive medical store management solution. Streamline operations, manage inventory, and serve patients better.
+          </p>  
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
 
           <div className="space-y-3 text-left">
             <div className="flex items-center text-white">
@@ -139,7 +177,11 @@ function Login() {
           </div>
 
           {/* Form */}
+<<<<<<< HEAD
           <form onSubmit={handleSubmit} className="space-y-5">
+=======
+          <div className="space-y-5">
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
             {/* Email/Phone Field */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -153,7 +195,10 @@ function Login() {
                   onChange={handleChange}
                   className="w-full px-4 py-3 pl-11 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#246e72] focus:border-transparent outline-none bg-white"
                   placeholder="Enter email"
+<<<<<<< HEAD
                   required
+=======
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
                 />
                 <svg className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -168,6 +213,7 @@ function Login() {
               </label>
               <div className="relative">
                 <input
+<<<<<<< HEAD
                   type="password"
                   name="password"
                   value={formData.password}
@@ -176,6 +222,15 @@ function Login() {
                   placeholder="Enter password"
                   required
                 />
+=======
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                className="w-full px-4 py-3 pl-11 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#246e72] focus:border-transparent outline-none bg-white"
+                placeholder="Enter password"
+              />
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
                 <svg className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
@@ -194,8 +249,12 @@ function Login() {
                 />
                 <span className="ml-2 text-sm text-gray-700">Remember me</span>
               </label>
+<<<<<<< HEAD
               <button
                 type="button"
+=======
+              <button 
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
                 onClick={() => console.log('Forgot password')}
                 className="text-sm text-[#246e72] hover:text-[#5fb3f0] font-medium transition"
               >
@@ -205,7 +264,11 @@ function Login() {
 
             {/* Sign In Button */}
             <button
+<<<<<<< HEAD
               type="submit"
+=======
+              onClick={handleSubmit}
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
               className="w-full py-3 px-6 rounded-xl font-semibold text-white bg-[#246e72] hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200"
             >
               <svg className="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -213,6 +276,7 @@ function Login() {
               </svg>
               Sign In
             </button>
+<<<<<<< HEAD
           </form>
 
           {/* Divider */}
@@ -251,12 +315,56 @@ function Login() {
             Sign in with Google
           </button>
 
+=======
+
+            {/* Divider */}
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-[#d2eaf4] text-gray-500">Or continue with</span>
+              </div>
+            </div>
+
+            {/* Google Login Button */}
+            <button
+              onClick={() => console.log('Google Login Clicked')}
+              className="w-full py-3 px-6 rounded-xl font-semibold text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:shadow-md transform hover:scale-[1.02] transition-all duration-200 flex items-center justify-center"
+            >
+              <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                <path
+                  fill="#EA4335"
+                  d="M5.266 9.765A7.077 7.077 0 0 1 12 4.909c1.69 0 3.218.6 4.418 1.582L19.91 3C17.782 1.145 15.055 0 12 0 7.273 0 3.191 2.691 1.145 6.655l4.121 3.11z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M16.04 18.013c-1.09.593-2.325.896-3.618.896-3.24 0-6.063-2.09-7.12-5.007L1.145 17.02C3.191 21.018 7.273 24 12 24c3.11 0 5.927-1.09 8.09-2.936l-4.05-3.051z"
+                />
+                <path
+                  fill="#4285F4"
+                  d="M23.49 12.275c0-.827-.073-1.623-.21-2.396H12v4.54h6.44c-.28 1.487-1.12 2.753-2.4 3.594l4.05 3.051c2.373-2.183 3.4-5.39 3.4-8.789z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.266 14.235A6.974 6.974 0 0 1 4.909 12c0-.782.136-1.536.357-2.235L1.145 6.655A11.97 11.97 0 0 0 0 12c0 1.92.445 3.736 1.245 5.345l4.021-3.11z"
+                />
+              </svg>
+              Sign in with Google
+            </button>
+          </div>
+
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
           {/* Help Section */}
           <div className="mt-8 text-center">
             <p className="text-sm text-gray-600 mb-3">Need help accessing your account?</p>
             <div className="flex justify-center gap-4">
+<<<<<<< HEAD
               <button
                 type="button"
+=======
+              <button 
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
                 onClick={() => console.log('Contact support')}
                 className="text-sm text-gray-700 hover:text-[#246e72] transition flex items-center"
               >
@@ -265,8 +373,12 @@ function Login() {
                 </svg>
                 Contact Support
               </button>
+<<<<<<< HEAD
               <button
                 type="button"
+=======
+              <button 
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
                 onClick={() => console.log('Help center')}
                 className="text-sm text-gray-700 hover:text-[#246e72] transition flex items-center"
               >

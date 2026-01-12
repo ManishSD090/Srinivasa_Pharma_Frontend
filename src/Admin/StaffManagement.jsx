@@ -1,25 +1,44 @@
+<<<<<<< HEAD
 import React, { useState, useEffect } from 'react';
 import { 
   Edit, Trash2, Download, 
+=======
+import React, { useState } from 'react';
+import { 
+  Edit, Trash2, Download, Filter,
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
   ChevronLeft, ChevronRight, X, 
   Users, Menu, CheckCircle, Save 
 } from 'lucide-react';
 import AdminSidebar from './AdminSidebar';
+<<<<<<< HEAD
 import { fetchAllStaff, updateStaff, createStaff } from '../services/staff.api';
+=======
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
 
 const StaffManagement = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
+<<<<<<< HEAD
   const [filterStatus, setFilterStatus] = useState('All');
   const [showExportDropdown, setShowExportDropdown] = useState(false);
   
+=======
+  const [showExportDropdown, setShowExportDropdown] = useState(false);
+  
+  // --- FILTER STATE ---
+  const [filterStatus, setFilterStatus] = useState('All');
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
   // --- Modal States ---
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedLeaveStaff, setSelectedLeaveStaff] = useState(null);
     
+<<<<<<< HEAD
   // Inline Form Data (Add New Staff) -> Added workHours
   const [formData, setFormData] = useState({
     name: '',
@@ -69,6 +88,30 @@ const StaffManagement = () => {
       setLoading(false);
     }
   };
+=======
+  // Form Data
+  const [formData, setFormData] = useState({
+    name: '', email: '', phone: '', salary: '',
+    workHours: '', joiningDate: '', role: '', password: ''
+  });
+
+  // Edit Modal Form Data
+  const [editFormData, setEditFormData] = useState({
+    id: null, name: '', phone: '', salary: '',
+    workHours: '', joiningDate: '', leavingDate: '',
+    role: '', password: '', status: 'Active'
+  });
+
+  // Mock Data
+  const [staffList, setStaffList] = useState([
+    { id: 1, name: 'Dr. Sarah Johnson', phone: '+1 234-567-8901', salary: '₹4,500', workHours: '8', joiningDate: '2020-01-15', leavingDate: '----', status: 'Active', initial: 'SJ', color: 'bg-cyan-400' },
+    { id: 2, name: 'Mike Chen', phone: '+1 234-567-8902', salary: '₹2,800', workHours: '9', joiningDate: '2023-03-10', leavingDate: '----', status: 'On Leave', initial: 'MC', color: 'bg-teal-400', leavePending: true },
+    { id: 3, name: 'Emily Rodriguez', phone: '+1 234-567-8903', salary: '₹3,200', workHours: '8', joiningDate: '2023-02-20', leavingDate: '----', status: 'Active', initial: 'ER', color: 'bg-emerald-400' },
+    { id: 4, name: 'James Wilson', phone: '+1 234-567-8904', salary: '₹2,500', workHours: '6', joiningDate: '2021-04-05', leavingDate: '2023-01-15', status: 'Resigned', initial: 'JW', color: 'bg-green-400' },
+    { id: 5, name: 'Lisa Anderson', phone: '+1 234-567-8905', salary: '₹5,200', workHours: '10', joiningDate: '2023-01-01', leavingDate: '----', status: 'Active', initial: 'LA', color: 'bg-lime-400' },
+    { id: 6, name: 'David Kumar', phone: '+1 234-567-8906', salary: '₹4,300', workHours: '8', joiningDate: '2023-05-12', leavingDate: '----', status: 'Active', initial: 'DK', color: 'bg-cyan-500' }
+  ]);
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
 
   const filteredStaff = staffList.filter(staff => {
     const matchesSearch = staff.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -93,6 +136,7 @@ const StaffManagement = () => {
     setEditFormData({ ...editFormData, [e.target.name]: e.target.value });
   };
 
+<<<<<<< HEAD
   const handleAddStaff = async () => {
     if (!formData.role) {
       alert("Please select a staff role");
@@ -144,11 +188,35 @@ const StaffManagement = () => {
         role: staff.role,
         status: staff.status,
         password: ''
+=======
+  const handleAddStaff = () => {
+    if(!formData.name || !formData.phone) { alert("Name and Phone are required"); return; }
+    const newStaff = {
+      ...formData,
+      id: Date.now(),
+      status: 'Active',
+      leavingDate: '----',
+      initial: formData.name.substring(0,2).toUpperCase(),
+      color: 'bg-teal-500'
+    };
+    setStaffList([...staffList, newStaff]);
+    setFormData({ name: '', phone: '', salary: '', workHours: '', joiningDate: '', role: '', password: '' });
+  };
+
+  const handleEdit = (staff) => {
+    if (staff) {
+      setEditFormData(staff);
+    } else {
+      setEditFormData({ 
+        id: null, name: '', phone: '', salary: '', workHours: '', 
+        joiningDate: '', leavingDate: '', role: '', password: '', status: 'Active' 
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
       });
     }
     setShowEditModal(true);
   };
 
+<<<<<<< HEAD
 
   const handleUpdateStaff = async () => {
     try {
@@ -191,21 +259,63 @@ const StaffManagement = () => {
   };
 
 
+=======
+  const handleUpdateStaff = () => {
+    if (editFormData.id) {
+      setStaffList(staffList.map(s => s.id === editFormData.id ? editFormData : s));
+    } else {
+      const newStaff = {
+        ...editFormData,
+        id: Date.now(),
+        leavingDate: editFormData.leavingDate || '----',
+        initial: editFormData.name ? editFormData.name.substring(0,2).toUpperCase() : '??',
+        color: 'bg-teal-500'
+      };
+      setStaffList([...staffList, newStaff]);
+    }
+    setShowEditModal(false);
+  };
+
+  const handleDelete = (staff) => {
+    if(window.confirm(`Delete ${staff.name}?`)) {
+      setStaffList(staffList.filter(s => s.id !== staff.id));
+    }
+  };
+
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
   const handleApproveLeave = (staff) => {
     setSelectedLeaveStaff(staff);
     setShowApproveModal(true);
   };
 
   const approveLeave = () => {
+<<<<<<< HEAD
+=======
+    setStaffList(staffList.map(s => s.id === selectedLeaveStaff.id ? { ...s, status: 'On Leave', leavePending: false } : s));
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
     setShowApproveModal(false);
     setSelectedLeaveStaff(null);
   };
 
   const rejectLeave = () => {
+<<<<<<< HEAD
+=======
+    setStaffList(staffList.map(s => s.id === selectedLeaveStaff.id ? { ...s, leavePending: false } : s));
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
     setShowApproveModal(false);
     setSelectedLeaveStaff(null);
   };
 
+<<<<<<< HEAD
+=======
+  // --- Filter Handler ---
+  const handleFilterSelect = (status) => {
+    setFilterStatus(status);
+    setShowFilterDropdown(false);
+    setCurrentPage(1);
+  };
+
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
   const getStatusBadge = (status) => {
     const styles = {
       'Active': 'bg-green-100 text-green-700',
@@ -218,11 +328,15 @@ const StaffManagement = () => {
   return (
     <div className="flex h-screen bg-[#D2EAF4]">
       
+<<<<<<< HEAD
       {/* Replaced Manual Sidebar with Component */}
       <AdminSidebar 
         isSidebarOpen={isSidebarOpen} 
         setIsSidebarOpen={setIsSidebarOpen} 
       />
+=======
+      <AdminSidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
 
       <div className="flex-1 overflow-auto">
         <header className="bg-[#21696d] shadow-sm sticky top-0 z-30">
@@ -244,17 +358,26 @@ const StaffManagement = () => {
         </header>
 
         <main className="p-4 lg:p-8 space-y-6">
+<<<<<<< HEAD
+=======
+          {/* ADD STAFF FORM */}
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
           <div className="bg-white rounded-xl shadow-md p-6">
             <div className="flex items-center space-x-2 mb-6">
               <Users size={24} className="text-[#246e72]" />
               <h2 className="text-xl font-bold text-gray-800">Add New Staff Member</h2>
               
+<<<<<<< HEAD
               <button 
                 onClick={() => handleEdit(null)} 
                 className="w-8 h-8 bg-[#246e72] ml-4 text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center"
                 title="Open Edit Popup"
                 >
                   <Edit size={16} />
+=======
+              <button onClick={() => handleEdit(null)} className="w-8 h-8 bg-[#246e72] ml-4 text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center">
+                <Edit size={16} />
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
               </button>
             </div>
             
@@ -264,6 +387,7 @@ const StaffManagement = () => {
                 <input type="text" name="name" value={formData.name} onChange={handleFormChange} placeholder="Enter full name" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
               </div>
               <div>
+<<<<<<< HEAD
                 <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
                 <input type="tel" name="phone" value={formData.phone} onChange={handleFormChange} placeholder="Enter phone number" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
               </div>
@@ -301,17 +425,34 @@ const StaffManagement = () => {
             </div>
 
             {/* UPDATED GRID TO 4 COLUMNS TO FIT WORK HOURS */}
+=======
+                <label className="block text-sm font-medium text-gray-700 mb-2">Staff Email</label>
+                <input type="text" name="email" value={formData.email} onChange={handleFormChange} placeholder="Enter email" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                <input type="tel" name="phone" value={formData.phone} onChange={handleFormChange} placeholder="Enter phone number" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
+              </div>
+            </div>
+
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Salary</label>
                 <input type="text" name="salary" value={formData.salary} onChange={handleFormChange} placeholder="Enter salary" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
               </div>
+<<<<<<< HEAD
               {/* --- NEW WORK HOURS INPUT --- */}
+=======
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Daily Work Hours</label>
                 <input type="number" name="workHours" value={formData.workHours} onChange={handleFormChange} placeholder="e.g. 8" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
               </div>
+<<<<<<< HEAD
               {/* ----------------------------- */}
+=======
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Joining Date</label>
                 <input type="date" name="joiningDate" value={formData.joiningDate} onChange={handleFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
@@ -327,6 +468,10 @@ const StaffManagement = () => {
             </button>
           </div>
 
+<<<<<<< HEAD
+=======
+          {/* STAFF LIST */}
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
           <div className="bg-white rounded-xl shadow-md p-6">
             <div className="flex items-center space-x-2 mb-6">
               <div className="w-8 h-8 bg-teal-50 rounded-lg flex items-center justify-center">
@@ -337,6 +482,7 @@ const StaffManagement = () => {
 
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
               <div className="flex flex-wrap items-center gap-3">
+<<<<<<< HEAD
                 <div className="relative">
                   <input type="text" placeholder="Search by name or phone..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full sm:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm" />
                 </div>
@@ -346,12 +492,38 @@ const StaffManagement = () => {
                   <option value="On Leave">On Leave</option>
                   <option value="Resigned">Resigned</option>
                 </select>
+=======
+                
+                {/* --- CUSTOM FILTER DROPDOWN (Matches OrdersPage) --- */}
+                <div className="relative">
+                  <button 
+                    onClick={() => setShowFilterDropdown(!showFilterDropdown)} 
+                    className={`px-4 py-2 rounded-lg transition-colors font-medium flex items-center space-x-2 text-sm ${filterStatus !== 'All' ? 'bg-teal-100 text-teal-800 border border-teal-200' : 'bg-[#246e72] text-white hover:bg-teal-700'}`}
+                  >
+                    <Filter size={18} />
+                    <span>{filterStatus === 'All' ? 'Filter' : filterStatus}</span>
+                  </button>
+                  {showFilterDropdown && (
+                    <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                      <button onClick={() => handleFilterSelect('All')} className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-gray-700">All Staff</button>
+                      <button onClick={() => handleFilterSelect('Active')} className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-gray-700">Active</button>
+                      <button onClick={() => handleFilterSelect('On Leave')} className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-gray-700">On Leave</button>
+                      <button onClick={() => handleFilterSelect('Resigned')} className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-gray-700">Resigned</button>
+                    </div>
+                  )}
+                </div>
+
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
                 <select value={entriesPerPage} onChange={(e) => setEntriesPerPage(Number(e.target.value))} className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm">
                   <option value={10}>Show 10</option>
                   <option value={50}>Show 50</option>
                   <option value={100}>Show 100</option>
                 </select>
               </div>
+<<<<<<< HEAD
+=======
+              
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
               <div className="relative">
                 <button onClick={() => setShowExportDropdown(!showExportDropdown)} className="bg-[#246e72] text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors font-medium flex items-center space-x-2">
                   <Download size={18} />
@@ -366,12 +538,20 @@ const StaffManagement = () => {
               </div>
             </div>
 
+<<<<<<< HEAD
+=======
+            <div className="w-full mb-6">
+                <input type="text" placeholder="Search by name or phone..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full sm:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm" />
+            </div>
+
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200">
                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Staff Name</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Phone Number</th>
+<<<<<<< HEAD
                     <th className="py-3 px-4 text-sm font-semibold text-gray-600">
                       Email
                     </th>
@@ -379,6 +559,10 @@ const StaffManagement = () => {
                     {/* --- ADDED HEADER --- */}
                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Work Hours</th>
                     {/* ------------------- */}
+=======
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Salary</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Work Hours</th>
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Joining Date</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Leaving Date</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Status</th>
@@ -387,7 +571,11 @@ const StaffManagement = () => {
                 </thead>
                 <tbody>
                   {displayedStaff.map(staff => (
+<<<<<<< HEAD
                     <tr key={staff._id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+=======
+                    <tr key={staff.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
                       <td className="py-4 px-4">
                         <div className="flex items-center space-x-3">
                           <div className={`w-10 h-10 ${staff.color} rounded-full flex items-center justify-center text-white font-semibold text-sm`}>{staff.initial}</div>
@@ -395,6 +583,7 @@ const StaffManagement = () => {
                         </div>
                       </td>
                       <td className="py-4 px-4 text-sm text-gray-700">{staff.phone}</td>
+<<<<<<< HEAD
                       <td className="py-4 px-4 text-sm text-gray-700">
                         {staff.userId?.email || '—'}
                       </td>
@@ -402,6 +591,10 @@ const StaffManagement = () => {
                       {/* --- ADDED CELL --- */}
                       <td className="py-4 px-4 text-sm text-gray-700">{staff.dailyWorkHrs} Hrs</td>
                       {/* ------------------ */}
+=======
+                      <td className="py-4 px-4 text-sm text-gray-700 font-semibold">{staff.salary}</td>
+                      <td className="py-4 px-4 text-sm text-gray-700">{staff.workHours} Hrs</td>
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
                       <td className="py-4 px-4 text-sm text-gray-700">{staff.joiningDate}</td>
                       <td className="py-4 px-4 text-sm text-gray-700">{staff.leavingDate}</td>
                       <td className="py-4 px-4">
@@ -465,11 +658,15 @@ const StaffManagement = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Salary</label>
                 <input type="text" name="salary" value={editFormData.salary} onChange={handleEditFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" placeholder="₹..." />
               </div>
+<<<<<<< HEAD
               {/* --- NEW WORK HOURS INPUT IN MODAL --- */}
+=======
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Daily Work Hours</label>
                 <input type="number" name="workHours" value={editFormData.workHours} onChange={handleEditFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" placeholder="8" />
               </div>
+<<<<<<< HEAD
               {/* ------------------------------------- */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -493,12 +690,15 @@ const StaffManagement = () => {
                 )}
               </div>
 
+=======
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Password (Optional)</label>
                 <input type="password" name="password" value={editFormData.password} onChange={handleEditFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" placeholder="******" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Joining Date</label>
+<<<<<<< HEAD
                 <input
                   type="date"
                   name="joiningDate"
@@ -516,6 +716,21 @@ const StaffManagement = () => {
                   disabled
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
                 />
+=======
+                <input type="date" name="joiningDate" value={editFormData.joiningDate} onChange={handleEditFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Leaving Date</label>
+                <input type="date" name="leavingDate" value={editFormData.leavingDate} onChange={handleEditFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                <select name="status" value={editFormData.status} onChange={handleEditFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none">
+                  <option value="Active">Active</option>
+                  <option value="On Leave">On Leave</option>
+                  <option value="Resigned">Resigned</option>
+                </select>
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
               </div>
             </div>
 
@@ -552,4 +767,8 @@ const StaffManagement = () => {
   );
 };
 
+<<<<<<< HEAD
 export default StaffManagement; 
+=======
+export default StaffManagement;
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f

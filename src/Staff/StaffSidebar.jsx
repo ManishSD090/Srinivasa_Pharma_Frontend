@@ -20,9 +20,15 @@ const StaffSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
     <>
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
+<<<<<<< HEAD
         <div
           className="fixed inset-0 bg-none z-40 lg:hidden"
           onClick={() => setIsSidebarOpen(false)}
+=======
+        <div 
+          className="fixed inset-0 bg-none z-40 lg:hidden" 
+          onClick={() => setIsSidebarOpen(false)} 
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
         />
       )}
 

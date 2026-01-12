@@ -12,11 +12,18 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.1.16",
     "axios": "^1.13.2",
+<<<<<<< HEAD
     "date-fns": "^4.1.0",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.548.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+=======
+    "lucide-react": "^0.548.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "react-hot-toast": "^2.6.0",
+>>>>>>> 3b6d491de2fbd85b00f5178fea7bd60b19a8d31f
     "react-icons": "^5.5.0",
     "react-router-dom": "^7.9.4",
     "tailwindcss": "^4.1.16"
