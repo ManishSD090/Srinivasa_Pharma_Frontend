@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import {
+  fetchPendingVolunteerRequests,
+  approveVolunteerRequest,
+  rejectVolunteerRequest
+} from "../services/task.api";
+
+import {
   Edit, Trash2, Download,
   ChevronLeft, ChevronRight, X,
   CheckCircle, Menu, Users,
@@ -35,6 +41,9 @@ const TaskManagement = () => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [statusRequests, setStatusRequests] = useState([]);
+  const [volunteerRequests, setVolunteerRequests] = useState([]);
+  const [loadingVolunteers, setLoadingVolunteers] = useState(false);
+
 
   useEffect(() => {
     fetchStatusRequests().then(res => setStatusRequests(res.data));
@@ -67,8 +76,47 @@ const TaskManagement = () => {
     }
   };
 
+  const loadVolunteerRequests = async () => {
+    try {
+      setLoadingVolunteers(true);
+      const res = await fetchPendingVolunteerRequests();
+      setVolunteerRequests(res.data || []);
+    } catch (err) {
+      console.error("Failed to load volunteer requests", err);
+    } finally {
+      setLoadingVolunteers(false);
+    }
+  };
+
+  const handleApproveVolunteer = async (volunteer) => {
+    try {
+      await approveVolunteerRequest(volunteer._id);
+
+      // Refresh everything
+      await loadInitialData();
+      await loadVolunteerRequests();
+
+      setShowVolunteerApproval(false);
+    } catch (err) {
+      console.error("Approve volunteer failed", err);
+    }
+  };
+
+  const handleRejectVolunteer = async (volunteerId) => {
+    try {
+      await rejectVolunteerRequest(volunteerId);
+      setVolunteerRequests(prev =>
+        prev.filter(v => v._id !== volunteerId)
+      );
+    } catch (err) {
+      console.error("Reject volunteer failed", err);
+    }
+  };
+
+
   useEffect(() => {
     loadInitialData();
+    loadVolunteerRequests();
   }, []);
 
 
@@ -93,12 +141,6 @@ const TaskManagement = () => {
     status: ''
   });
 
-
-
-  const volunteerRequests = [
-    { id: 1, name: 'John Smith', taskId: 2, taskTitle: 'Customer Prescription Review', initial: 'JS', color: 'bg-cyan-400' },
-    { id: 2, name: 'Emma Wilson', taskId: 6, taskTitle: 'Supplier Order Review', initial: 'EW', color: 'bg-teal-400' }
-  ];
 
   const overdueTasks = tasks.filter(task => {
     const today = new Date();
@@ -412,30 +454,54 @@ const TaskManagement = () => {
           </div>
 
           {/* Volunteer Section (Unchanged) */}
-          {volunteerRequests.length > 0 && (
+          {loadingVolunteers ? (
+            <p className="text-center text-gray-500">Loading volunteer requests...</p>
+          ) : volunteerRequests.length > 0 && (
             <div className="bg-white rounded-xl shadow-md p-6">
               <div className="flex items-center space-x-2 mb-6">
                 <Users size={24} className="text-[#246e72]" />
                 <h3 className="text-xl font-bold text-gray-800">Volunteer Management</h3>
               </div>
               <div className="space-y-4">
-                {volunteerRequests.map(volunteer => (
-                  <div key={volunteer.id} className="flex items-center justify-between bg-[#D2EAF4] rounded-lg p-4">
-                    <div className="flex items-center space-x-4">
-                      <div className={`w-12 h-12 ${volunteer.color} rounded-full flex items-center justify-center text-white font-semibold`}>
-                        {volunteer.initial}
+                  {volunteerRequests.map(volunteer => (
+                    <div
+                      key={volunteer._id}
+                      className="flex items-center justify-between bg-[#D2EAF4] rounded-lg p-4"
+                    >
+                      <div className="flex items-center space-x-4">
+                        <div className="w-12 h-12 bg-[#246e72] rounded-full flex items-center justify-center text-white font-semibold">
+                          {volunteer.staff?.name?.charAt(0)}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-800">
+                            {volunteer.staff?.name}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            Requested: {volunteer.task?.title}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-semibold text-gray-800">{volunteer.name}</p>
-                        <p className="text-sm text-gray-600">Requested: {volunteer.taskTitle}</p>
+
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => {
+                            setSelectedVolunteer(volunteer);
+                            setShowVolunteerApproval(true);
+                            handleApproveVolunteer(selectedVolunteer);
+                          }}
+                          className="bg-[#246e72] text-white px-4 py-2 rounded-lg hover:bg-teal-700"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => handleRejectVolunteer(volunteer._id)}
+                          className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
+                        >
+                          Reject
+                        </button>
                       </div>
                     </div>
-                    <div className="flex space-x-2">
-                      <button onClick={() => { setSelectedVolunteer(volunteer); setShowVolunteerApproval(true); }} className="bg-[#246e72] text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors font-medium">Approve</button>
-                      <button className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors font-medium">Decline</button>
-                    </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             </div>
           )}

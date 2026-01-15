@@ -42,12 +42,12 @@ export const volunteerForTask = (taskId) => {
 };
 
 // Admin approves volunteer request
-export const approveVolunteer = (volunteerId) => {
+export const approveVolunteerRequest = (volunteerId) => {
     return api.put(`/tasks/volunteer/approve/${volunteerId}`);
 };
 
 // Admin rejects volunteer request
-export const rejectVolunteer = (volunteerId) => {
+export const rejectVolunteerRequest = (volunteerId) => {
     return api.put(`/tasks/volunteer/reject/${volunteerId}`);
 };
 
