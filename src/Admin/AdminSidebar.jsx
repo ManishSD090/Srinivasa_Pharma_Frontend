@@ -2,10 +2,14 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { X } from 'lucide-react';
+import { useAuth } from '../authContext';
+
 
 const AdminSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { logout } = useAuth();
+
 
   const navItems = [
     { name: 'Dashboard', path: '/admin/dashboard' },
@@ -16,6 +20,18 @@ const AdminSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
     { name: 'Payroll & Attendance', path: '/admin/payroll' },
     { name: 'Logout', path: '/' }
   ];
+
+  const handleNavClick = async (item) => {
+    if (item.name === "Logout") {
+      await logout();     // 🔥 clears auth
+      navigate("/");      // 🔥 redirect to login
+    } else {
+      navigate(item.path);
+    }
+
+    setIsSidebarOpen(false);
+  };
+
 
   return (
     <>
@@ -48,16 +64,16 @@ const AdminSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
           {navItems.map((item, index) => (
             <button
               key={index}
-              onClick={() => navigate(item.path)}
-              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                location.pathname === item.path
+              onClick={() => handleNavClick(item)}
+              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${location.pathname === item.path
                   ? 'bg-teal-50 text-[#246e72] font-medium'
                   : 'text-white hover:bg-gray-50 hover:text-[#246e72] font-medium'
-              }`}
+                }`}
             >
               <span>{item.name}</span>
             </button>
           ))}
+
         </nav>
       </aside>
     </>

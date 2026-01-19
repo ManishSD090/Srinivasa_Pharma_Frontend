@@ -6,6 +6,10 @@ import {
 } from 'lucide-react';
 import AdminSidebar from './AdminSidebar';
 import { fetchAllStaff, updateStaff, createStaff } from '../services/staff.api';
+import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+
 
 const StaffManagement = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -19,6 +23,8 @@ const StaffManagement = () => {
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedLeaveStaff, setSelectedLeaveStaff] = useState(null);
+  const [updating, setUpdating] = useState(false);
+
     
   // Inline Form Data (Add New Staff) -> Added workHours
   const [formData, setFormData] = useState({
@@ -83,6 +89,86 @@ const StaffManagement = () => {
     currentPage * entriesPerPage
   );
 
+  const formatStaffForExport = (staffArray) => {
+    return staffArray.map(staff => ({
+      Name: staff.name,
+      Phone: staff.phone,
+      Email: staff.userId?.email || "—",
+      Role: staff.role,
+      Salary: staff.salary,
+      "Work Hours": staff.dailyWorkHrs,
+      "Joining Date": staff.joiningDate
+        ? new Date(staff.joiningDate).toLocaleDateString("en-GB")
+        : "—",
+      Status: staff.status
+    }));
+  };
+
+  const exportStaffToExcel = () => {
+    try {
+      const data = formatStaffForExport(filteredStaff);
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Staff");
+
+      XLSX.writeFile(
+        workbook,
+        `Staff_List_${new Date().toISOString().slice(0, 10)}.xlsx`
+      );
+
+      setShowExportDropdown(false);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to export Excel");
+    }
+  };
+
+  const exportStaffToPDF = () => {
+    try {
+      const doc = new jsPDF("landscape");
+
+      const tableColumn = [
+        "Name",
+        "Phone",
+        "Email",
+        "Role",
+        "Salary",
+        "Work Hrs",
+        "Joining Date",
+        "Status"
+      ];
+
+      const tableRows = formatStaffForExport(filteredStaff).map(row => [
+        row.Name,
+        row.Phone,
+        row.Email,
+        row.Role,
+        row.Salary,
+        row["Work Hours"],
+        row["Joining Date"],
+        row.Status
+      ]);
+
+      doc.text("Staff Report", 14, 15);
+
+      autoTable(doc, {
+        startY: 20,
+        head: [tableColumn],
+        body: tableRows,
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [36, 110, 114] }
+      });
+
+      doc.save(`Staff_List_${new Date().toISOString().slice(0, 10)}.pdf`);
+      setShowExportDropdown(false);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to export PDF");
+    }
+  };
+
+
   // --- Handlers ---
 
   const handleFormChange = (e) => {
@@ -90,8 +176,34 @@ const StaffManagement = () => {
   };
 
   const handleEditFormChange = (e) => {
-    setEditFormData({ ...editFormData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    setEditFormData(prev => {
+      // Auto-set leaving date when resigning
+      if (name === "status" && value === "Resigned") {
+        return {
+          ...prev,
+          status: value,
+          leavingDate: prev.leavingDate || new Date().toISOString().split("T")[0]
+        };
+      }
+
+      // Clear leaving date if not resigned
+      if (name === "status" && value !== "Resigned") {
+        return {
+          ...prev,
+          status: value,
+          leavingDate: ""
+        };
+      }
+
+      return {
+        ...prev,
+        [name]: value
+      };
+    });
   };
+
 
   const handleAddStaff = async () => {
     if (!formData.role) {
@@ -152,19 +264,60 @@ const StaffManagement = () => {
 
   const handleUpdateStaff = async () => {
     try {
+      if (!editFormData.name || !editFormData.email || !editFormData.phone) {
+        alert("Name, email and phone are required");
+        return;
+      }
+
+      if (!/^\S+@\S+\.\S+$/.test(editFormData.email)) {
+        alert("Invalid email format");
+        return;
+      }
+
+      if (!/^\d{10}$/.test(editFormData.phone)) {
+        alert("Phone number must be 10 digits");
+        return;
+      }
+
+      if (Number(editFormData.salary) <= 0) {
+        alert("Salary must be greater than 0");
+        return;
+      }
+
+      if (Number(editFormData.workHours) <= 0) {
+        alert("Work hours must be greater than 0");
+        return;
+      }
+
+      if (
+        editFormData.status === "Resigned" &&
+        !editFormData.leavingDate
+      ) {
+        alert("Please select a leaving date before resigning");
+        return;
+      }
+
+      setUpdating(true);
+
       await updateStaff(editFormData._id, {
         name: editFormData.name,
         email: editFormData.email,
+        phone: editFormData.phone,          // ✅ ADD
         salary: editFormData.salary,
+        dailyWorkHrs: editFormData.workHours || 8,
+        role: editFormData.role,            // ✅ ADD
         password: editFormData.password,
-        dailyWorkHrs: editFormData.workHours, // ✅ ADD THIS
-        status: editFormData.status
+        status: editFormData.status,
+        leavingDate: editFormData.leavingDate
       });
+
 
       setShowEditModal(false);
       loadStaff();
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to update staff');
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -359,9 +512,20 @@ const StaffManagement = () => {
                 </button>
                 {showExportDropdown && (
                   <div className="absolute top-full right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
-                    <button className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-gray-700">Export as Excel</button>
-                    <button className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-gray-700">Export as PDF</button>
-                  </div>
+                    <button
+                      onClick={exportStaffToExcel}
+                      className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm text-gray-700"
+                    >
+                      Export as Excel
+                    </button>
+
+                    <button
+                      onClick={exportStaffToPDF}
+                      className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm text-gray-700"
+                    >
+                      Export as PDF
+                    </button>
+           </div>
                 )}
               </div>
             </div>
@@ -380,7 +544,6 @@ const StaffManagement = () => {
                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Work Hours</th>
                     {/* ------------------- */}
                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Joining Date</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Leaving Date</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Status</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Actions</th>
                   </tr>
@@ -403,7 +566,6 @@ const StaffManagement = () => {
                       <td className="py-4 px-4 text-sm text-gray-700">{staff.dailyWorkHrs} Hrs</td>
                       {/* ------------------ */}
                       <td className="py-4 px-4 text-sm text-gray-700">{staff.joiningDate}</td>
-                      <td className="py-4 px-4 text-sm text-gray-700">{staff.leavingDate}</td>
                       <td className="py-4 px-4">
                         <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(staff.status)}`}>{staff.status}</span>
                       </td>
@@ -436,6 +598,54 @@ const StaffManagement = () => {
               </div>
             </div>
           </div>
+          <div className="bg-white rounded-xl shadow-md p-6">
+            <div className="flex items-center space-x-2 mb-6">
+              <Users size={18} className="text-red-600" />
+              <h3 className="text-xl font-bold text-gray-800">
+                Resigned Staff
+              </h3>
+            </div>
+
+            {staffList.filter(s => s.status === "Resigned").length === 0 ? (
+              <p className="text-center text-gray-500 py-6">
+                No resigned staff found
+              </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="py-3 px-4 text-sm font-semibold text-gray-600">Name</th>
+                      <th className="py-3 px-4 text-sm font-semibold text-gray-600">Phone</th>
+                      <th className="py-3 px-4 text-sm font-semibold text-gray-600">Role</th>
+                      <th className="py-3 px-4 text-sm font-semibold text-gray-600">Joining Date</th>
+                      <th className="py-3 px-4 text-sm font-semibold text-gray-600">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {staffList
+                      .filter(staff => staff.status === "Resigned")
+                      .map(staff => (
+                        <tr key={staff._id} className="border-b">
+                          <td className="py-4 px-4">{staff.name}</td>
+                          <td className="py-4 px-4">{staff.phone}</td>
+                          <td className="py-4 px-4">{staff.role}</td>
+                          <td className="py-4 px-4">
+                            {new Date(staff.joiningDate).toLocaleDateString("en-GB")}
+                          </td>
+                          <td className="py-4 px-4">
+                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                              Resigned
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
         </main>
       </div>
 
@@ -445,7 +655,7 @@ const StaffManagement = () => {
           <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full p-6 relative overflow-y-auto max-h-[90vh]">
             <div className="flex items-center justify-between mb-6 border-b border-gray-100 pb-4">
               <h3 className="text-xl font-bold text-gray-800">
-                {editFormData.id ? 'Edit Staff Details' : 'Add Staff Details'}
+                {editFormData._id ? 'Edit Staff Details' : 'Add Staff Details'}
               </h3>
               <button onClick={() => setShowEditModal(false)} className="text-gray-400 hover:text-gray-600">
                 <X size={24} />
@@ -492,6 +702,42 @@ const StaffManagement = () => {
                   </p>
                 )}
               </div>
+              {editFormData.status === "Resigned" && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Leaving Date <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    name="leavingDate"
+                    value={editFormData.leavingDate || ""}
+                    onChange={handleEditFormChange}
+                    className="w-full px-4 py-2 border border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none"
+                  />
+                  <p className="text-xs text-red-600 mt-1">
+                    Leaving date is required when resigning
+                  </p>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Staff Role
+                </label>
+                <select
+                  name="role"
+                  value={editFormData.role}
+                  onChange={handleEditFormChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none"
+                >
+                  <option value="">Select role</option>
+                  <option value="Pharmacist">Pharmacist</option>
+                  <option value="Assistant">Assistant</option>
+                  <option value="Manager">Manager</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Password (Optional)</label>
@@ -507,23 +753,20 @@ const StaffManagement = () => {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Leaving Date</label>
-                <input
-                  type="date"
-                  name="leavingDate"
-                  value={editFormData.leavingDate || ''}
-                  disabled
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
-                />
-              </div>
+              
             </div>
 
             <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
               <button onClick={() => setShowEditModal(false)} className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button onClick={handleUpdateStaff} className="px-6 py-2 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 flex items-center gap-2">
-                <Save size={18} /> Save Changes
+              <button
+                onClick={handleUpdateStaff}
+                disabled={updating}
+                className="px-6 py-2 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 flex items-center gap-2 disabled:opacity-50"
+              >
+                <Save size={18} />
+                {updating ? "Saving..." : "Save Changes"}
               </button>
+
             </div>
           </div>
         </div>
