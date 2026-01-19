@@ -382,6 +382,15 @@ const StaffAttendance = () => {
     fetchTodayAttendance();
   }, []);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchTodayAttendance();
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+
   // Fetch data when month changes
   useEffect(() => {
     fetchSummary();
@@ -497,7 +506,7 @@ const StaffAttendance = () => {
                     </div>
 
                     {/* Punch In/Out Button */}
-                    <button
+                    {/* <button
                       onClick={handlePunchAction}
                       disabled={loading.punch}
                       className={`w-full py-3 rounded-lg font-medium flex items-center justify-center space-x-2 transition-colors ${todayAttendance?.raw?.punchInTime && !todayAttendance?.raw?.punchOutTime
@@ -522,7 +531,13 @@ const StaffAttendance = () => {
                           )}
                         </>
                       )}
-                    </button>
+                    </button> */}
+                      <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-lg mt-4">
+                        <p className="text-sm text-blue-700 font-medium">
+                          Attendance is managed by admin. Contact HR for corrections.
+                        </p>
+                      </div>
+
                   </div>
                 </div>
               ) : (
