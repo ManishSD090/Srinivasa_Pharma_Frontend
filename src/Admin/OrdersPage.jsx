@@ -1,549 +1,15 @@
-// import React, { useState , useEffect } from 'react';
-// import { 
-//   Edit, Trash2, Filter, Download, 
-//   ChevronLeft, ChevronRight, X, 
-//   ShoppingCart, Truck, 
-//   Bell, Menu 
-// } from 'lucide-react';
-// import AdminSidebar from './AdminSidebar';
-// import api from '../services/api';
-
-// const OrdersPage = () => {
-//   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-//   const [selectedOrders, setSelectedOrders] = useState([]);
-//   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
-//   const [entriesPerPage, setEntriesPerPage] = useState(10);
-//   const [currentPage, setCurrentPage] = useState(1);
-//   const [searchQuery, setSearchQuery] = useState('');
-//   const [showExportDropdown, setShowExportDropdown] = useState(false);
-//   const [showDeleteModal, setShowDeleteModal] = useState(false);
-//   const [orderToDelete, setOrderToDelete] = useState(null);
-
-//   const [orders, setOrders] = useState([]);
-
-//   const distributors = [
-//     'MedSupply Co.',
-//     'PharmaCorp Ltd.',
-//     'DiabetesCare Inc.',
-//     'HealthPlus Dist.',
-//     'Apex Distributors',
-//     'Global Health Pharma'
-//   ];
-
-//   // ORDER FORM
-//   const [formData, setFormData] = useState({
-//     date: '',
-//     phone: '',
-//     advance: ''
-//   });
-
-//   const [items, setItems] = useState([
-//     { itemName: '', quantity: '', distributor: '' }
-//   ]);
-
-//   // FETCH ORDERS
-//   useEffect(() => {
-//     fetchOrders();
-//   }, []);
-
-//   const fetchOrders = async () => {
-//     try {
-//       const res = await api.get("/orders");
-//       setOrders(res.data);
-//     } catch (err) {
-//       console.error("Error fetching orders", err);
-//     }
-//   };
-
-//   // FORM HANDLERS
-//   const handleFormChange = (e) => {
-//     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
-//   };
-
-//   const handleItemChange = (index, e) => {
-//     const updated = [...items];
-//     updated[index][e.target.name] = e.target.value;
-//     setItems(updated);
-//   };
-
-//   const handleAddItemRow = () => {
-//     setItems([...items, { itemName: '', quantity: '', distributor: '' }]);
-//   };
-
-//   const handleRemoveItemRow = (index) => {
-//     setItems(items.filter((_, i) => i !== index));
-//   };
-
-//   // DELETE ORDER
-//   const handleDeleteOrder = async (id) => {
-//     try {
-//       await api.delete(`/orders/${id}`);
-//       setOrders(prev => prev.filter(o => o._id !== id));
-//     } catch (error) {
-//       console.error("Delete Error:", error);
-//       alert("Failed to delete order");
-//     }
-//   };
-
-//   // ADD ORDER
-//   const handleAddOrder = async () => {
-//     if (!formData.date || !formData.phone) {
-//       alert("Please fill Date and Phone");
-//       return;
-//     }
-
-//     if (items.some(i => !i.itemName || !i.quantity || !i.distributor)) {
-//       alert("Please fill all item fields");
-//       return;
-//     }
-
-//     try {
-//       const payload = {
-//         date: formData.date,
-//         phone: formData.phone,
-//         advance: Number(formData.advance) || 0,
-//         items: items.map(i => ({
-//           itemName: i.itemName,
-//           quantity: Number(i.quantity),
-//           distributor: i.distributor
-//         }))
-//       };
-
-//       const res = await api.post("/orders", payload);
-
-//       setOrders(prev => [res.data.order, ...prev]);
-
-//       setFormData({ date: "", phone: "", advance: "" });
-//       setItems([{ itemName: "", quantity: "", distributor: "" }]);
-
-//       alert("Order added successfully!");
-//     } catch (error) {
-//       console.error("Create Order Error:", error);
-//       alert("Failed to create order");
-//     }
-//   };
-
-//   // SEARCH
-//   const filteredOrders = orders.filter(order =>
-//     order.phone.includes(searchQuery) ||
-//     order.items.some(item =>
-//       item.itemName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-//       item.distributor.toLowerCase().includes(searchQuery.toLowerCase())
-//     )
-//   );
-
-//   const totalPages = Math.ceil(filteredOrders.length / entriesPerPage);
-//   const displayedOrders = filteredOrders.slice(
-//     (currentPage - 1) * entriesPerPage,
-//     currentPage * entriesPerPage
-//   );
-
-//   const toggleOrderSelection = (orderId) => {
-//     setSelectedOrders(prev =>
-//       prev.includes(orderId)
-//         ? prev.filter(id => id !== orderId)
-//         : [...prev, orderId]
-//     );
-//   };
-
-
-//   return (
-//     <div className="flex h-screen bg-[#D2EAF4]">
-      
-//       {/* Replaced Manual Sidebar with Component */}
-//       <AdminSidebar 
-//         isSidebarOpen={isSidebarOpen} 
-//         setIsSidebarOpen={setIsSidebarOpen} 
-//       />
-
-//       {/* Main Content */}
-//       <div className="flex-1 overflow-auto">
-//         {/* Header */}
-//         <header className="bg-[#21696d] shadow-sm sticky top-0 z-30">
-//           <div className="flex items-center justify-between px-4 lg:px-8 py-4">
-//             <div className="flex items-center space-x-4">
-//               <button
-//                 className="lg:hidden text-white"
-//                 onClick={() => setIsSidebarOpen(true)}
-//               >
-//                 <Menu size={24} />
-//               </button>
-//               <h2 className="text-2xl font-bold text-white">Orders</h2>
-//             </div>
-//             <div className="flex items-center space-x-4">
-//               <span className="text-sm text-white hidden sm:block">Welcome back,</span>
-//               <div className="flex items-center space-x-2">
-//                 <span className="text-sm font-medium text-white hidden sm:block">Dr. Admin</span>
-//                 <div className="w-10 h-10 bg-[#D2EAF4] rounded-full flex items-center justify-center text-[#246e72] font-semibold">
-//                   DA
-//                 </div>
-//               </div>
-//             </div>
-//           </div>
-//         </header>
-
-//         {/* Orders Content */}
-//         <main className="p-4 lg:p-8 space-y-6">
-          
-//           {/* --- UPDATED ADD ORDER FORM --- */}
-//           <div className="bg-white rounded-xl shadow-md p-6">
-//             <h2 className="text-xl font-bold text-gray-800 mb-6">Add New Order</h2>
-            
-//             {/* Order-Level Fields: Grid changed to 4 columns to accommodate Advance */}
-//             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-//               <div>
-//                 <label className="block text-sm font-medium text-gray-700 mb-2">Date of Order</label>
-//                 <input
-//                   type="date"
-//                   name="date"
-//                   value={formData.date}
-//                   onChange={handleFormChange}
-//                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none"
-//                 />
-//               </div>
-//               <div>
-//                 <label className="block text-sm font-medium text-gray-700 mb-2">Customer Phone</label>
-//                 <input
-//                   type="tel"
-//                   name="phone"
-//                   placeholder="+91 XXXXX XXXXX"
-//                   value={formData.phone}
-//                   onChange={handleFormChange}
-//                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none"
-//                 />
-//               </div>
-//               {/* --- MOVED ADVANCE HERE (Matches StaffOrders) --- */}
-//               <div className="md:col-span-2">
-//                 <label className="block text-sm font-medium text-gray-700 mb-2">Advance Amount</label>
-//                 <input
-//                   type="text"
-//                   name="advance"
-//                   placeholder="Advance"
-//                   value={formData.advance}
-//                   onChange={handleFormChange}
-//                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none"
-//                 />
-//               </div>
-//             </div>
-
-//             {/* Item-Level Dynamic Fields */}
-//             <div className="mb-4">
-//               <h4 className="text-lg font-semibold text-gray-700 mb-3 border-b pb-2">Order Items</h4>
-//               {items.map((item, index) => (
-//                 // Changed grid to 12 cols
-//                 <div key={index} className="grid grid-cols-1 md:grid-cols-12 gap-3 mb-3 items-center border-b border-gray-100 pb-3 md:border-0 md:pb-0">
-                  
-//                   {/* Item Name (Expanded from 3 to 4 cols) */}
-//                   <div className="md:col-span-4">
-//                     <input
-//                       type="text"
-//                       name="itemName"
-//                       placeholder="Item Name"
-//                       value={item.itemName}
-//                       onChange={(e) => handleItemChange(index, e)}
-//                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm"
-//                     />
-//                   </div>
-
-//                   {/* Distributor (Expanded from 3 to 4 cols) */}
-//                   <div className="md:col-span-4">
-//                     <select 
-//                       name="distributor" 
-//                       value={item.distributor} 
-//                       onChange={(e) => handleItemChange(index, e)} 
-//                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm"
-//                     >
-//                       <option value="">Select Distributor</option>
-//                       {distributors.map(d => <option key={d} value={d}>{d}</option>)}
-//                     </select>
-//                   </div>
-
-//                   {/* Quantity (2 cols) */}
-//                   <div className="md:col-span-2">
-//                     <input
-//                       type="number"
-//                       name="quantity"
-//                       placeholder="Qty"
-//                       value={item.quantity}
-//                       onChange={(e) => handleItemChange(index, e)}
-//                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm"
-//                     />
-//                   </div>
-
-//                   {/* ADVANCE REMOVED FROM HERE */}
-
-//                   {/* Actions (2 cols) */}
-//                   <div className="md:col-span-2 flex space-x-2">
-//                     <button
-//                       onClick={handleAddItemRow}
-//                       className="w-8 h-8 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 flex items-center justify-center font-bold"
-//                       title="Add Item"
-//                     >
-//                       +
-//                     </button>
-//                     {items.length > 1 && (
-//                       <button
-//                         onClick={() => handleDeleteOrder(order._id)}
-//                         className="w-8 h-8 bg-red-500 text-white rounded-lg hover:bg-red-600 flex items-center justify-center font-bold"
-//                         title="Remove Item"
-//                       >
-//                         <Trash2 size={16} /> 
-//                       </button>
-//                     )}
-//                   </div>
-//                 </div>
-//               ))}
-//             </div>
-
-//             <button
-//               onClick={handleAddOrder}
-//               className="bg-[#246e72] text-white px-6 py-2.5 rounded-lg hover:bg-teal-700 transition-colors font-medium"
-//             >
-//               + Add Order
-//             </button>
-//           </div>
-//           {/* --- END UPDATED ADD ORDER FORM --- */}
-
-
-//           {/* --- UPDATED ORDERS TABLE --- */}
-//           <div className="bg-white rounded-xl shadow-md p-6">
-//             <div className="flex items-center space-x-2 mb-6">
-//               <div className="w-8 h-8 bg-teal-50 rounded-lg flex items-center justify-center">
-//                 <ShoppingCart size={18} className="text-[#246e72]" />
-//               </div>
-//               <h3 className="text-xl font-bold text-gray-800">Order List</h3>
-//             </div>
-            
-//             {/* Table Controls */}
-//             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
-//               <div className="flex flex-wrap items-center gap-3">
-//                 <div className="relative">
-//                   <button
-//                     onClick={() => setShowFilterDropdown(!showFilterDropdown)}
-//                     className="bg-[#246e72] text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors font-medium flex items-center space-x-2"
-//                   >
-//                     <Filter size={18} />
-//                     <span>Filter</span>
-//                   </button>
-//                   {showFilterDropdown && (
-//                     <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
-//                       <button className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-gray-700">Daily</button>
-//                       <button className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-gray-700">Weekly</button>
-//                     </div>
-//                   )}
-//                 </div>
-
-//                 <select
-//                   value={entriesPerPage}
-//                   onChange={(e) => setEntriesPerPage(Number(e.target.value))}
-//                   className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 text-sm font-medium focus:ring-2 focus:ring-[#246e72] outline-none"
-//                 >
-//                   <option value={10}>10 entries</option>
-//                   <option value={50}>50 entries</option>
-//                   <option value={100}>100 entries</option>
-//                 </select>
-
-//                 <div className="relative">
-//                   <button
-//                     onClick={() => setShowExportDropdown(!showExportDropdown)}
-//                     className="bg-[#246e72] text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors font-medium flex items-center space-x-2"
-//                   >
-//                     <Download size={18} />
-//                     <span>Export</span>
-//                   </button>
-//                   {showExportDropdown && (
-//                     <div className="absolute top-full left-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
-//                       <button className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-gray-700">Export as Excel</button>
-//                       <button className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-gray-700">Export as PDF</button>
-//                     </div>
-//                   )}
-//                 </div>
-//               </div>
-
-//               <div className="w-full sm:w-auto">
-//                 <input
-//                   type="text"
-//                   placeholder="Search by item, distributor, phone..."
-//                   value={searchQuery}
-//                   onChange={(e) => setSearchQuery(e.target.value)}
-//                   className="w-full sm:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none transition-all text-sm"
-//                 />
-//               </div>
-//             </div>
-
-//             <div className="overflow-x-auto">
-//               <table className="w-full">
-//                 <thead>
-//                   <tr className="border-b border-gray-200">
-//                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">
-//                       <input type="checkbox" className="w-4 h-4 text-[#246e72] border-gray-300 rounded" />
-//                     </th>
-//                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Date</th>
-//                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Phone</th>
-//                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Items & Distributors</th>
-//                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Actions</th>
-//                   </tr>
-//                 </thead>
-//                 <tbody>
-//                   {displayedOrders.map(order => (
-//                     <tr key={order.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-//                       <td className="py-4 px-4">
-//                         <input
-//                           type="checkbox"
-//                           checked={selectedOrders.includes(order.id)}
-//                           onChange={() => toggleOrderSelection(order.id)}
-//                           className="w-4 h-4 text-[#246e72] border-gray-300 rounded"
-//                         />
-//                       </td>
-//                       <td className="py-4 px-4 text-sm text-gray-700">{order.date}</td>
-//                       <td className="py-4 px-4 text-sm text-gray-700">{order.phone}</td>
-//                       <td className="py-4 px-4 text-sm text-gray-700">
-//                         <ul className="space-y-2">
-//                           {order.items.map((item, idx) => (
-//                             <li key={idx} className="flex flex-col">
-//                               <span className="font-medium text-gray-800">{item.itemName}</span>
-//                               <div className="flex items-center gap-2 text-xs">
-//                                 <span className="bg-teal-50 text-teal-700 px-2 py-0.5 rounded border border-teal-100">
-//                                     {item.distributor}
-//                                 </span>
-//                                 <span className="text-gray-500">Qty: {item.quantity} | Adv: {item.advance}</span>
-//                               </div>
-//                             </li>
-//                           ))}
-//                         </ul>
-//                       </td>
-//                       <td className="py-4 px-4">
-//                         <div className="flex space-x-2">
-//                           <button className="w-8 h-8 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center">
-//                             <Edit size={16} />
-//                           </button>
-//                           <button onClick={() => {
-//                             setShowDeleteModal(true)
-//                           }
-//                           } className="w-8 h-8 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center">
-//                             <Trash2 size={16} />
-//                           </button>
-//                           {showDeleteModal && (
-//                             <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-
-//                               <div className="bg-white rounded-lg shadow-xl p-6 w-80">
-//                                 <h3 className="text-lg font-semibold text-gray-800 mb-4">
-//                                   Confirm Delete
-//                                 </h3>
-
-//                                 <p className="text-sm text-gray-600 mb-6">
-//                                   Are you sure you want to delete this order? This action cannot be undone.
-//                                 </p>
-
-//                                 <div className="flex justify-end space-x-3">
-//                                   <button
-//                                     onClick={() => setShowDeleteModal(false)}
-//                                     className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
-//                                   >
-//                                     Cancel
-//                                   </button>
-
-//                                   <button
-//                                     onClick={async () => {
-//                                       await handleDeleteOrder(orderToDelete);
-//                                       setShowDeleteModal(false);
-//                                       setOrderToDelete(null);
-//                                     }}
-//                                     className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-//                                   >
-//                                     Delete
-//                                   </button>
-//                                 </div>
-//                               </div>
-
-//                             </div>
-//                           )}
-
-//                           <button className="w-8 h-8 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center">
-//                             <Bell size={16} />
-//                           </button>
-//                         </div>
-//                       </td>
-//                     </tr>
-//                   ))}
-//                 </tbody>
-//               </table>
-//             </div>
-//             {/* Pagination */}
-//             <div className="flex justify-between items-center mt-4 text-sm text-gray-600">
-//               <span>Showing {displayedOrders.length} of {filteredOrders.length} entries</span>
-//               <div className="flex items-center space-x-2">
-//                 <button
-//                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-//                   disabled={currentPage === 1}
-//                   className="p-1 rounded-md bg-gray-100 disabled:opacity-50"
-//                 >
-//                   <ChevronLeft size={18} />
-//                 </button>
-//                 <span>Page {currentPage} of {totalPages}</span>
-//                 <button
-//                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-//                   disabled={currentPage === totalPages}
-//                   className="p-1 rounded-md bg-gray-100 disabled:opacity-50"
-//                 >
-//                   <ChevronRight size={18} />
-//                 </button>
-//               </div>
-//             </div>
-//           </div>
-//         </main>
-//       </div>
-//       {showDeleteModal && (
-//         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-
-//           <div className="bg-white rounded-lg shadow-xl p-6 w-80">
-//             <h3 className="text-lg font-semibold text-gray-800 mb-4">
-//               Confirm Delete
-//             </h3>
-
-//             <p className="text-sm text-gray-600 mb-6">
-//               Are you sure you want to delete this order? This action cannot be undone.
-//             </p>
-
-//             <div className="flex justify-end space-x-3">
-//               <button
-//                 onClick={() => setShowDeleteModal(false)}
-//                 className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
-//               >
-//                 Cancel
-//               </button>
-
-//               <button
-//                 onClick={async () => {
-//                   await handleDeleteOrder(orderToDelete);
-//                   setShowDeleteModal(false);
-//                   setOrderToDelete(null);
-//                 }}
-//                 className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-//               >
-//                 Delete
-//               </button>
-//             </div>
-//           </div>
-
-//         </div>
-//       )}
-
-//     </div>
-//   );
-// };
-
-// export default OrdersPage;
-
 import React, { useState, useEffect } from 'react';
 import {
   Edit, Trash2, Filter, Download,
   ChevronLeft, ChevronRight, X,
   ShoppingCart, Truck,
-  Bell, Menu, Plus // Added Plus icon
+  Bell, Menu, Plus
 } from 'lucide-react';
 import AdminSidebar from './AdminSidebar';
 import api from '../services/api';
+import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const OrdersPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -560,6 +26,12 @@ const OrdersPage = () => {
   const [editOrderData, setEditOrderData] = useState(null); // State for order being edited
   const [orders, setOrders] = useState([]);
 
+  // New state for filters
+  const [inventoryStatusFilter, setInventoryStatusFilter] = useState('all');
+  const [distributorFilter, setDistributorFilter] = useState('');
+  const [inventoryStatusMap, setInventoryStatusMap] = useState({});
+  const [showInventoryStatusDropdown, setShowInventoryStatusDropdown] = useState(false);
+
   // Initialize distributors state
   const [distributors, setDistributors] = useState([
     'MedSupply Co.',
@@ -570,8 +42,16 @@ const OrdersPage = () => {
     'Global Health Pharma'
   ]);
 
+  // Available inventory status filters
+  const inventoryStatusFilters = [
+    { id: 'all', label: 'All' },
+    { id: 'pending', label: 'Pending' },
+    { id: 'partial', label: 'Partial' },
+    { id: 'completed', label: 'Completed' }
+  ];
 
-  
+
+
   // ORDER FORM
   const [formData, setFormData] = useState({
     date: '',
@@ -592,6 +72,18 @@ const OrdersPage = () => {
     try {
       const res = await api.get("/orders");
       setOrders(res.data);
+
+      // Fetch inventory status for each order
+      const statusMap = {};
+      for (const order of res.data) {
+        try {
+          const inventoryRes = await api.get(`/inventory/orders/${order._id}`);
+          statusMap[order._id] = inventoryRes.data.status || 'Pending';
+        } catch (err) {
+          statusMap[order._id] = 'Pending';
+        }
+      }
+      setInventoryStatusMap(statusMap);
     } catch (err) {
       console.error("Error fetching orders", err);
     }
@@ -690,15 +182,62 @@ const OrdersPage = () => {
     alert(`Distributor "${newDistributorName.trim()}" added successfully!`);
   };
 
-  // SEARCH
-  const filteredOrders = orders.filter(order =>
-    order.phone.includes(searchQuery) ||
-    order.items.some(item =>
-      item.itemName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.distributor.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-  );
+  // SEARCH AND FILTER
+  const getFilteredOrders = () => {
+    let filtered = orders.filter(order =>
+      order.phone.includes(searchQuery) ||
+      order.items.some(item =>
+        item.itemName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.distributor.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    );
 
+    // Apply inventory status filter
+    if (inventoryStatusFilter !== 'all') {
+      filtered = filtered.filter(order => {
+        const status = inventoryStatusMap[order._id] || 'Pending';
+        return status.toLowerCase() === inventoryStatusFilter.toLowerCase();
+      });
+    }
+
+    // Apply distributor filter
+    if (distributorFilter.trim() !== '') {
+      const searchTerm = distributorFilter.toLowerCase();
+      filtered = filtered.filter(order =>
+        order.items.some(item =>
+          item.distributor?.toLowerCase().includes(searchTerm)
+        )
+      );
+    }
+
+    return filtered;
+  };
+
+  // Get unique distributors for filter suggestions
+  const getUniqueDistributors = () => {
+    const allDistributors = new Set();
+    orders.forEach(order => {
+      order.items.forEach(item => {
+        if (item.distributor) allDistributors.add(item.distributor);
+      });
+    });
+    return Array.from(allDistributors);
+  };
+
+  // Clear all filters
+  const clearFilters = () => {
+    setInventoryStatusFilter('all');
+    setDistributorFilter('');
+  };
+
+  // Get status color for inventory status
+  const getInventoryStatusColor = (status) => {
+    if (status === 'Completed') return 'bg-green-100 text-green-700 border-green-200';
+    if (status === 'Partial') return 'bg-orange-100 text-orange-700 border-orange-200';
+    return 'bg-blue-100 text-blue-700 border-blue-200';
+  };
+
+  const filteredOrders = getFilteredOrders();
   const totalPages = Math.ceil(filteredOrders.length / entriesPerPage);
   const displayedOrders = filteredOrders.slice(
     (currentPage - 1) * entriesPerPage,
@@ -742,14 +281,127 @@ const OrdersPage = () => {
     }
   };
 
-// function to return date dd-mm-yyyy
-const formatDate = (dateStr) => {
-  const date = new Date(dateStr);
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const year = date.getFullYear();
-  return `${day}-${month}-${year}`;
-};
+  // function to return date dd-mm-yyyy
+  // function to return date dd-mm-yyyy - FIXED VERSION
+  const formatDate = (dateStr) => {
+    try {
+      const date = new Date(dateStr);
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}-${month}-${year}`;
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return dateStr || '—';
+    }
+  };
+
+  // Format orders for export
+  // Format orders for export - UPDATED VERSION
+  const formatOrdersForExport = (ordersArray) => {
+    const formattedData = [];
+
+    ordersArray.forEach(order => {
+      // If order has only one item, add it as single row
+      if (order.items.length === 1) {
+        formattedData.push({
+          Date: formatDate(order.date),
+          Phone: order.phone,
+          Items: `${order.items[0].itemName} (${order.items[0].distributor})`,
+          Quantity: order.items[0].quantity,
+          Advance: order.advance || '—',
+          'Inventory Status': inventoryStatusMap[order._id] || 'Pending'
+        });
+      } else {
+        // If order has multiple items, create separate row for each item
+        order.items.forEach((item, index) => {
+          formattedData.push({
+            Date: index === 0 ? formatDate(order.date) : '', // Date only in first row
+            Phone: index === 0 ? order.phone : '', // Phone only in first row
+            Items: `${item.itemName} (${item.distributor})`,
+            Quantity: item.quantity,
+            Advance: index === 0 ? order.advance || '—' : '', // Advance only in first row
+            'Inventory Status': index === 0 ? (inventoryStatusMap[order._id] || 'Pending') : '' // Status only in first row
+          });
+        });
+      }
+    });
+
+    return formattedData;
+  };
+
+  // Export orders to Excel
+  const exportOrdersToExcel = () => {
+    try {
+      const data = formatOrdersForExport(filteredOrders);
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Orders");
+
+      XLSX.writeFile(
+        workbook,
+        `Orders_List_${new Date().toISOString().slice(0, 10)}.xlsx`
+      );
+
+      setShowExportDropdown(false);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to export Excel");
+    }
+  };
+
+  // Export orders to PDF
+  // Export orders to PDF - UPDATED VERSION
+  const exportOrdersToPDF = () => {
+    try {
+      const doc = new jsPDF("landscape");
+
+      const tableColumn = [
+        "Date",
+        "Phone",
+        "Items",
+        "Quantity",
+        "Advance",
+        "Inventory Status"
+      ];
+
+      const formattedData = formatOrdersForExport(filteredOrders);
+
+      const tableRows = formattedData.map(row => [
+        row.Date,
+        row.Phone,
+        row.Items,
+        row.Quantity,
+        row.Advance,
+        row['Inventory Status']
+      ]);
+
+      doc.text("Orders Report", 14, 15);
+
+      autoTable(doc, {
+        startY: 20,
+        head: [tableColumn],
+        body: tableRows,
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [36, 110, 114] },
+        columnStyles: {
+          0: { cellWidth: 'auto', halign: 'center' },
+          1: { cellWidth: 'auto', halign: 'center' },
+          2: { cellWidth: 'wrap', halign: 'left' },
+          3: { cellWidth: 'auto', halign: 'center' },
+          4: { cellWidth: 'auto', halign: 'center' },
+          5: { cellWidth: 'auto', halign: 'center' }
+        }
+      });
+
+      doc.save(`Orders_List_${new Date().toISOString().slice(0, 10)}.pdf`);
+      setShowExportDropdown(false);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to export PDF");
+    }
+  };
 
   return (
     <div className="flex h-screen bg-[#D2EAF4]">
@@ -955,8 +607,18 @@ const formatDate = (dateStr) => {
                   </button>
                   {showExportDropdown && (
                     <div className="absolute top-full left-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
-                      <button className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-gray-700">Export as Excel</button>
-                      <button className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-gray-700">Export as PDF</button>
+                      <button
+                        onClick={exportOrdersToExcel}
+                        className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-gray-700"
+                      >
+                        Export as Excel
+                      </button>
+                      <button
+                        onClick={exportOrdersToPDF}
+                        className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-gray-700"
+                      >
+                        Export as PDF
+                      </button>
                     </div>
                   )}
                 </div>
@@ -983,6 +645,53 @@ const formatDate = (dateStr) => {
                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Date</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Phone</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Items & Distributors</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600 relative">
+                      <div className="flex items-center justify-between">
+                        <span>Inventory Status</span>
+                        <div className="relative">
+                          <button
+                            onClick={() => setShowInventoryStatusDropdown(!showInventoryStatusDropdown)}
+                            className="ml-2 p-1 hover:bg-gray-200 rounded transition-colors"
+                            title="Filter by status"
+                          >
+                            <Filter size={16} className="text-gray-600" />
+                          </button>
+                          {showInventoryStatusDropdown && (
+                            <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 z-20">
+                              {inventoryStatusFilters.map(filter => (
+                                <button
+                                  key={filter.id}
+                                  onClick={() => {
+                                    setInventoryStatusFilter(filter.id);
+                                    setShowInventoryStatusDropdown(false);
+                                  }}
+                                  className={`w-full text-left px-4 py-2 text-sm transition-colors ${inventoryStatusFilter === filter.id
+                                    ? 'bg-[#246e72] text-white'
+                                    : 'text-gray-700 hover:bg-gray-50'
+                                    }`}
+                                >
+                                  {filter.label}
+                                </button>
+                              ))}
+                              {inventoryStatusFilter !== 'all' && (
+                                <>
+                                  <div className="border-t border-gray-200"></div>
+                                  <button
+                                    onClick={() => {
+                                      setInventoryStatusFilter('all');
+                                      setShowInventoryStatusDropdown(false);
+                                    }}
+                                    className="w-full text-left px-4 py-2 text-xs text-gray-500 hover:bg-gray-50"
+                                  >
+                                    Clear Filter
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </th>
                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Actions</th>
                   </tr>
                 </thead>
@@ -1015,11 +724,17 @@ const formatDate = (dateStr) => {
                         </ul>
                       </td>
                       <td className="py-4 px-4">
+                        <span className={`px-2 py-0.5 rounded text-xs font-medium border ${getInventoryStatusColor(inventoryStatusMap[order._id] || 'Pending')}`}>
+                          {inventoryStatusMap[order._id] || 'Pending'}
+                        </span>
+                      </td>
+                      <td className="py-4 px-4">
                         <div className="flex space-x-2">
                           <button className="w-8 h-8 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center"
-                          onClick={()=>{
-                            setIsEditModal(true);
-                            setEditOrderData(JSON.parse(JSON.stringify(order)));}}
+                            onClick={() => {
+                              setIsEditModal(true);
+                              setEditOrderData(JSON.parse(JSON.stringify(order)));
+                            }}
                           >
                             <Edit size={16} />
                           </button>
