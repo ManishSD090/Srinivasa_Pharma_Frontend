@@ -22,6 +22,9 @@ import {
   approveStatusRequest,
   rejectStatusRequest
 } from "../services/task.api";
+import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 
 
@@ -167,6 +170,79 @@ const TaskManagement = () => {
   const totalPages = Math.ceil(filteredTasks.length / entriesPerPage);
   const displayedTasks = filteredTasks.slice((currentPage - 1) * entriesPerPage, currentPage * entriesPerPage);
   console.log("Displayed Tasks:", displayedTasks);
+
+  // Format tasks for export
+  const formatTasksForExport = (tasksArray) => {
+    return tasksArray.map(task => ({
+      "Task Title": task.title,
+      "Description": task.description,
+      "Assigned To": task.assignedTo ? task.assignedTo.name : 'Open for volunteer',
+      "Priority": task.priority,
+      "Deadline": new Date(task.dueDate).toLocaleDateString("en-GB"),
+      "Status": task.status
+    }));
+  };
+
+  const exportTasksToExcel = () => {
+    try {
+      const data = formatTasksForExport(filteredTasks);
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Tasks");
+
+      XLSX.writeFile(
+        workbook,
+        `Tasks_List_${new Date().toISOString().slice(0, 10)}.xlsx`
+      );
+
+      setShowExportDropdown(false);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to export Excel");
+    }
+  };
+
+  const exportTasksToPDF = () => {
+    try {
+      const doc = new jsPDF("landscape");
+
+      const tableColumn = [
+        "Task Title",
+        "Description",
+        "Assigned To",
+        "Priority",
+        "Deadline",
+        "Status"
+      ];
+
+      const tableRows = formatTasksForExport(filteredTasks).map(row => [
+        row["Task Title"],
+        row["Description"],
+        row["Assigned To"],
+        row["Priority"],
+        row["Deadline"],
+        row["Status"]
+      ]);
+
+      doc.text("Tasks Report", 14, 15);
+
+      autoTable(doc, {
+        startY: 20,
+        head: [tableColumn],
+        body: tableRows,
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [36, 110, 114] }
+      });
+
+      doc.save(`Tasks_List_${new Date().toISOString().slice(0, 10)}.pdf`);
+      setShowExportDropdown(false);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to export PDF");
+    }
+  };
+
   // --- Handlers ---
 
   const handleFormChange = (e) => {
@@ -386,8 +462,18 @@ const TaskManagement = () => {
                 </button>
                 {showExportDropdown && (
                   <div className="absolute top-full right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
-                    <button className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-gray-700">Export as Excel</button>
-                    <button className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-gray-700">Export as PDF</button>
+                    <button
+                      onClick={exportTasksToExcel}
+                      className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-gray-700"
+                    >
+                      Export as Excel
+                    </button>
+                    <button
+                      onClick={exportTasksToPDF}
+                      className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-gray-700"
+                    >
+                      Export as PDF
+                    </button>
                   </div>
                 )}
               </div>
@@ -463,45 +549,45 @@ const TaskManagement = () => {
                 <h3 className="text-xl font-bold text-gray-800">Volunteer Management</h3>
               </div>
               <div className="space-y-4">
-                  {volunteerRequests.map(volunteer => (
-                    <div
-                      key={volunteer._id}
-                      className="flex items-center justify-between bg-[#D2EAF4] rounded-lg p-4"
-                    >
-                      <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 bg-[#246e72] rounded-full flex items-center justify-center text-white font-semibold">
-                          {volunteer.staff?.name?.charAt(0)}
-                        </div>
-                        <div>
-                          <p className="font-semibold text-gray-800">
-                            {volunteer.staff?.name}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            Requested: {volunteer.task?.title}
-                          </p>
-                        </div>
+                {volunteerRequests.map(volunteer => (
+                  <div
+                    key={volunteer._id}
+                    className="flex items-center justify-between bg-[#D2EAF4] rounded-lg p-4"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="w-12 h-12 bg-[#246e72] rounded-full flex items-center justify-center text-white font-semibold">
+                        {volunteer.staff?.name?.charAt(0)}
                       </div>
-
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => {
-                            setSelectedVolunteer(volunteer);
-                            setShowVolunteerApproval(true);
-                            handleApproveVolunteer(selectedVolunteer);
-                          }}
-                          className="bg-[#246e72] text-white px-4 py-2 rounded-lg hover:bg-teal-700"
-                        >
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => handleRejectVolunteer(volunteer._id)}
-                          className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
-                        >
-                          Reject
-                        </button>
+                      <div>
+                        <p className="font-semibold text-gray-800">
+                          {volunteer.staff?.name}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Requested: {volunteer.task?.title}
+                        </p>
                       </div>
                     </div>
-                  ))}
+
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => {
+                          setSelectedVolunteer(volunteer);
+                          setShowVolunteerApproval(true);
+                          handleApproveVolunteer(selectedVolunteer);
+                        }}
+                        className="bg-[#246e72] text-white px-4 py-2 rounded-lg hover:bg-teal-700"
+                      >
+                        Approve
+                      </button>
+                      <button
+                        onClick={() => handleRejectVolunteer(volunteer._id)}
+                        className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
