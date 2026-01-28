@@ -476,10 +476,13 @@ import {
   fetchOverdueTasks
 } from '../services/task.api';
 import { useAuth } from '../authContext';
+import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const StaffTask = () => {
   // UI State
-  const {user,staffId } = useAuth();
+  const { user, staffId } = useAuth();
   console.log("Stored User in StaffTask:", staffId);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
@@ -632,7 +635,7 @@ const StaffTask = () => {
 
     try {
       // Use the API function to request status change
-      await requestTaskStatusChange(taskToUpdate._id, newStatus,staffId);
+      await requestTaskStatusChange(taskToUpdate._id, newStatus, staffId);
 
       alert(`Request Sent Successfully!\n\nAdmin will review your request to change status of "${taskToUpdate.title}" from '${taskToUpdate.status}' to '${newStatus}'.`);
 
@@ -717,6 +720,75 @@ const StaffTask = () => {
       'Overdue': 'bg-red-100 text-red-700'
     };
     return styles[status] || 'bg-gray-100 text-gray-700';
+  };
+
+  // Format tasks for export
+  const formatTasksForExport = (tasksArray) => {
+    return tasksArray.map(task => ({
+      "Task Title": task.title,
+      "Description": task.description,
+      "Priority": task.priority,
+      "Deadline": formatDate(task.dueDate),
+      "Status": task.status
+    }));
+  };
+
+  const exportTasksToExcel = () => {
+    try {
+      const data = formatTasksForExport(filteredTasks);
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Tasks");
+
+      XLSX.writeFile(
+        workbook,
+        `Staff_Tasks_${new Date().toISOString().slice(0, 10)}.xlsx`
+      );
+
+      setShowExportDropdown(false);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to export Excel");
+    }
+  };
+
+  const exportTasksToPDF = () => {
+    try {
+      const doc = new jsPDF("landscape");
+
+      const tableColumn = [
+        "Task Title",
+        "Description",
+        "Priority",
+        "Deadline",
+        "Status"
+      ];
+
+      const tableRows = formatTasksForExport(filteredTasks).map(row => [
+        row["Task Title"],
+        row["Description"],
+        row["Priority"],
+        row["Deadline"],
+        row["Status"]
+      ]);
+
+      doc.text("Staff Tasks Report", 14, 15);
+
+      autoTable(doc, {
+        startY: 20,
+        head: [tableColumn],
+        body: tableRows,
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [36, 110, 114] }
+      });
+
+      doc.save(`Staff_Tasks_${new Date().toISOString().slice(0, 10)}.pdf`);
+      setShowExportDropdown(false);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to export PDF");
+    }
   };
 
   // Format date for display
@@ -860,10 +932,16 @@ const StaffTask = () => {
                   </button>
                   {showExportDropdown && (
                     <div className="absolute top-full left-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
-                      <button className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm text-gray-700">
+                      <button
+                        onClick={exportTasksToExcel}
+                        className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm text-gray-700"
+                      >
                         Excel
                       </button>
-                      <button className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm text-gray-700">
+                      <button
+                        onClick={exportTasksToPDF}
+                        className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm text-gray-700"
+                      >
                         PDF
                       </button>
                     </div>
