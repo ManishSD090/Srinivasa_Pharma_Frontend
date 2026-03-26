@@ -1,0 +1,556 @@
+import React, { useState, useEffect } from 'react';
+import {
+  CheckSquare, Package, X,
+  AlertCircle, Save, ArrowRight, History,
+  Filter 
+} from 'lucide-react';
+import api from '../services/api';
+
+const InventoryChecklist = () => {
+  const [activeTab, setActiveTab] = useState('pending');
+  const [orders, setOrders] = useState([]);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [currentReceipts, setCurrentReceipts] = useState({});
+  const [pastReceipts, setPastReceipts] = useState([]);
+  const [loading, setLoading] = useState({
+    orders: false,
+    checklist: false,
+    pastReceipts: false
+  });
+
+  // New state for filters
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [distributorFilter, setDistributorFilter] = useState('');
+
+  // Available status filters
+  const statusFilters = [
+    { id: 'all', label: 'All' },
+    { id: 'pending', label: 'Pending' },
+    { id: 'partial', label: 'Partial' }
+  ];
+
+  useEffect(() => {
+    fetchInventoryOrders();
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'past') {
+      fetchPastReceipts();
+    }
+  }, [activeTab]);
+
+  const fetchInventoryOrders = async () => {
+    try {
+      setLoading(prev => ({ ...prev, orders: true }));
+      const response = await api.get('/inventory/orders');
+
+      const transformedOrders = await Promise.all(response.data.map(async (order) => {
+        try {
+          const orderDetails = await api.get(`/inventory/orders/${order.orderId}`);
+          const items = orderDetails.data.items || [];
+          const firstItemName = items.length > 0 ? items[0].itemName : 'Loading items...';
+          const itemCount = items.length;
+
+          return {
+            id: order.orderId,
+            distributor: order.distributor || 'Loading distributor...',
+            date: order.date ? new Date(order.date).toISOString().split('T')[0] : 'N/A',
+            status: order.status,
+            firstItemName: firstItemName,
+            itemCount: itemCount,
+            items: items
+          };
+        } catch (error) {
+          console.error(`Error fetching details for order ${order.orderId}:`, error);
+          return {
+            id: order.orderId,
+            distributor: order.distributor || 'Unknown Distributor',
+            date: order.date ? new Date(order.date).toISOString().split('T')[0] : 'N/A',
+            status: order.status,
+            firstItemName: 'Could not load items',
+            itemCount: 0,
+            items: []
+          };
+        }
+      }));
+
+      setOrders(transformedOrders);
+    } catch (error) {
+      console.error('Error fetching inventory orders:', error);
+      alert('Failed to load inventory orders');
+    } finally {
+      setLoading(prev => ({ ...prev, orders: false }));
+    }
+  };
+
+  const fetchPastReceipts = async () => {
+    try {
+      setLoading(prev => ({ ...prev, pastReceipts: true }));
+      const inventoryResponse = await api.get('/inventory/orders');
+      const completedOrders = inventoryResponse.data.filter(order => order.status === 'Completed');
+
+      const transformedReceipts = await Promise.all(completedOrders.map(async (order) => {
+        try {
+          const inventoryDetails = await api.get(`/inventory/orders/${order.orderId}`);
+          const orderDetails = await api.get(`/orders/${order.orderId}`).catch(() => null);
+
+          const items = inventoryDetails.data.items || [];
+          const firstItemName = items.length > 0 ? items[0].itemName : 'Completed items';
+          const itemCount = items.length;
+
+          return {
+            id: order.orderId,
+            distributor: orderDetails?.data?.items?.[0]?.distributor || order.distributor || 'Completed Order',
+            date: orderDetails?.data?.date ? new Date(orderDetails.data.date).toISOString().split('T')[0] : order.date || 'N/A',
+            status: 'Completed',
+            firstItemName: firstItemName,
+            itemCount: itemCount,
+            items: items.map((item, index) => ({
+              id: `item-${order.orderId}-${index}`,
+              name: item.itemName,
+              orderedQty: item.orderedQty || 0,
+              receivedQty: item.receivedQty || 0
+            }))
+          };
+        } catch (error) {
+          console.error(`Error processing completed order ${order.orderId}:`, error);
+          return {
+            id: order.orderId,
+            distributor: order.distributor || 'Completed Order',
+            date: order.date || 'N/A',
+            status: 'Completed',
+            firstItemName: 'Items received',
+            itemCount: 0,
+            items: []
+          };
+        }
+      }));
+
+      const validReceipts = transformedReceipts.filter(receipt => receipt !== null);
+      setPastReceipts(validReceipts);
+
+      if (validReceipts.length === 0) {
+        console.log('No completed orders found in inventory');
+      }
+    } catch (error) {
+      console.error('Error fetching past receipts:', error);
+      alert('Failed to load past receipts');
+    } finally {
+      setLoading(prev => ({ ...prev, pastReceipts: false }));
+    }
+  };
+
+  const handleSelectOrder = async (order) => {
+    try {
+      setLoading(prev => ({ ...prev, checklist: true }));
+
+      if (activeTab === 'pending') {
+        const response = await api.get(`/inventory/orders/${order.id}`);
+        const inventoryData = response.data;
+
+        const transformedOrder = {
+          id: order.id,
+          distributor: inventoryData.distributor || order.distributor,
+          date: order.date,
+          status: inventoryData.status,
+          firstItemName: order.firstItemName,
+          itemCount: order.itemCount,
+          items: inventoryData.items.map((item, index) => ({
+            id: `item-${order.id}-${index}`,
+            name: item.itemName,
+            orderedQty: item.orderedQty,
+            receivedQty: item.receivedQty || 0
+          }))
+        };
+
+        setSelectedOrder(transformedOrder);
+        setCurrentReceipts({});
+      } else if (activeTab === 'past') {
+        setSelectedOrder(order);
+      }
+    } catch (error) {
+      console.error('Error fetching order details:', error);
+      alert('Failed to load order details');
+    } finally {
+      setLoading(prev => ({ ...prev, checklist: false }));
+    }
+  };
+
+  // Apply filters to orders
+  const getFilteredOrders = () => {
+    let filtered = activeTab === 'pending'
+      ? orders.filter(o => o.status !== 'Completed')
+      : pastReceipts;
+
+    // Apply status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(order =>
+        order.status.toLowerCase() === statusFilter.toLowerCase()
+      );
+    }
+
+    // Apply distributor filter
+    if (distributorFilter.trim() !== '') {
+      const searchTerm = distributorFilter.toLowerCase();
+      filtered = filtered.filter(order =>
+        order.distributor?.toLowerCase().includes(searchTerm)
+      );
+    }
+
+    return filtered;
+  };
+
+  const handleInputChange = (itemId, val, maxLimit) => {
+    const numVal = parseInt(val) || 0;
+    if (numVal < 0) return;
+    if (numVal > maxLimit) {
+      alert(`Cannot receive more than pending amount (${maxLimit})`);
+      return;
+    }
+    setCurrentReceipts(prev => ({ ...prev, [itemId]: numVal }));
+  };
+
+  const handleSubmitReceipt = async () => {
+    if (!selectedOrder) return;
+
+    try {
+      const itemsPayload = selectedOrder.items
+        .filter(item => currentReceipts[item.id] > 0)
+        .map(item => ({
+          itemName: item.name,
+          receivedNow: currentReceipts[item.id] || 0
+        }));
+
+      if (itemsPayload.length === 0) {
+        alert('Please enter at least one quantity to receive');
+        return;
+      }
+
+      await api.post('/inventory/update', {
+        orderId: selectedOrder.id,
+        items: itemsPayload
+      });
+
+      fetchInventoryOrders();
+      setSelectedOrder(null);
+      setCurrentReceipts({});
+      alert('Inventory updated successfully!');
+    } catch (error) {
+      console.error('Error updating inventory:', error);
+      alert(error.response?.data?.message || 'Failed to update inventory');
+    }
+  };
+
+  const getStatusColor = (status) => {
+    if (status === 'Completed') return 'bg-green-100 text-green-700 border-green-200';
+    if (status === 'Partial') return 'bg-orange-100 text-orange-700 border-orange-200';
+    return 'bg-blue-100 text-blue-700 border-blue-200';
+  };
+
+  const getItemDisplayText = (order) => {
+    if (order.itemCount === 0) {
+      return 'Loading items...';
+    } else if (order.itemCount === 1) {
+      return order.firstItemName || 'Item';
+    } else {
+      return `${order.firstItemName || 'Items'} + ${order.itemCount - 1} more`;
+    }
+  };
+
+  // Clear all filters
+  const clearFilters = () => {
+    setStatusFilter('all');
+    setDistributorFilter('');
+  };
+
+  const filteredOrders = getFilteredOrders();
+
+  return (
+    <main className="p-4 lg:p-8 flex-1">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
+        {/* LEFT COLUMN: Toggled List */}
+        <div className="lg:col-span-1 bg-white rounded-xl shadow-md flex flex-col h-[calc(100vh-140px)]">
+          <div className="flex border-b border-gray-100">
+            <button
+              onClick={() => {
+                setActiveTab('pending');
+                setSelectedOrder(null);
+                clearFilters();
+              }}
+              className={`flex-1 py-4 text-sm font-bold flex items-center justify-center transition-colors rounded-tl-xl ${activeTab === 'pending' ? 'bg-white text-[#246e72] border-b-2 border-[#246e72]' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'}`}
+            >
+              <Package className="mr-2" size={18} /> Pending
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab('past');
+                setSelectedOrder(null);
+                clearFilters();
+              }}
+              className={`flex-1 py-4 text-sm font-bold flex items-center justify-center transition-colors rounded-tr-xl ${activeTab === 'past' ? 'bg-white text-[#246e72] border-b-2 border-[#246e72]' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'}`}
+            >
+              <History className="mr-2" size={18} /> Past
+            </button>
+          </div>
+
+          {/* FILTER BAR */}
+          <div className="p-4 border-b border-gray-100 bg-gray-50">
+            <div className="space-y-3">
+              {/* Status Filter */}
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-2">
+                  <Filter size={12} className="inline mr-1" /> Status
+                </label>
+                <div className="flex flex-wrap gap-1">
+                  {statusFilters.map(filter => (
+                    <button
+                      key={filter.id}
+                      onClick={() => setStatusFilter(filter.id)}
+                      className={`px-2 py-1 text-xs rounded transition-colors ${statusFilter === filter.id
+                        ? 'bg-[#246e72] text-white'
+                        : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100'
+                        }`}
+                    >
+                      {filter.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Distributor Filter */}
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-2">
+                  Distributor
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Filter by distributor..."
+                    value={distributorFilter}
+                    onChange={(e) => setDistributorFilter(e.target.value)}
+                    className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#246e72] focus:border-transparent"
+                  />
+                  {(statusFilter !== 'all' || distributorFilter.trim() !== '') && (
+                    <button
+                      onClick={clearFilters}
+                      className="px-3 py-1.5 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Results Count */}
+              <div className="text-xs text-gray-500 pt-1">
+                Showing {filteredOrders.length} of{' '}
+                {activeTab === 'pending'
+                  ? orders.filter(o => o.status !== 'Completed').length
+                  : pastReceipts.length
+                } orders
+              </div>
+            </div>
+          </div>
+
+          {/* ORDERS LIST */}
+          <div className="p-4 overflow-y-auto flex-1 space-y-3">
+            {loading.orders || (activeTab === 'past' && loading.pastReceipts) ? (
+              <div className="flex justify-center items-center h-32">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#246e72]"></div>
+              </div>
+            ) : filteredOrders.length === 0 ? (
+              <div className="text-center text-gray-500 mt-10 p-4">
+                <Package className="mx-auto mb-2 opacity-50" size={32} />
+                <p className="font-medium">
+                  No {activeTab} orders {statusFilter !== 'all' || distributorFilter.trim() !== '' ? 'match the filters' : 'found'}.
+                </p>
+                {(statusFilter !== 'all' || distributorFilter.trim() !== '') && (
+                  <button
+                    onClick={clearFilters}
+                    className="mt-2 text-sm text-[#246e72] hover:underline"
+                  >
+                    Clear filters
+                  </button>
+                )}
+              </div>
+            ) : (
+              filteredOrders.map(order => (
+                <div
+                  key={order.id}
+                  onClick={() => handleSelectOrder(order)}
+                  className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md ${selectedOrder?.id === order.id ? 'border-[#246e72] bg-teal-50 ring-1 ring-[#246e72]' : 'border-gray-200 bg-white'}`}
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <p className="font-bold text-gray-700 text-sm mb-1">
+                        {getItemDisplayText(order)}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Items: {order.itemCount}
+                      </p>
+                    </div>
+                    <span className={`px-2 py-0.5 rounded text-xs font-medium border ${getStatusColor(order.status)}`}>
+                      {order.status}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-1">{order.distributor}</p>
+                  <p className="text-xs text-gray-500 mb-1">Date: {order.date}</p>
+                  <div className="mt-3 flex items-center text-[#246e72] text-sm font-medium">
+                    {activeTab === 'pending' ? 'Check Items' : 'View Summary'} <ArrowRight size={14} className="ml-1" />
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* RIGHT COLUMN: Checklist or Summary Area */}
+        <div className="lg:col-span-2 bg-white rounded-xl shadow-md flex flex-col h-[calc(100vh-140px)]">
+          {loading.checklist ? (
+            <div className="flex-1 flex flex-col items-center justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#246e72] mb-4"></div>
+              <p className="text-gray-600">Loading order details...</p>
+            </div>
+          ) : !selectedOrder ? (
+            <div className="flex-1 flex flex-col items-center justify-center text-gray-400 p-8">
+              <CheckSquare size={64} className="mb-4 opacity-20" />
+              <p className="text-lg font-medium">
+                Select an order from the {activeTab} list to view details.
+              </p>
+              {activeTab === 'past' && pastReceipts.length === 0 && (
+                <p className="text-sm mt-2 text-gray-500">
+                  Complete some orders first to see past receipts.
+                </p>
+              )}
+            </div>
+          ) : (
+            <>
+              <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-xl">
+                <div>
+                  <h3 className="text-xl font-bold text-gray-800">
+                    {selectedOrder.status === 'Completed' ? 'Delivery Summary' : 'Checklist'}
+                  </h3>
+                  <div className="flex flex-wrap items-center gap-4 mt-1">
+                    <p className="text-sm text-gray-600">
+                      <span className="font-medium">Distributor:</span> {selectedOrder.distributor}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      <span className="font-medium">Items:</span> {selectedOrder.itemCount}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      <span className="font-medium">First Item:</span> {selectedOrder.firstItemName}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      <span className="font-medium">Date:</span> {selectedOrder.date}
+                    </p>
+                    <span className={`px-2 py-0.5 rounded text-xs font-medium border ${getStatusColor(selectedOrder.status)}`}>
+                      {selectedOrder.status}
+                    </span>
+                  </div>
+                </div>
+                <button onClick={() => setSelectedOrder(null)} className="text-gray-500 hover:text-gray-700">
+                  <X size={24} />
+                </button>
+              </div>
+
+              <div className="p-6 flex-1 overflow-y-auto">
+                {selectedOrder.status !== 'Completed' ? (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-6 flex items-start">
+                    <AlertCircle className="text-yellow-600 mt-0.5 mr-2" size={18} />
+                    <p className="text-sm text-yellow-700">
+                      Enter the quantity received <strong>today</strong>.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-6 flex items-start">
+                    <CheckSquare className="text-green-600 mt-0.5 mr-2" size={18} />
+                    <p className="text-sm text-green-700">
+                      This order was fully received on <strong>{selectedOrder.date}</strong>.
+                    </p>
+                  </div>
+                )}
+
+                {selectedOrder.items.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <Package className="mx-auto mb-3 opacity-50" size={32} />
+                    <p>No items found for this order.</p>
+                  </div>
+                ) : (
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b-2 border-gray-100">
+                        <th className="text-left py-3 px-2 text-sm font-semibold text-gray-600">ITEM NAME</th>
+                        <th className="text-center py-3 px-2 text-sm font-semibold text-gray-600">ORDERED</th>
+                        <th className="text-center py-3 px-2 text-sm font-semibold text-gray-600">
+                          {selectedOrder.status === 'Completed' ? 'TOTAL RECEIVED' : 'RECEIVED TILL'}
+                        </th>
+                        {selectedOrder.status !== 'Completed' && (
+                          <>
+                            <th className="text-center py-3 px-2 text-sm font-semibold text-[#246e72]">RECEIVED NOW</th>
+                            <th className="text-center py-3 px-2 text-sm font-semibold text-gray-600">PENDING</th>
+                          </>
+                        )}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedOrder.items.map(item => (
+                        <tr key={item.id} className="border-b border-gray-50">
+                          <td className="py-4 px-2 font-medium text-gray-800">{item.name}</td>
+                          <td className="py-4 px-2 text-center text-gray-600">
+                            {item.orderedQty || 0}
+                          </td>
+                          <td className="py-4 px-2 text-center font-medium text-gray-700">
+                            {item.receivedQty || 0}
+                          </td>
+                          {selectedOrder.status !== 'Completed' && (
+                            <>
+                              <td className="py-4 px-2 text-center">
+                                {(item.receivedQty || 0) < (item.orderedQty || 0) ? (
+                                  <input
+                                    type="number"
+                                    className="w-20 px-2 py-1 border-2 border-teal-100 rounded text-center font-bold text-[#246e72]"
+                                    onChange={(e) => handleInputChange(
+                                      item.id,
+                                      e.target.value,
+                                      (item.orderedQty || 0) - (item.receivedQty || 0)
+                                    )}
+                                    value={currentReceipts[item.id] || ''}
+                                    placeholder="0"
+                                    min="0"
+                                    max={(item.orderedQty || 0) - (item.receivedQty || 0)}
+                                  />
+                                ) : (
+                                  <span className="text-green-600 font-bold text-xs">Full</span>
+                                )}
+                              </td>
+                              <td className="py-4 px-2 text-center font-bold text-red-500">
+                                {(item.orderedQty || 0) - ((item.receivedQty || 0) + (currentReceipts[item.id] || 0))}
+                              </td>
+                            </>
+                          )}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+
+              {selectedOrder.status !== 'Completed' && selectedOrder.items.length > 0 && (
+                <div className="p-6 border-t border-gray-100 bg-gray-50 rounded-b-xl flex justify-end">
+                  <button
+                    onClick={handleSubmitReceipt}
+                    className="flex items-center space-x-2 bg-[#246e72] text-white px-6 py-3 rounded-lg hover:bg-[#1a5256] font-medium"
+                  >
+                    <Save size={18} /> <span>Update Inventory</span>
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </main>
+  );
+};
+
+export default InventoryChecklist;
