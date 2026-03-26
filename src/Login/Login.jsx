@@ -252,7 +252,7 @@ function Login() {
             Sign in with Google
           </button>
 
-          {/* Help Section */}
+          {/* Help Section
           <div className="mt-8 text-center">
             <p className="text-sm text-gray-600 mb-3">Need help accessing your account?</p>
             <div className="flex justify-center gap-4">
@@ -277,7 +277,7 @@ function Login() {
                 Help Center
               </button>
             </div>
-          </div>
+          </div> */}
 
           {/* Footer */}
           <div className="mt-8 text-center text-xs text-gray-500">
