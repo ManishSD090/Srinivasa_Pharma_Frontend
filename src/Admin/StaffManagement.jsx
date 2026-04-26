@@ -437,7 +437,7 @@ const StaffManagement = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Salary</label>
-              <input type="text" name="salary" value={formData.salary} onChange={handleFormChange} placeholder="Enter salary" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
+              <input type="number" name="salary" value={formData.salary} onChange={handleFormChange} placeholder="Enter salary" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Daily Work Hours</label>
