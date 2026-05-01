@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   CheckSquare, Package, X, Menu,
   AlertCircle, Save, ArrowRight, History,
-  Sidebar
+  Sidebar, Filter
 } from 'lucide-react';
 
 import api from '../services/api'; // Your axios instance
@@ -19,6 +19,17 @@ const StaffInventory = () => {
     checklist: false,
     pastReceipts: false
   });
+
+  // New state for filters
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [distributorFilter, setDistributorFilter] = useState('');
+
+  // Available status filters
+  const statusFilters = [
+    { id: 'all', label: 'All' },
+    { id: 'pending', label: 'Pending' },
+    { id: 'partial', label: 'Partial' }
+  ];
 
   // Fetch inventory orders on component mount
   useEffect(() => {
@@ -48,14 +59,19 @@ const StaffInventory = () => {
           const firstItemName = items.length > 0 ? items[0].itemName : 'Loading items...';
           const itemCount = items.length;
 
+          const rawItems = order.rawItems || [];
+          const uniqueDistributors = [...new Set(rawItems.map(item => item.distributor).filter(Boolean))];
+          const distString = uniqueDistributors.length > 2 ? `${uniqueDistributors.slice(0, 2).join(', ')}... (+${uniqueDistributors.length - 2})` : uniqueDistributors.join(', ');
+
           return {
             id: order.orderId,
-            distributor: order.distributor || 'Loading distributor...',
+            distributor: distString || order.distributor || 'Loading distributor...',
             date: order.date ? new Date(order.date).toISOString().split('T')[0] : 'N/A',
             status: order.status,
             firstItemName: firstItemName,
             itemCount: itemCount,
-            items: items
+            items: items,
+            rawItems: rawItems
           };
         } catch (error) {
           console.error(`Error fetching details for order ${order.orderId}:`, error);
@@ -66,7 +82,8 @@ const StaffInventory = () => {
             status: order.status,
             firstItemName: 'Could not load items',
             itemCount: 0,
-            items: []
+            items: [],
+            rawItems: order.rawItems || []
           };
         }
       }));
@@ -102,19 +119,28 @@ const StaffInventory = () => {
           const firstItemName = items.length > 0 ? items[0].itemName : 'Completed items';
           const itemCount = items.length;
 
+          const rawItems = orderDetails?.data?.items || order.rawItems || [];
+          const uniqueDistributors = [...new Set(rawItems.map(item => item.distributor).filter(Boolean))];
+          const distString = uniqueDistributors.length > 2 ? `${uniqueDistributors.slice(0, 2).join(', ')}... (+${uniqueDistributors.length - 2})` : uniqueDistributors.join(', ');
+
           return {
             id: order.orderId,
-            distributor: orderDetails?.data?.items?.[0]?.distributor || order.distributor || 'Completed Order',
+            distributor: distString || orderDetails?.data?.items?.[0]?.distributor || order.distributor || 'Completed Order',
             date: orderDetails?.data?.date ? new Date(orderDetails.data.date).toISOString().split('T')[0] : order.date || 'N/A',
             status: 'Completed',
             firstItemName: firstItemName,
             itemCount: itemCount,
-            items: items.map((item, index) => ({
-              id: item._id,
-              name: item.itemName,
-              orderedQty: item.orderedQty || 0,
-              receivedQty: item.receivedQty || 0
-            }))
+            items: items.map((item, index) => {
+              const rItem = rawItems.find(r => r._id === item._id) || {};
+              return {
+                id: item._id,
+                name: item.itemName,
+                distributor: rItem.distributor || 'Unknown',
+                orderedQty: item.orderedQty || 0,
+                receivedQty: item.receivedQty || 0
+              };
+            }),
+            rawItems: rawItems
           };
         } catch (error) {
           console.error(`Error processing completed order ${order.orderId}:`, error);
@@ -125,7 +151,8 @@ const StaffInventory = () => {
             status: 'Completed',
             firstItemName: 'Items received',
             itemCount: 0,
-            items: []
+            items: [],
+            rawItems: order.rawItems || []
           };
         }
       }));
@@ -164,12 +191,16 @@ const StaffInventory = () => {
           status: inventoryData.status,
           firstItemName: order.firstItemName,
           itemCount: order.itemCount,
-          items: inventoryData.items.map((item, index) => ({
-            id: item._id,
-            name: item.itemName,
-            orderedQty: item.orderedQty,
-            receivedQty: item.receivedQty || 0
-          }))
+          items: inventoryData.items.map((item, index) => {
+            const rawItem = (order.rawItems || []).find(r => r._id === item._id) || {};
+            return {
+              id: item._id,
+              name: item.itemName,
+              distributor: rawItem.distributor || 'Unknown',
+              orderedQty: item.orderedQty,
+              receivedQty: item.receivedQty || 0
+            };
+          })
         };
 
         setSelectedOrder(transformedOrder);
@@ -236,10 +267,44 @@ const StaffInventory = () => {
     return 'bg-blue-100 text-blue-700 border-blue-200';
   };
 
-  // Filter orders based on active tab
-  const filteredOrders = activeTab === 'pending'
-    ? orders.filter(o => o.status !== 'Completed')
-    : pastReceipts;
+  // Apply filters to orders
+  const getFilteredOrders = () => {
+    let filtered = activeTab === 'pending'
+      ? orders.filter(o => o.status !== 'Completed')
+      : pastReceipts;
+
+    // Apply status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(order =>
+        order.status.toLowerCase() === statusFilter.toLowerCase()
+      );
+    }
+
+    // Apply distributor filter
+    if (distributorFilter.trim() !== '') {
+      const searchTerm = distributorFilter.toLowerCase();
+      filtered = filtered.filter(order => {
+        // Deep search: Check if any item in rawItems has a matching distributor
+        const hasMatchingItem = order.rawItems?.some(item => 
+          item.distributor?.toLowerCase().includes(searchTerm)
+        );
+        // Fallback to checking the main distributor string
+        const matchesMainDistributor = order.distributor?.toLowerCase().includes(searchTerm);
+        
+        return hasMatchingItem || matchesMainDistributor;
+      });
+    }
+
+    return filtered;
+  };
+
+  const filteredOrders = getFilteredOrders();
+
+  // Clear all filters
+  const clearFilters = () => {
+    setStatusFilter('all');
+    setDistributorFilter('');
+  };
 
   // Calculate total received including current input
   const calculateTotalReceived = (item) => {
@@ -268,17 +333,76 @@ const StaffInventory = () => {
             <div className="lg:col-span-1 bg-white rounded-xl shadow-md flex flex-col h-[calc(100vh-140px)]">
               <div className="flex border-b border-gray-100">
                 <button
-                  onClick={() => { setActiveTab('pending'); setSelectedOrder(null); }}
+                  onClick={() => { setActiveTab('pending'); setSelectedOrder(null); clearFilters(); }}
                   className={`flex-1 py-4 text-sm font-bold flex items-center justify-center transition-colors rounded-tl-xl ${activeTab === 'pending' ? 'bg-white text-[#246e72] border-b-2 border-[#246e72]' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'}`}
                 >
                   <Package className="mr-2" size={18} /> Pending
                 </button>
                 <button
-                  onClick={() => { setActiveTab('past'); setSelectedOrder(null); }}
+                  onClick={() => { setActiveTab('past'); setSelectedOrder(null); clearFilters(); }}
                   className={`flex-1 py-4 text-sm font-bold flex items-center justify-center transition-colors rounded-tr-xl ${activeTab === 'past' ? 'bg-white text-[#246e72] border-b-2 border-[#246e72]' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'}`}
                 >
                   <History className="mr-2" size={18} /> Past
                 </button>
+              </div>
+
+              {/* FILTER BAR */}
+              <div className="p-4 border-b border-gray-100 bg-gray-50">
+                <div className="space-y-3">
+                  {/* Status Filter */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-2">
+                      <Filter size={12} className="inline mr-1" /> Status
+                    </label>
+                    <div className="flex flex-wrap gap-1">
+                      {statusFilters.map(filter => (
+                        <button
+                          key={filter.id}
+                          onClick={() => setStatusFilter(filter.id)}
+                          className={`px-2 py-1 text-xs rounded transition-colors ${statusFilter === filter.id
+                            ? 'bg-[#246e72] text-white'
+                            : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100'
+                            }`}
+                        >
+                          {filter.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Distributor Filter */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-2">
+                      Distributor
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Filter by distributor..."
+                        value={distributorFilter}
+                        onChange={(e) => setDistributorFilter(e.target.value)}
+                        className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#246e72] focus:border-transparent"
+                      />
+                      {(statusFilter !== 'all' || distributorFilter.trim() !== '') && (
+                        <button
+                          onClick={clearFilters}
+                          className="px-3 py-1.5 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Results Count */}
+                  <div className="text-xs text-gray-500 pt-1">
+                    Showing {filteredOrders.length} of{' '}
+                    {activeTab === 'pending'
+                      ? orders.filter(o => o.status !== 'Completed').length
+                      : pastReceipts.length
+                    } orders
+                  </div>
+                </div>
               </div>
 
               <div className="p-4 overflow-y-auto flex-1 space-y-3">
@@ -289,9 +413,16 @@ const StaffInventory = () => {
                 ) : filteredOrders.length === 0 ? (
                   <div className="text-center text-gray-500 mt-10 p-4">
                     <Package className="mx-auto mb-2 opacity-50" size={32} />
-                    <p className="font-medium">No {activeTab} orders found.</p>
-                    {activeTab === 'past' && (
-                      <p className="text-sm mt-1">Complete an order to see it here.</p>
+                    <p className="font-medium">
+                      No {activeTab} orders {statusFilter !== 'all' || distributorFilter.trim() !== '' ? 'match the filters' : 'found'}.
+                    </p>
+                    {(statusFilter !== 'all' || distributorFilter.trim() !== '') && (
+                      <button
+                        onClick={clearFilters}
+                        className="mt-2 text-sm text-[#246e72] hover:underline"
+                      >
+                        Clear filters
+                      </button>
                     )}
                   </div>
                 ) : (
@@ -398,6 +529,7 @@ const StaffInventory = () => {
                         <thead>
                           <tr className="border-b-2 border-gray-100">
                             <th className="text-left py-3 px-2 text-sm font-semibold text-gray-600">ITEM NAME</th>
+                            <th className="text-left py-3 px-2 text-sm font-semibold text-gray-600">DISTRIBUTOR</th>
                             <th className="text-center py-3 px-2 text-sm font-semibold text-gray-600">ORDERED</th>
                             <th className="text-center py-3 px-2 text-sm font-semibold text-gray-600">
                               {selectedOrder.status === 'Completed' ? 'TOTAL RECEIVED' : 'RECEIVED TILL'}
@@ -414,6 +546,7 @@ const StaffInventory = () => {
                           {selectedOrder.items.map(item => (
                             <tr key={item.id} className="border-b border-gray-50">
                               <td className="py-4 px-2 font-medium text-gray-800">{item.name}</td>
+                              <td className="py-4 px-2 text-sm text-gray-600 italic">{item.distributor}</td>
                               <td className="py-4 px-2 text-center text-gray-600">
                                 {item.orderedQty || 0}
                               </td>
