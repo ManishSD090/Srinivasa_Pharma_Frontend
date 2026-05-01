@@ -32,6 +32,7 @@ const StaffOrders = () => {
    const [showDeliveredModal, setShowDeliveredModal] = useState(false);
    const [currentOrderForDelivery, setCurrentOrderForDelivery] = useState(null);
    const [deliveryItems, setDeliveryItems] = useState([]);
+   const [pickedQuantities, setPickedQuantities] = useState({});
    const [deliveryDate, setDeliveryDate] = useState("");
 
    // Form Data
@@ -231,19 +232,18 @@ const StaffOrders = () => {
    const handleOpenDeliveryModal = (order) => {
       setCurrentOrderForDelivery(order);
 
-      const initialDeliveryItems = order.items.map((item, idx) => {
+      const initialDeliveryItems = order.items.map(item => {
          const alreadyDelivered = item.deliveredQuantity || 0;
          const remaining = item.quantity - alreadyDelivered;
 
          return {
             ...item,
-            id: idx,
-            pickedQuantity: 0,
             remainingQuantity: remaining
          };
       });
 
       setDeliveryItems(initialDeliveryItems);
+      setPickedQuantities({});
 
       const now = new Date();
       now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -252,20 +252,20 @@ const StaffOrders = () => {
       setShowDeliveredModal(true);
    };
 
-   const handleDeliveryQtyChange = (idx, value) => {
-      const updated = [...deliveryItems];
-      updated[idx].pickedQuantity = Number(value);
-      setDeliveryItems(updated);
+   const handleDeliveryQtyChange = (itemId, value) => {
+      setPickedQuantities(prev => ({ ...prev, [itemId]: Number(value) }));
    };
 
    const handleSaveDelivery = async () => {
       try {
          const payload = {
             deliveryDate: deliveryDate,
-            items: deliveryItems.map(item => ({
-               itemName: item.itemName,
-               pickedQuantity: item.pickedQuantity
-            }))
+            items: deliveryItems
+               .filter(item => pickedQuantities[item._id] > 0)
+               .map(item => ({
+                  itemId: item._id,
+                  pickedQuantity: pickedQuantities[item._id]
+               }))
          };
 
          await api.post(`/orders/delivered/${currentOrderForDelivery._id || currentOrderForDelivery.id}`, payload);
@@ -765,15 +765,15 @@ const StaffOrders = () => {
                         />
                      </div>
                      <div className="space-y-2 max-h-[250px] overflow-y-auto pr-1">
-                        {deliveryItems.map((item, index) => (
-                           <div key={item.id || index} className="grid grid-cols-12 gap-3 items-center p-3 border rounded-lg bg-gray-50">
+                        {deliveryItems.map((item) => (
+                           <div key={item._id} className="grid grid-cols-12 gap-3 items-center p-3 border rounded-lg bg-gray-50">
                               <div className="col-span-7">
                                  <p className="text-sm font-semibold text-gray-800">{item.itemName}</p>
                                  <p className="text-xs text-gray-500 italic">{item.distributor}</p>
                               </div>
                               <div className="col-span-2 text-xs text-center font-medium">
                                  Ordered: {item.quantity} <br />
-                                 <span className="text-gray-500">Left: {item.remainingQuantity}</span>
+                                 <span className="text-gray-500">Left: {item.remainingQuantity - (pickedQuantities[item._id] || 0)}</span>
                               </div>
                               <div className="col-span-3">
                                  <label className="text-[10px] text-gray-400 block mb-0.5">Picked Qty</label>
@@ -781,8 +781,8 @@ const StaffOrders = () => {
                                     type="number"
                                     min="0"
                                     max={item.remainingQuantity}
-                                    value={item.pickedQuantity}
-                                    onChange={(e) => handleDeliveryQtyChange(index, e.target.value)}
+                                    value={pickedQuantities[item._id] || ''}
+                                    onChange={(e) => handleDeliveryQtyChange(item._id, e.target.value)}
                                     className="w-full px-2 py-1 border rounded text-sm text-center outline-none focus:ring-1 focus:ring-[#246e72]"
                                  />
                               </div>

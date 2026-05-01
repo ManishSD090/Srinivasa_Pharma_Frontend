@@ -51,14 +51,19 @@ const InventoryChecklist = () => {
           const firstItemName = items.length > 0 ? items[0].itemName : 'Loading items...';
           const itemCount = items.length;
 
+          const rawItems = order.rawItems || [];
+          const uniqueDistributors = [...new Set(rawItems.map(item => item.distributor).filter(Boolean))];
+          const distString = uniqueDistributors.length > 2 ? `${uniqueDistributors.slice(0, 2).join(', ')}... (+${uniqueDistributors.length - 2})` : uniqueDistributors.join(', ');
+
           return {
             id: order.orderId,
-            distributor: order.distributor || 'Loading distributor...',
+            distributor: distString || order.distributor || 'Loading distributor...',
             date: order.date ? new Date(order.date).toISOString().split('T')[0] : 'N/A',
             status: order.status,
             firstItemName: firstItemName,
             itemCount: itemCount,
-            items: items
+            items: items,
+            rawItems: rawItems
           };
         } catch (error) {
           console.error(`Error fetching details for order ${order.orderId}:`, error);
@@ -69,7 +74,8 @@ const InventoryChecklist = () => {
             status: order.status,
             firstItemName: 'Could not load items',
             itemCount: 0,
-            items: []
+            items: [],
+            rawItems: order.rawItems || []
           };
         }
       }));
@@ -98,19 +104,28 @@ const InventoryChecklist = () => {
           const firstItemName = items.length > 0 ? items[0].itemName : 'Completed items';
           const itemCount = items.length;
 
+          const rawItems = orderDetails?.data?.items || order.rawItems || [];
+          const uniqueDistributors = [...new Set(rawItems.map(item => item.distributor).filter(Boolean))];
+          const distString = uniqueDistributors.length > 2 ? `${uniqueDistributors.slice(0, 2).join(', ')}... (+${uniqueDistributors.length - 2})` : uniqueDistributors.join(', ');
+
           return {
             id: order.orderId,
-            distributor: orderDetails?.data?.items?.[0]?.distributor || order.distributor || 'Completed Order',
+            distributor: distString || orderDetails?.data?.items?.[0]?.distributor || order.distributor || 'Completed Order',
             date: orderDetails?.data?.date ? new Date(orderDetails.data.date).toISOString().split('T')[0] : order.date || 'N/A',
             status: 'Completed',
             firstItemName: firstItemName,
             itemCount: itemCount,
-            items: items.map((item, index) => ({
-              id: `item-${order.orderId}-${index}`,
-              name: item.itemName,
-              orderedQty: item.orderedQty || 0,
-              receivedQty: item.receivedQty || 0
-            }))
+            items: items.map((item, index) => {
+              const rItem = rawItems.find(r => r._id === item._id) || {};
+              return {
+                id: item._id,
+                name: item.itemName,
+                distributor: rItem.distributor || 'Unknown',
+                orderedQty: item.orderedQty || 0,
+                receivedQty: item.receivedQty || 0
+              };
+            }),
+            rawItems: rawItems
           };
         } catch (error) {
           console.error(`Error processing completed order ${order.orderId}:`, error);
@@ -121,7 +136,8 @@ const InventoryChecklist = () => {
             status: 'Completed',
             firstItemName: 'Items received',
             itemCount: 0,
-            items: []
+            items: [],
+            rawItems: order.rawItems || []
           };
         }
       }));
@@ -155,12 +171,16 @@ const InventoryChecklist = () => {
           status: inventoryData.status,
           firstItemName: order.firstItemName,
           itemCount: order.itemCount,
-          items: inventoryData.items.map((item, index) => ({
-            id: `item-${order.id}-${index}`,
-            name: item.itemName,
-            orderedQty: item.orderedQty,
-            receivedQty: item.receivedQty || 0
-          }))
+          items: inventoryData.items.map((item, index) => {
+            const rawItem = (order.rawItems || []).find(r => r._id === item._id) || {};
+            return {
+              id: item._id,
+              name: item.itemName,
+              distributor: rawItem.distributor || 'Unknown',
+              orderedQty: item.orderedQty,
+              receivedQty: item.receivedQty || 0
+            };
+          })
         };
 
         setSelectedOrder(transformedOrder);
@@ -192,9 +212,16 @@ const InventoryChecklist = () => {
     // Apply distributor filter
     if (distributorFilter.trim() !== '') {
       const searchTerm = distributorFilter.toLowerCase();
-      filtered = filtered.filter(order =>
-        order.distributor?.toLowerCase().includes(searchTerm)
-      );
+      filtered = filtered.filter(order => {
+        // Deep search: Check if any item in rawItems has a matching distributor
+        const hasMatchingItem = order.rawItems?.some(item => 
+          item.distributor?.toLowerCase().includes(searchTerm)
+        );
+        // Fallback to checking the main distributor string
+        const matchesMainDistributor = order.distributor?.toLowerCase().includes(searchTerm);
+        
+        return hasMatchingItem || matchesMainDistributor;
+      });
     }
 
     return filtered;
@@ -217,6 +244,7 @@ const InventoryChecklist = () => {
       const itemsPayload = selectedOrder.items
         .filter(item => currentReceipts[item.id] > 0)
         .map(item => ({
+          itemId: item.id,
           itemName: item.name,
           receivedNow: currentReceipts[item.id] || 0
         }));
@@ -480,6 +508,7 @@ const InventoryChecklist = () => {
                     <thead>
                       <tr className="border-b-2 border-gray-100">
                         <th className="text-left py-3 px-2 text-sm font-semibold text-gray-600">ITEM NAME</th>
+                        <th className="text-left py-3 px-2 text-sm font-semibold text-gray-600">DISTRIBUTOR</th>
                         <th className="text-center py-3 px-2 text-sm font-semibold text-gray-600">ORDERED</th>
                         <th className="text-center py-3 px-2 text-sm font-semibold text-gray-600">
                           {selectedOrder.status === 'Completed' ? 'TOTAL RECEIVED' : 'RECEIVED TILL'}
@@ -496,6 +525,7 @@ const InventoryChecklist = () => {
                       {selectedOrder.items.map(item => (
                         <tr key={item.id} className="border-b border-gray-50">
                           <td className="py-4 px-2 font-medium text-gray-800">{item.name}</td>
+                          <td className="py-4 px-2 text-sm text-gray-600 italic">{item.distributor}</td>
                           <td className="py-4 px-2 text-center text-gray-600">
                             {item.orderedQty || 0}
                           </td>

@@ -110,7 +110,7 @@ const StaffInventory = () => {
             firstItemName: firstItemName,
             itemCount: itemCount,
             items: items.map((item, index) => ({
-              id: `item-${order.orderId}-${index}`,
+              id: item._id,
               name: item.itemName,
               orderedQty: item.orderedQty || 0,
               receivedQty: item.receivedQty || 0
@@ -165,7 +165,7 @@ const StaffInventory = () => {
           firstItemName: order.firstItemName,
           itemCount: order.itemCount,
           items: inventoryData.items.map((item, index) => ({
-            id: `item-${order.id}-${index}`,
+            id: item._id,
             name: item.itemName,
             orderedQty: item.orderedQty,
             receivedQty: item.receivedQty || 0
@@ -204,6 +204,7 @@ const StaffInventory = () => {
       const itemsPayload = selectedOrder.items
         .filter(item => currentReceipts[item.id] > 0)
         .map(item => ({
+          itemId: item.id,
           itemName: item.name,
           receivedNow: currentReceipts[item.id] || 0
         }));
