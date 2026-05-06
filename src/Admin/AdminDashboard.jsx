@@ -55,10 +55,14 @@ const AdminDashboard = () => {
     fetchPendingLeaves();
   }, []);
 
-  const handleApproveStatus = async (requestId) => {
+  const handleApproveStatus = async (request) => {
     try {
-      await approveStatusRequest(requestId);
-      setStatusRequests(prev => prev.filter(r => r._id !== requestId));
+      const acceptedTaskId = request.taskId?._id || request.taskId;
+      await approveStatusRequest(request._id);
+      
+      // Winner takes all: filter out all requests for this task
+      setStatusRequests(prev => prev.filter(r => (r.taskId?._id || r.taskId) !== acceptedTaskId));
+      
       alert("Task status approved successfully");
     } catch (err) {
       console.error(err);
@@ -370,7 +374,7 @@ const AdminDashboard = () => {
 
                 <div className="flex gap-2">
                   <button
-                    onClick={() => handleApproveStatus(req._id)}
+                    onClick={() => handleApproveStatus(req)}
                     className="px-4 py-2 bg-[#246e72] text-white rounded-lg"
                   >
                     Approve

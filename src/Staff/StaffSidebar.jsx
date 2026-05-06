@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { X } from 'lucide-react';
 
 import { useAuth } from '../authContext';
+import LogoutConfirmModal from '../components/LogoutConfirmModal';
 
 const StaffSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout } = useAuth();
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   const navItems = [
     { name: 'Dashboard', path: '/staff/dashboard' },
@@ -21,8 +23,7 @@ const StaffSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
 
   const handleNavClick = async (item) => {
     if (item.name === 'Logout') {
-      logout();
-      navigate('/');
+      setIsLogoutModalOpen(true);
     } else {
       navigate(item.path);
     }
@@ -30,8 +31,19 @@ const StaffSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
     setIsSidebarOpen(false);
   };
 
+  const confirmLogout = async () => {
+    setIsLogoutModalOpen(false);
+    await logout();
+    navigate('/');
+  };
+
   return (
     <>
+      <LogoutConfirmModal 
+        isOpen={isLogoutModalOpen} 
+        onConfirm={confirmLogout} 
+        onCancel={() => setIsLogoutModalOpen(false)} 
+      />
       {isSidebarOpen && (
         <div
           className="fixed inset-0 z-40 lg:hidden"

@@ -98,6 +98,10 @@ const PayrollAttendancePage = () => {
 
       const data = response.data;
 
+      const sessions = data.sessions || [];
+      const lastSession = sessions.length > 0 ? sessions[sessions.length - 1] : null;
+      const isCurrentlyPunchedIn = !!(lastSession && !lastSession.punchOut);
+
       const formattedData = {
         date: new Date().toLocaleDateString('en-US', {
           weekday: 'long',
@@ -109,19 +113,21 @@ const PayrollAttendancePage = () => {
           hour: '2-digit',
           minute: '2-digit'
         }),
-        punchInTime: data.punchInTime ?
-          new Date(data.punchInTime).toLocaleTimeString('en-US', {
+        sessions: sessions,
+        punchInTime: sessions[0]?.punchIn ?
+          new Date(sessions[0].punchIn).toLocaleTimeString('en-US', {
             hour: '2-digit',
             minute: '2-digit'
           }) : '--:-- --',
-        punchOutTime: data.punchOutTime ?
-          new Date(data.punchOutTime).toLocaleTimeString('en-US', {
+        punchOutTime: (lastSession && lastSession.punchOut) ?
+          new Date(lastSession.punchOut).toLocaleTimeString('en-US', {
             hour: '2-digit',
             minute: '2-digit'
           }) : '--:-- --',
         hoursWorked: data.hoursWorked || 0,
         targetHours: data.targetHours || 10,
         status: data.status || 'Not Checked In',
+        isPunchedIn: isCurrentlyPunchedIn,
         raw: data
       };
 
@@ -281,19 +287,40 @@ const PayrollAttendancePage = () => {
     try {
       setLoading(prev => ({ ...prev, punch: true }));
 
-      if (todayAttendance?.raw?.punchInTime && !todayAttendance?.raw?.punchOutTime) {
-        await api.post('/attendance/punch-out', {
+      let response;
+      if (todayAttendance?.isPunchedIn) {
+        response = await api.post('/attendance/punch-out', {
           staffId: selectedStaff
         });
       } else {
-        await api.post('/attendance/punch-in', {
+        response = await api.post('/attendance/punch-in', {
           staffId: selectedStaff
         });
       }
 
-      await fetchTodayAttendance();
-      await fetchCalendar();
-      await fetchMonthlySummary();
+      const punchData = response.data;
+      
+      // Update local state immediately with response data
+      setTodayAttendance(prev => ({
+        ...prev,
+        isPunchedIn: punchData.isPunchedIn,
+        sessions: punchData.sessions || prev?.sessions || [],
+        hoursWorked: punchData.totalHours || prev?.hoursWorked || 0,
+        punchInTime: punchData.sessions?.[0]?.punchIn ? 
+          new Date(punchData.sessions[0].punchIn).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 
+          prev?.punchInTime,
+        punchOutTime: punchData.isPunchedIn ? '--:-- --' : 
+          (punchData.sessions?.[punchData.sessions.length - 1]?.punchOut ? 
+            new Date(punchData.sessions[punchData.sessions.length - 1].punchOut).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 
+            '--:-- --'),
+        status: punchData.isPunchedIn ? 'present' : (prev?.status || 'present')
+      }));
+
+      // Still fetch other summaries to stay in sync
+      await Promise.all([
+        fetchCalendar(),
+        fetchMonthlySummary()
+      ]);
     } catch (err) {
       const errorMsg = err.response?.data?.message || 'Failed to process punch action';
       alert(`Error: ${errorMsg}`);
@@ -600,7 +627,7 @@ const PayrollAttendancePage = () => {
             <div className="space-y-3 mb-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Status:</span>
-                <span className={`px-3 py-1 rounded-full text-xs font-medium ${todayAttendance.raw?.punchInTime && !todayAttendance.raw?.punchOutTime
+                <span className={`px-3 py-1 rounded-full text-xs font-medium ${todayAttendance.isPunchedIn
                   ? 'bg-green-100 text-green-700'
                   : 'bg-gray-100 text-gray-700'
                   }`}>
@@ -620,7 +647,7 @@ const PayrollAttendancePage = () => {
             <button
               onClick={handlePunchAction}
               disabled={loading.punch}
-              className={`w-full py-3 rounded-lg font-medium flex items-center justify-center space-x-2 transition-colors mb-6 ${todayAttendance?.raw?.punchInTime && !todayAttendance?.raw?.punchOutTime
+              className={`w-full py-3 rounded-lg font-medium flex items-center justify-center space-x-2 transition-colors mb-6 ${todayAttendance?.isPunchedIn
                 ? 'bg-red-600 hover:bg-red-700 text-white'
                 : 'bg-[#246e72] hover:bg-[#1a5256] text-white'
                 } disabled:opacity-50 disabled:cursor-not-allowed`}
@@ -629,7 +656,7 @@ const PayrollAttendancePage = () => {
                 <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
                 <>
-                  {todayAttendance?.raw?.punchInTime && !todayAttendance?.raw?.punchOutTime ? (
+                  {todayAttendance?.isPunchedIn ? (
                     <>
                       <LogOut size={20} />
                       <span>Punch Out</span>
@@ -643,6 +670,23 @@ const PayrollAttendancePage = () => {
                 </>
               )}
             </button>
+
+            {todayAttendance?.sessions?.length > 0 && (
+              <div className="mt-4 mb-6">
+                <h4 className="text-sm font-semibold text-gray-700 mb-2">Today's Sessions</h4>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {todayAttendance.sessions.map((session, idx) => (
+                    <div key={idx} className="flex justify-between items-center text-xs bg-gray-50 p-2 rounded border border-gray-100">
+                      <span className="text-gray-600">Session {idx + 1}</span>
+                      <span className="font-medium text-gray-800">
+                        {new Date(session.punchIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {session.punchOut ? ` - ${new Date(session.punchOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : ' (Active)'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="pt-6 border-t border-gray-200">
               <p className="text-sm text-gray-600 mb-2">Hours Worked Today</p>

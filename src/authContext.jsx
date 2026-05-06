@@ -13,63 +13,88 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
-    const [token, setToken] = useState(null);
-    const [staffId, setStaffId] = useState(null);
+    // Synchronously initialize from localStorage to avoid the "logged out" flicker on refresh
+    const [token, setToken] = useState(() => localStorage.getItem('token'));
+    const [user, setUser] = useState(() => {
+        try {
+            const storedUser = localStorage.getItem('user');
+            return storedUser ? JSON.parse(storedUser) : null;
+        } catch {
+            return null;
+        }
+    });
+    const [staffId, setStaffId] = useState(() => localStorage.getItem('staffId') || null);
     const [loading, setLoading] = useState(true);
 
-    const logout = useCallback(() => {
-        // Aggressively clear ALL storage to prevent stale tokens
+    const logout = useCallback(async () => {
+        try {
+            // Optional: Call backend to clear server-side cookies
+            await fetch(`${import.meta.env.VITE_API_URL}/auth/logout`, {
+                method: 'GET', // or POST if changed in backend
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+        } catch (error) {
+            console.error("Backend logout failed:", error);
+        }
+
+        // "Nuclear Wipe" of all frontend credentials
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('staffId');
         localStorage.clear();
         sessionStorage.clear();
 
-        // Clear any auth cookies that might be lingering
+        // Clear any auth cookies
         document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
 
+        // Reset state
         setToken(null);
         setUser(null);
         setStaffId(null);
+
+        // Immediate redirect to login
+        window.location.href = '/';
     }, []);
 
-    const login = useCallback((jwtToken) => {
+    const login = useCallback((jwtToken, userData = null) => {
         const decoded = jwtDecode(jwtToken);
+        
+        // Merge decoded token with extra user data (like dailyWorkHrs)
+        const combinedUser = userData ? { ...decoded, ...userData } : decoded;
 
         setToken(jwtToken);
-        setUser(decoded);
-        setStaffId(decoded.staffId || null);
+        setUser(combinedUser);
+        setStaffId(combinedUser.staffId || null);
 
         localStorage.setItem('token', jwtToken);
-        localStorage.setItem('user', JSON.stringify(decoded));
-        localStorage.setItem('staffId', decoded.staffId || '');
+        localStorage.setItem('user', JSON.stringify(combinedUser));
+        localStorage.setItem('staffId', combinedUser.staffId || '');
     }, []);
 
     useEffect(() => {
-        const initAuth = () => {
+        const checkExpiration = () => {
             try {
-                const storedToken = localStorage.getItem('token');
-
-                if (storedToken) {
-                    const decoded = jwtDecode(storedToken);
+                if (token) {
+                    const decoded = jwtDecode(token);
                     const currentTime = Date.now() / 1000;
 
                     if (decoded.exp < currentTime) {
+                        console.warn("Token expired, logging out...");
                         logout();
-                    } else {
-                        setToken(storedToken);
-                        setUser(JSON.parse(localStorage.getItem('user')) || decoded); // fallback to decoded
-                        setStaffId(localStorage.getItem('staffId') || decoded.staffId || null);
                     }
                 }
             } catch (error) {
-                console.error('Auth init error:', error);
+                console.error('Auth check error:', error);
                 logout();
             } finally {
                 setLoading(false);
             }
         };
 
-        initAuth();
-    }, [logout]);
+        checkExpiration();
+    }, [token, logout]);
 
     const value = {
         user,

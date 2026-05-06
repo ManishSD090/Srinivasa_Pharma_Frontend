@@ -59,30 +59,36 @@ const StaffAttendance = () => {
       const response = await api.get('/attendance/today');
       const data = response.data;
 
+      const sessions = data.sessions || [];
+      const lastSession = sessions.length > 0 ? sessions[sessions.length - 1] : null;
+      const isCurrentlyPunchedIn = !!(lastSession && !lastSession.punchOut);
+
       const formattedData = {
         date: new Date().toLocaleDateString('en-US', {
           weekday: 'long',
-          year: 'numeric',
           month: 'long',
-          day: 'numeric'
+          day: 'numeric',
+          year: 'numeric'
         }),
-        currentTime: currentTime.toLocaleTimeString('en-US', {
+        currentTime: new Date().toLocaleTimeString('en-US', {
           hour: '2-digit',
           minute: '2-digit'
         }),
-        punchInTime: data.punchInTime ?
-          new Date(data.punchInTime).toLocaleTimeString('en-US', {
+        sessions: sessions,
+        punchInTime: sessions[0]?.punchIn ?
+          new Date(sessions[0].punchIn).toLocaleTimeString('en-US', {
             hour: '2-digit',
             minute: '2-digit'
           }) : '--:-- --',
-        punchOutTime: data.punchOutTime ?
-          new Date(data.punchOutTime).toLocaleTimeString('en-US', {
+        punchOutTime: (lastSession && lastSession.punchOut) ?
+          new Date(lastSession.punchOut).toLocaleTimeString('en-US', {
             hour: '2-digit',
             minute: '2-digit'
           }) : '--:-- --',
         hoursWorked: data.hoursWorked || 0,
         targetHours: data.targetHours || 8,
         status: data.status || 'Not Checked In',
+        isPunchedIn: isCurrentlyPunchedIn,
         raw: data
       };
 
@@ -263,21 +269,31 @@ const StaffAttendance = () => {
   const handlePunchAction = async () => {
     try {
       setLoading(prev => ({ ...prev, punch: true }));
+      const endpoint = todayAttendance.isPunchedIn ? '/attendance/punch-out' : '/attendance/punch-in';
+      const response = await api.post(endpoint);
+      const punchData = response.data;
 
-      if (todayAttendance?.raw?.punchInTime && !todayAttendance?.raw?.punchOutTime) {
-        await api.post('/attendance/punch-out');
-      } else {
-        await api.post('/attendance/punch-in');
-      }
+      // Update local state immediately
+      setTodayAttendance(prev => ({
+        ...prev,
+        isPunchedIn: punchData.isPunchedIn,
+        sessions: punchData.sessions || prev?.sessions || [],
+        hoursWorked: punchData.totalHours !== undefined ? punchData.totalHours : (prev?.hoursWorked || 0),
+        punchInTime: punchData.sessions?.[0]?.punchIn ?
+          new Date(punchData.sessions[0].punchIn).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) :
+          prev?.punchInTime,
+        punchOutTime: punchData.isPunchedIn ? '--:-- --' :
+          (punchData.sessions?.[punchData.sessions.length - 1]?.punchOut ?
+            new Date(punchData.sessions[punchData.sessions.length - 1].punchOut).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) :
+            '--:-- --'),
+        status: punchData.isPunchedIn ? 'present' : (prev?.status || 'present')
+      }));
 
-      await fetchTodayAttendance();
-      await fetchSummary();
-      await fetchCalendar();
-      await fetchHistory();
-
+      // Refresh calendar to update the status dots
+      fetchCalendar();
     } catch (err) {
-      const errorMsg = err.response?.data?.message || 'Failed to process punch action';
-      alert(`Error: ${errorMsg}`);
+      console.error('Error during punch action:', err);
+      alert(err.response?.data?.message || 'Failed to process punch action');
     } finally {
       setLoading(prev => ({ ...prev, punch: false }));
     }
@@ -410,15 +426,41 @@ const StaffAttendance = () => {
                       {todayAttendance.status}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Punch In:</span>
-                    <span className="text-sm font-semibold text-gray-800">{todayAttendance.punchInTime}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Punch Out:</span>
-                    <span className="text-sm font-semibold text-gray-800">{todayAttendance.punchOutTime}</span>
-                  </div>
                 </div>
+
+                  {/* <button
+                    onClick={handlePunchAction}
+                    disabled={loading.punch}
+                    className={`w-full py-3 rounded-lg font-medium flex items-center justify-center space-x-2 transition-colors mb-4 ${todayAttendance.isPunchedIn
+                      ? 'bg-red-600 hover:bg-red-700 text-white'
+                      : 'bg-[#246e72] hover:bg-[#1a5256] text-white'
+                      } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  >
+                    {loading.punch ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <>
+                        {todayAttendance.isPunchedIn ? 'Punch Out' : 'Punch In'}
+                      </>
+                    )}
+                  </button> */}
+
+                {todayAttendance.sessions.length > 0 && (
+                  <div className="mt-4">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Today's Sessions</h4>
+                    <div className="space-y-2 max-h-40 overflow-y-auto">
+                      {todayAttendance.sessions.map((session, idx) => (
+                        <div key={idx} className="flex justify-between items-center text-xs bg-gray-50 p-2 rounded border border-gray-100">
+                          <span className="text-gray-600">Session {idx + 1}</span>
+                          <span className="font-medium text-gray-800">
+                            {new Date(session.punchIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {session.punchOut ? ` - ${new Date(session.punchOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : ' (Active)'}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="mt-6 pt-6 border-t border-gray-200">
@@ -447,13 +489,6 @@ const StaffAttendance = () => {
                     </div>
                   </div>
                 </div>
-
-                <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-lg mt-4">
-                  <p className="text-sm text-blue-700 font-medium">
-                    Attendance is managed by admin. Contact HR for corrections.
-                  </p>
-                </div>
-
               </div>
             </div>
           ) : (

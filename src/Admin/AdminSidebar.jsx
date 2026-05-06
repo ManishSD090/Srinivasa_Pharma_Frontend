@@ -1,14 +1,16 @@
 // src/Admin/AdminSidebar.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { X } from 'lucide-react';
 import { useAuth } from '../authContext';
+import LogoutConfirmModal from '../components/LogoutConfirmModal';
 
 
 const AdminSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout } = useAuth();
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
 
   const navItems = [
@@ -23,8 +25,7 @@ const AdminSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
 
   const handleNavClick = async (item) => {
     if (item.name === "Logout") {
-      await logout();     // 🔥 clears auth
-      navigate("/");      // 🔥 redirect to login
+      setIsLogoutModalOpen(true);
     } else {
       navigate(item.path);
     }
@@ -32,9 +33,20 @@ const AdminSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
     setIsSidebarOpen(false);
   };
 
+  const confirmLogout = async () => {
+    setIsLogoutModalOpen(false);
+    await logout();
+    navigate("/");
+  };
+
 
   return (
     <>
+      <LogoutConfirmModal 
+        isOpen={isLogoutModalOpen} 
+        onConfirm={confirmLogout} 
+        onCancel={() => setIsLogoutModalOpen(false)} 
+      />
       {/* Mobile Overlay */}
       {isSidebarOpen && (
         <div 

@@ -90,15 +90,23 @@ const TaskManagement = () => {
 
   const handleApproveVolunteer = async (volunteer) => {
     try {
+      const acceptedTaskId = volunteer.taskId?._id || volunteer.taskId;
       await approveVolunteerRequest(volunteer._id);
 
-      // Refresh everything
+      // Instant UI update: Filter out ALL requests for this task
+      setVolunteerRequests(prev => 
+        prev.filter(req => (req.taskId?._id || req.taskId) !== acceptedTaskId)
+      );
+
+      // Refresh everything to stay in sync with DB
       await loadInitialData();
       await loadVolunteerRequests();
 
       setShowVolunteerApproval(false);
+      alert("Volunteer approved and task assigned!");
     } catch (err) {
       console.error("Approve volunteer failed", err);
+      alert("Failed to approve volunteer");
     }
   };
 

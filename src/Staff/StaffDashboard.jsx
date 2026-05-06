@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { useAuth } from '../authContext';
 
 const StaffDashboard = () => {
   // UI State
@@ -37,12 +38,14 @@ const StaffDashboard = () => {
     recentTasks: []
   });
 
+  const { user: currentUser } = useAuth();
+
   const [tasks, setTasks] = useState([]);
   const [attendance, setAttendance] = useState({
     punchInTime: '--:-- --',
     punchOutTime: '--:-- --',
     hoursWorked: 0,
-    totalHours: 8
+    totalHours: currentUser?.dailyWorkHrs || 8
   });
 
   const [notifications, setNotifications] = useState([]);
@@ -135,10 +138,10 @@ const StaffDashboard = () => {
       };
 
       setAttendance({
-        punchInTime: formatTime(attendanceData.punchInTime),
-        punchOutTime: formatTime(attendanceData.punchOutTime),
-        hoursWorked: attendanceData.totalHours || dashboardData.todayStats.hoursWorkedToday || 0,
-        totalHours: 8
+        punchInTime: formatTime(attendanceData.sessions?.[0]?.punchIn),
+        punchOutTime: formatTime(attendanceData.sessions?.[attendanceData.sessions.length - 1]?.punchOut),
+        hoursWorked: attendanceData.hoursWorked || dashboardData.todayStats.hoursWorkedToday || 0,
+        totalHours: currentUser?.dailyWorkHrs || 8
       });
 
       // Fetch notifications (if endpoint exists)
@@ -188,38 +191,33 @@ const StaffDashboard = () => {
   };
 
   // Handle punch in/out
-  const handlePunchAction = async (action) => {
+  const handlePunchAction = async () => {
     try {
-      const endpoint = action === 'punch-in' ? '/attendance/punch-in' : '/attendance/punch-out';
+      const attendanceRes = await api.get('/attendance/today');
+      const isPunchedIn = attendanceRes.data.isPunchedIn;
+
+      const endpoint = isPunchedIn ? '/attendance/punch-out' : '/attendance/punch-in';
       const response = await api.post(endpoint);
 
-      if (response.data.success) {
-        alert(`Successfully ${action === 'punch-in' ? 'punched in' : 'punched out'}!`);
+      if (response.data) {
+        alert(`Successfully ${!isPunchedIn ? 'punched in' : 'punched out'}!`);
         // Refresh dashboard and attendance data
         await Promise.all([
           fetchDashboardData(),
           api.get('/attendance/today').then(res => {
-            const data = res.data.data || res.data || {};
+            const data = res.data || {};
             setAttendance(prev => ({
               ...prev,
-              punchInTime: data.punchInTime ? new Date(data.punchInTime).toLocaleTimeString('en-US', {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
-              }) : '--:-- --',
-              punchOutTime: data.punchOutTime ? new Date(data.punchOutTime).toLocaleTimeString('en-US', {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
-              }) : '--:-- --',
-              hoursWorked: data.totalHours || 0
+              punchInTime: formatTime(data.sessions?.[0]?.punchIn),
+              punchOutTime: formatTime(data.sessions?.[data.sessions.length - 1]?.punchOut),
+              hoursWorked: data.hoursWorked || 0
             }));
           })
         ]);
       }
     } catch (error) {
-      console.error(`Error during ${action}:`, error);
-      alert(`Failed to ${action === 'punch-in' ? 'punch in' : 'punch out'}. ${error.response?.data?.message || 'Please try again.'}`);
+      console.error(`Error during punch:`, error);
+      alert(`Failed to process punch. ${error.response?.data?.message || 'Please try again.'}`);
     }
   };
 
@@ -484,6 +482,16 @@ const StaffDashboard = () => {
                   <p className="text-xs text-gray-500 mt-1">
                     Current status: <span className="font-medium capitalize">{dashboardData.todayStats.currentStatus}</span>
                   </p>
+                  {/* <button
+                    onClick={handlePunchAction}
+                    disabled={loading.attendance}
+                    className={`w-full mt-4 py-2 rounded-lg font-medium text-sm transition-colors ${attendance.punchInTime !== '--:-- --' && attendance.punchOutTime === '--:-- --'
+                      ? 'bg-red-600 hover:bg-red-700 text-white'
+                      : 'bg-[#246e72] hover:bg-[#1a5256] text-white'
+                      } disabled:opacity-50`}
+                  >
+                    {attendance.punchInTime !== '--:-- --' && attendance.punchOutTime === '--:-- --' ? 'Punch Out' : 'Punch In'}
+                  </button> */}
                 </div>
               </div>
             )}

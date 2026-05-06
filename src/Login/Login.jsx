@@ -1,9 +1,10 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../authContext';
 
 function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
 
   const [formData, setFormData] = useState({
@@ -11,6 +12,17 @@ function Login() {
     password: '',
     remember: false
   });
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const error = params.get('error');
+    if (error) {
+      // Decode the error message and show it to the user
+      alert(decodeURIComponent(error));
+      // Clean up the URL
+      navigate('/', { replace: true });
+    }
+  }, [location, navigate]);
 
   const { email, password } = formData;
 
@@ -45,11 +57,11 @@ function Login() {
       document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
 
       // Use the auth context login method — this decodes the JWT and stores token + user
-      login(data.token);
+      login(data.token, { dailyWorkHrs: data.dailyWorkHrs });
 
       // Also store the full user profile from the API response
       // (authContext stores the JWT-decoded payload; this stores the richer user object)
-      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('user', JSON.stringify({ ...data.user, dailyWorkHrs: data.dailyWorkHrs }));
 
       console.log("Logged in user:", data.user);
       console.log("Token role from JWT:", data.user?.role);
