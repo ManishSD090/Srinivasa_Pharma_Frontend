@@ -21,6 +21,11 @@ const OAuthSuccess = () => {
             return;
         }
 
+        // Clear any stale auth data before setting new session
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('staffId');
+
         // Use context login to set state correctly
         login(token);
 

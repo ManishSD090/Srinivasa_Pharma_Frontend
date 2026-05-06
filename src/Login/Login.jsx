@@ -37,11 +37,22 @@ function Login() {
         return;
       }
 
-      // Use the auth context login method
-      await login(data.token);
+      // Clear any stale auth data before setting new token
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('staffId');
+      sessionStorage.clear();
+      document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+
+      // Use the auth context login method — this decodes the JWT and stores token + user
+      login(data.token);
+
+      // Also store the full user profile from the API response
+      // (authContext stores the JWT-decoded payload; this stores the richer user object)
       localStorage.setItem('user', JSON.stringify(data.user));
 
       console.log("Logged in user:", data.user);
+      console.log("Token role from JWT:", data.user?.role);
 
       if (data.user.role === "admin") {
         navigate("/admin/dashboard");

@@ -8,6 +8,19 @@ import {
 import api from '../services/api';
 
 const StaffLeaves = () => {
+  const formatTime = (timeStr) => {
+    if (!timeStr) return "";
+    try {
+      const [hours, minutes] = timeStr.split(':');
+      const h = parseInt(hours, 10);
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      const hours12 = h % 12 || 12;
+      return `${hours12}:${minutes} ${ampm}`;
+    } catch (e) {
+      return timeStr;
+    }
+  };
+
   // UI State
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
@@ -39,7 +52,9 @@ const StaffLeaves = () => {
   const [formData, setFormData] = useState({
     type: '',
     startDate: '',
+    startTime: '',
     endDate: '',
+    endTime: '',
     reason: ''
   });
 
@@ -166,6 +181,10 @@ const StaffLeaves = () => {
         reason: reason.trim()
       };
 
+      // Only include time fields if provided
+      if (formData.startTime) leaveData.startTime = formData.startTime;
+      if (formData.endTime) leaveData.endTime = formData.endTime;
+
 
       await api.post('/leaves/apply', leaveData);
 
@@ -175,7 +194,9 @@ const StaffLeaves = () => {
       setFormData({
         type: '',
         startDate: '',
+        startTime: '',
         endDate: '',
+        endTime: '',
         reason: ''
       });
 
@@ -359,6 +380,18 @@ const StaffLeaves = () => {
           </div>
 
           <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Start Time <span className="text-xs text-gray-400 font-normal">(Optional)</span></label>
+            <input
+              type="time"
+              name="startTime"
+              value={formData.startTime}
+              onChange={handleFormChange}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm"
+              disabled={loading.apply}
+            />
+          </div>
+
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
             <input
               type="date"
@@ -366,6 +399,18 @@ const StaffLeaves = () => {
               value={formData.endDate}
               onChange={handleFormChange}
               min={formData.startDate || new Date().toISOString().split('T')[0]}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm"
+              disabled={loading.apply}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">End Time <span className="text-xs text-gray-400 font-normal">(Optional)</span></label>
+            <input
+              type="time"
+              name="endTime"
+              value={formData.endTime}
+              onChange={handleFormChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm"
               disabled={loading.apply}
             />
@@ -402,7 +447,7 @@ const StaffLeaves = () => {
           </button>
 
           <button
-            onClick={() => setFormData({ type: '', startDate: '', endDate: '', reason: '' })}
+            onClick={() => setFormData({ type: '', startDate: '', startTime: '', endDate: '', endTime: '', reason: '' })}
             className="px-6 py-2.5 border border-gray-300 rounded-lg font-medium text-sm text-gray-700 hover:bg-gray-50 transition-colors"
             disabled={loading.apply}
           >
@@ -522,8 +567,14 @@ const StaffLeaves = () => {
                 leaves.map(leave => (
                   <tr key={leave._id || leave.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                     <td className="py-4 px-4 text-sm text-gray-800 font-medium">{leave.leaveType || leave.type}</td>
-                    <td className="py-4 px-4 text-sm text-gray-700">{formatDate(leave.startDate)}</td>
-                    <td className="py-4 px-4 text-sm text-gray-700">{formatDate(leave.endDate)}</td>
+                    <td className="py-4 px-4 text-sm text-gray-700">
+                      <div>{formatDate(leave.startDate)}</div>
+                      {leave.startTime && <div className="text-xs text-gray-500 mt-1">{formatTime(leave.startTime)}</div>}
+                    </td>
+                    <td className="py-4 px-4 text-sm text-gray-700">
+                      <div>{formatDate(leave.endDate)}</div>
+                      {leave.endTime && <div className="text-xs text-gray-500 mt-1">{formatTime(leave.endTime)}</div>}
+                    </td>
                     <td className="py-4 px-4 text-sm text-gray-700">
                       {calculateDuration(leave.startDate, leave.endDate)}
                     </td>

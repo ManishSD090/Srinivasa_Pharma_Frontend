@@ -19,9 +19,13 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     const logout = useCallback(() => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        localStorage.removeItem('staffId');
+        // Aggressively clear ALL storage to prevent stale tokens
+        localStorage.clear();
+        sessionStorage.clear();
+
+        // Clear any auth cookies that might be lingering
+        document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+
         setToken(null);
         setUser(null);
         setStaffId(null);

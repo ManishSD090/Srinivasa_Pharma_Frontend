@@ -265,7 +265,7 @@ const StaffManagement = () => {
         leavingDate: staff.leavingDate,
         role: staff.role,
         status: staff.status,
-        password: ''
+        newPassword: ''
       });
     }
     setShowEditModal(true);
@@ -280,18 +280,25 @@ const StaffManagement = () => {
 
       setUpdating(true);
 
-      // CHANGE THIS LINE: Use staffDocId instead of _id
-      await updateStaff(editFormData.staffDocId, {
+      // Build payload — only include password if admin typed one
+      const payload = {
         name: editFormData.name,
         email: editFormData.email,
         phone: editFormData.phone,
         salary: editFormData.salary,
         dailyWorkHrs: editFormData.workHours || 8,
         role: editFormData.role,
-        password: editFormData.password,
         status: editFormData.status,
         leavingDate: editFormData.leavingDate
-      });
+      };
+
+      // Only send password if admin filled it in (admin override)
+      if (editFormData.newPassword && editFormData.newPassword.trim()) {
+        payload.newPassword = editFormData.newPassword;
+      }
+
+      // CHANGE THIS LINE: Use staffDocId instead of _id
+      await updateStaff(editFormData.staffDocId, payload);
 
       setShowEditModal(false);
       loadStaff();
@@ -641,8 +648,35 @@ const StaffManagement = () => {
                 </select>
                 {editFormData.status === 'Resigned' && <p className="text-xs text-red-600 mt-1">Marking as resigned will remove staff from active list.</p>}
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  New Password <span className="text-xs text-gray-400 font-normal">(Admin Override — Optional)</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type={editFormData._showPassword ? "text" : "password"}
+                    name="newPassword"
+                    value={editFormData.newPassword}
+                    onChange={handleEditFormChange}
+                    placeholder="Leave blank to keep current password"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none pr-12"
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setEditFormData(prev => ({ ...prev, _showPassword: !prev._showPassword }))}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs font-medium select-none"
+                    tabIndex={-1}
+                  >
+                    {editFormData._showPassword ? "HIDE" : "SHOW"}
+                  </button>
+                </div>
+                <p className="text-xs text-gray-400 mt-1">If filled, this resets the staff login password.</p>
+              </div>
+
               {editFormData.status === "Resigned" && (
-                <div>
+                <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">Leaving Date <span className="text-red-500">*</span></label>
                   <input type="date" name="leavingDate" value={editFormData.leavingDate || ""} onChange={handleEditFormChange} className="w-full px-4 py-2 border border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none" />
                 </div>

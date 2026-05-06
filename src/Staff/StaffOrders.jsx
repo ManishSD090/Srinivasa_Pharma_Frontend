@@ -281,10 +281,10 @@ const StaffOrders = () => {
 
    // Edit Handlers
    const handleEditClick = (order) => {
-      setCurrentOrder({
+      setCurrentOrder(JSON.parse(JSON.stringify({
          ...order,
          date: order.date?.split('T')[0] || order.date
-      });
+      })));
       setIsEditModalOpen(true);
    };
 
@@ -301,21 +301,57 @@ const StaffOrders = () => {
       setCurrentOrder(prev => ({ ...prev, [name]: value }));
    };
 
-   const handleEditItemChange = (index, e) => {
-      const { name, value } = e.target;
+   const handleEditItemChange = (index, field, value) => {
       const updatedItems = [...currentOrder.items];
-      updatedItems[index][name] = value;
+      updatedItems[index][field] = value;
       setCurrentOrder(prev => ({ ...prev, items: updatedItems }));
+   };
+
+   const handleAddEditItemRow = () => {
+      setCurrentOrder(prev => ({
+         ...prev,
+         items: [...prev.items, { itemName: '', distributor: '', quantity: '' }]
+      }));
+   };
+
+   const handleRemoveEditItemRow = (index) => {
+      setCurrentOrder(prev => ({
+         ...prev,
+         items: prev.items.filter((_, i) => i !== index)
+      }));
    };
 
    // Save Updated Order
    const handleSaveOrder = async () => {
       try {
-         const res = await api.put(`/orders/${currentOrder._id || currentOrder.id}`, currentOrder);
+         if (!currentOrder.date || !currentOrder.phone) {
+            alert("Date and phone are required");
+            return;
+         }
+         if (currentOrder.items.some(i => !i.itemName || !i.quantity || !i.distributor)) {
+            alert("Please fill all item fields");
+            return;
+         }
+
+         const payload = {
+            date: new Date(currentOrder.date),
+            phone: currentOrder.phone,
+            advance: Number(currentOrder.advance) || 0,
+            status: currentOrder.status || 'Placed',
+            items: currentOrder.items.map(i => ({
+               itemName: i.itemName,
+               quantity: Number(i.quantity),
+               distributor: i.distributor
+            }))
+         };
+
+         const res = await api.put(`/orders/${currentOrder._id || currentOrder.id}`, payload);
 
          setOrders(prevOrders =>
             prevOrders.map(order =>
-               (order._id || order.id) === (currentOrder._id || currentOrder.id) ? res.data : order
+               (order._id || order.id) === (currentOrder._id || currentOrder.id)
+                  ? (res.data.order ?? res.data)
+                  : order
             )
          );
 
@@ -831,38 +867,85 @@ const StaffOrders = () => {
          )}
 
          {/* Edit Order Modal */}
-         {isEditModalOpen && currentOrder && (
+         {isEditModalOpen && currentOrder && currentOrder.items && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-               <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col max-h-[90vh]">
+               <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
                   <div className="bg-[#246e72] px-6 py-4 flex justify-between items-center shrink-0">
                      <h3 className="text-lg font-bold text-white">Edit Order</h3>
                      <button onClick={() => setIsEditModalOpen(false)} className="text-white hover:bg-teal-700 p-1 rounded-full"><X size={20} /></button>
                   </div>
                   <div className="p-6 space-y-6 overflow-y-auto">
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input type="date" name="date" value={currentOrder.date} onChange={handleEditChange} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
-                        <input type="tel" name="phone" value={currentOrder.phone} onChange={handleEditChange} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
-                        <input type="text" name="advance" value={currentOrder.advance} onChange={handleEditChange} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none md:col-span-2" />
-                        <select name="status" value={currentOrder.status} onChange={handleEditChange} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none md:col-span-2">
-                           <option value="Placed">Placed</option>
-                           <option value="Needs Review">Needs Review</option>
-                        </select>
+                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                           <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                           <input type="date" name="date" value={currentOrder.date} onChange={handleEditChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm" />
+                        </div>
+                        <div>
+                           <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                           <input type="tel" name="phone" value={currentOrder.phone} onChange={handleEditChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm" />
+                        </div>
+                        <div>
+                           <label className="block text-sm font-medium text-gray-700 mb-1">Advance</label>
+                           <input type="number" name="advance" value={currentOrder.advance} onChange={handleEditChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm" />
+                        </div>
                      </div>
-                     <div className="space-y-4">
-                        {currentOrder.items.map((item, idx) => (
-                           <div key={idx} className="bg-gray-50 p-3 rounded-lg border grid grid-cols-1 sm:grid-cols-2 gap-3">
-                              <input type="text" name="itemName" value={item.itemName} onChange={(e) => handleEditItemChange(idx, e)} className="w-full px-3 py-2 rounded-lg border sm:col-span-2" />
-                              <input type="number" name="quantity" value={item.quantity} onChange={(e) => handleEditItemChange(idx, e)} className="w-full px-3 py-2 rounded-lg border" />
-                              <select name="distributor" value={item.distributor} onChange={(e) => handleEditItemChange(idx, e)} className="w-full px-3 py-2 rounded-lg border">
-                                 {distributors.map(d => <option key={d._id} value={d.name}>{d.name}</option>)}
-                              </select>
+                     <div>
+                        <h4 className="font-semibold text-gray-700 mb-3 border-b pb-2">Order Items</h4>
+                        {currentOrder.items.map((item, index) => (
+                           <div key={index} className="grid grid-cols-1 md:grid-cols-12 gap-3 mb-3 items-center">
+                              <div className="md:col-span-4">
+                                 <input
+                                    type="text"
+                                    placeholder="Item Name"
+                                    value={item.itemName}
+                                    onChange={(e) => handleEditItemChange(index, 'itemName', e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm"
+                                 />
+                              </div>
+                              <div className="md:col-span-4">
+                                 <select
+                                    value={item.distributor}
+                                    onChange={(e) => handleEditItemChange(index, 'distributor', e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm"
+                                 >
+                                    <option value="">Select Distributor</option>
+                                    {distributors.map(d => <option key={d._id} value={d.name}>{d.name}</option>)}
+                                 </select>
+                              </div>
+                              <div className="md:col-span-2">
+                                 <input
+                                    type="number"
+                                    placeholder="Qty"
+                                    value={item.quantity}
+                                    onChange={(e) => handleEditItemChange(index, 'quantity', e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm"
+                                 />
+                              </div>
+                              <div className="md:col-span-2 flex items-center justify-center gap-2">
+                                 <button
+                                    onClick={handleAddEditItemRow}
+                                    className="w-8 h-8 bg-[#246e72] text-white rounded-lg hover:bg-[#1a5256] flex items-center justify-center font-bold"
+                                    title="Add Item"
+                                 >
+                                    +
+                                 </button>
+                                 {currentOrder.items.length > 1 && (
+                                    <button
+                                       onClick={() => handleRemoveEditItemRow(index)}
+                                       className="w-8 h-8 bg-red-500 text-white rounded-lg hover:bg-red-600 flex items-center justify-center"
+                                       title="Remove Item"
+                                    >
+                                       <Trash2 size={14} />
+                                    </button>
+                                 )}
+                              </div>
                            </div>
                         ))}
                      </div>
                   </div>
-                  <div className="bg-gray-50 px-6 py-4 flex justify-end space-x-3 border-t">
-                     <button onClick={() => setIsEditModalOpen(false)} className="px-4 py-2 border rounded-lg">Cancel</button>
-                     <button onClick={handleSaveOrder} className="px-4 py-2 bg-[#246e72] text-white rounded-lg flex items-center space-x-2"><Save size={18} /><span>Save</span></button>
+                  <div className="bg-gray-50 px-6 py-4 flex justify-end space-x-3 border-t shrink-0">
+                     <button onClick={() => setIsEditModalOpen(false)} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg text-sm font-medium hover:bg-gray-300">Cancel</button>
+                     <button onClick={handleSaveOrder} className="px-4 py-2 bg-[#246e72] text-white rounded-lg text-sm font-medium hover:bg-teal-800 flex items-center space-x-2"><Save size={18} /><span>Save Changes</span></button>
                   </div>
                </div>
             </div>

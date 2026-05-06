@@ -218,6 +218,19 @@ const AdminDashboard = () => {
 
 
 
+  const formatTime = (timeStr) => {
+    if (!timeStr) return "";
+    try {
+      const [hours, minutes] = timeStr.split(':');
+      const h = parseInt(hours, 10);
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      const hours12 = h % 12 || 12;
+      return `${hours12}:${minutes} ${ampm}`;
+    } catch (e) {
+      return timeStr;
+    }
+  };
+
   return (
     <main className="p-4 lg:p-8 space-y-6" id='dashboard'>
       {/* Stats Cards */}
@@ -296,8 +309,10 @@ const AdminDashboard = () => {
                     </h4>
                     <p className="text-xs text-gray-600">
                       {leave.type} (
-                      {new Date(leave.startDate).toLocaleDateString()} →{" "}
+                      {new Date(leave.startDate).toLocaleDateString()}
+                      {leave.startTime ? ` (${formatTime(leave.startTime)})` : ""} →{" "}
                       {new Date(leave.endDate).toLocaleDateString()}
+                      {leave.endTime ? ` (${formatTime(leave.endTime)})` : ""}
                       )
                     </p>
                   </div>
@@ -408,7 +423,7 @@ const AdminDashboard = () => {
                       {leave.staffName}
                     </h4>
                     <p className="text-sm text-gray-600">
-                      {leave.leaveType} | {new Date(leave.startDate).toLocaleDateString()} → {new Date(leave.endDate).toLocaleDateString()}
+                      {leave.leaveType} | {new Date(leave.startDate).toLocaleDateString()} {leave.startTime ? `(${formatTime(leave.startTime)})` : ""} → {new Date(leave.endDate).toLocaleDateString()} {leave.endTime ? `(${formatTime(leave.endTime)})` : ""}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
                       Reason: {leave.reason || "—"}
