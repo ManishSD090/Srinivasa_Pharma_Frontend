@@ -9,8 +9,9 @@ import {
   Edit, Trash2, Download,
   ChevronLeft, ChevronRight, X,
   CheckCircle, Users,
-  AlertTriangle, Plus
+  AlertTriangle, Plus, Clock
 } from 'lucide-react';
+import TaskHistoryModal from './TaskHistoryModal';
 import {
   fetchTasks,
   createTask,
@@ -35,6 +36,7 @@ const TaskManagement = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [showVolunteerApproval, setShowVolunteerApproval] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [selectedVolunteer, setSelectedVolunteer] = useState(null);
   const [staffList, setStaffList] = useState([]);
   const [tasks, setTasks] = useState([]);
@@ -46,7 +48,8 @@ const TaskManagement = () => {
 
   useEffect(() => {
     fetchStatusRequests().then(res => setStatusRequests(res.data));
-  }, []);
+    loadInitialData();
+  }, [filterStatus, searchQuery]);
   
   const approveStatusChange = async (request) => {
     await approveStatusRequest(request._id);
@@ -62,8 +65,13 @@ const TaskManagement = () => {
   const loadInitialData = async () => {
     try {
       setLoading(true);
+      const params = {
+        status: filterStatus,
+        search: searchQuery
+      };
+
       const [tasksRes, staffRes] = await Promise.all([
-        fetchTasks(),
+        fetchTasks(params),
         fetchAllStaff(),
       ]);
 
@@ -157,23 +165,23 @@ const TaskManagement = () => {
     return task.status !== 'Completed' && dueDate < today;
   });
 
-  const filteredTasks = tasks.filter(task => {
-    const matchesSearch =
-      task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (task.assignedTo?.name || "")
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
+  const handleShowHistory = async (task) => {
+    try {
+      const res = await api.get(`/tasks/${task._id}`);
+      setSelectedTask(res.data);
+      setShowHistoryModal(true);
+    } catch (err) {
+      console.error("Failed to fetch task history", err);
+    }
+  };
 
-    const matchesFilter =
-      filterStatus === "All" || task.status === filterStatus;
-
-    return matchesSearch && matchesFilter;
-  });
-
-
+  const filteredTasks = tasks; // Filtered by backend
 
   const totalPages = Math.ceil(filteredTasks.length / entriesPerPage);
-  const displayedTasks = filteredTasks.slice((currentPage - 1) * entriesPerPage, currentPage * entriesPerPage);
+  const displayedTasks = filteredTasks.slice(
+    (currentPage - 1) * entriesPerPage,
+    currentPage * entriesPerPage
+  );
 
   // Format tasks for export
   const formatTasksForExport = (tasksArray) => {
@@ -484,8 +492,9 @@ const TaskManagement = () => {
                   <td className="py-4 px-4"><span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(task.status)}`}>{task.status}</span></td>
                   <td className="py-4 px-4">
                     <div className="flex space-x-2">
-                      <button onClick={() => handleEditClick(task)} className="w-8 h-8 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center" title="Edit Task"><Edit size={16} /></button>
-                      <button onClick={() => { setSelectedTask(task); setShowDeleteModal(true); }} className="w-8 h-8 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center" title="Delete Task"><Trash2 size={16} /></button>
+                      <button onClick={() => { setSelectedTask(task); setEditFormData(task); setShowEditModal(true); }} className="w-8 h-8 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center" title="Edit"><Edit size={16} /></button>
+                      <button onClick={() => handleShowHistory(task)} className="w-8 h-8 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center justify-center" title="History"><Clock size={16} /></button>
+                      <button onClick={() => { setSelectedTask(task); setShowDeleteModal(true); }} className="w-8 h-8 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center" title="Delete"><Trash2 size={16} /></button>
                     </div>
                   </td>
                 </tr>
@@ -671,6 +680,12 @@ const TaskManagement = () => {
           </div>
         </div>
       )}
+
+      <TaskHistoryModal 
+        isOpen={showHistoryModal}
+        onClose={() => setShowHistoryModal(false)}
+        task={selectedTask}
+      />
     </main>
   );
 };

@@ -37,7 +37,9 @@ const PayrollAttendancePage = () => {
     leaveDays: 0,
     absentDays: 0,
     lateDays: 0,
-    attendanceRate: 0
+    attendanceRate: 0,
+    totalTasksAssigned: 0,
+    totalTasksCompleted: 0
   });
   const [payrollData, setPayrollData] = useState(null);
   const [payrollHistory, setPayrollHistory] = useState([]);
@@ -128,6 +130,7 @@ const PayrollAttendancePage = () => {
         targetHours: data.targetHours || 10,
         status: data.status || 'Not Checked In',
         isPunchedIn: isCurrentlyPunchedIn,
+        isLate: data.isLate || false,
         raw: data
       };
 
@@ -219,7 +222,9 @@ const PayrollAttendancePage = () => {
         lateDays: data.lateDays || 0,
         overtimeHours: data.overtimeHours || 0,
         totalHours: data.totalHours || 0,
-        attendanceRate: data.attendanceRate || 0
+        attendanceRate: data.attendanceRate || 0,
+        totalTasksAssigned: data.totalTasksAssigned || 0,
+        totalTasksCompleted: data.totalTasksCompleted || 0
       });
     } catch (err) {
       console.error('Error fetching staff summary:', err);
@@ -236,7 +241,9 @@ const PayrollAttendancePage = () => {
         leaveDays: 0,
         absentDays: 0,
         lateDays: 0,
-        attendanceRate: 0
+        attendanceRate: 0,
+        totalTasksAssigned: 0,
+        totalTasksCompleted: 0
       });
     } finally {
       setLoading(prev => ({ ...prev, summary: false }));
@@ -396,10 +403,21 @@ const PayrollAttendancePage = () => {
       const record = records.find(r => new Date(r.date).getDate() === day);
       if (record) {
         setAttendanceModalData(record);
-        setAdminComment(record.adminComment || '');
-        setSelectedDate(day);
-        setShowAttendanceModal(true);
+      } else {
+        // Inferred absent/leave day — no DB record yet, create synthetic data for the modal
+        const syntheticDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+        setAttendanceModalData({
+          _id: null,
+          date: syntheticDate.toISOString(),
+          status: attendanceCalendar[day],
+          sessions: [],
+          totalHours: 0,
+          adminComments: []
+        });
       }
+      setAdminComment(''); // Always start with an empty comment input
+      setSelectedDate(day);
+      setShowAttendanceModal(true);
     } catch (err) {
       console.error('Error fetching attendance details:', err);
     }
@@ -410,14 +428,26 @@ const PayrollAttendancePage = () => {
     if (!attendanceModalData) return;
 
     try {
-      await api.put(`/admin/attendance/${attendanceModalData._id}/comment`, {
-        comment: adminComment
-      });
-      alert('Comment saved successfully!');
+      if (attendanceModalData._id) {
+        // Existing attendance record — update by _id
+        await api.put(`/admin/attendance/${attendanceModalData._id}/comment`, {
+          comment: adminComment
+        });
+      } else {
+        // No record exists (absent/leave day) — upsert by staffId + date
+        await api.post('/admin/attendance/comment', {
+          comment: adminComment,
+          staffId: selectedStaff,
+          date: attendanceModalData.date
+        });
+      }
+      alert('Comment added successfully!');
+      setAdminComment(''); // Clear the input field
       setShowAttendanceModal(false);
       await fetchCalendar();
     } catch (err) {
-      alert('Failed to save comment');
+      console.error('Save comment error:', err);
+      alert(err.response?.data?.message || 'Failed to add comment');
     }
   };
 
@@ -486,8 +516,6 @@ const PayrollAttendancePage = () => {
       'absent': 'bg-red-500',
       'leave': 'bg-yellow-500',
       'on leave': 'bg-yellow-500',
-      'half day': 'bg-orange-500',
-      'halfday': 'bg-orange-500',
       'late': 'bg-purple-500'
     };
 
@@ -677,7 +705,12 @@ const PayrollAttendancePage = () => {
                 <div className="space-y-2 max-h-40 overflow-y-auto">
                   {todayAttendance.sessions.map((session, idx) => (
                     <div key={idx} className="flex justify-between items-center text-xs bg-gray-50 p-2 rounded border border-gray-100">
-                      <span className="text-gray-600">Session {idx + 1}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-600">Session {idx + 1}</span>
+                        {idx === 0 && todayAttendance.isLate && (
+                          <span className="px-1.5 py-0.5 bg-red-100 text-red-700 rounded text-[10px] font-bold">Late</span>
+                        )}
+                      </div>
                       <span className="font-medium text-gray-800">
                         {new Date(session.punchIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         {session.punchOut ? ` - ${new Date(session.punchOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : ' (Active)'}
@@ -790,10 +823,6 @@ const PayrollAttendancePage = () => {
                     <div className="w-3 h-3 rounded-full bg-yellow-500" />
                     <span className="text-gray-600">On Leave</span>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 rounded-full bg-orange-500" />
-                    <span className="text-gray-600">Half Day</span>
-                  </div>
                 </div>
               </div>
             </div>
@@ -838,6 +867,18 @@ const PayrollAttendancePage = () => {
                   <span className="text-sm text-gray-600">Late Arrivals</span>
                   <span className="text-lg font-bold text-orange-600">
                     {monthlySummary.lateDays}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Total Tasks Assigned</span>
+                  <span className="text-lg font-bold text-[#246e72]">
+                    {monthlySummary.totalTasksAssigned}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Total Tasks Completed</span>
+                  <span className="text-lg font-bold text-green-600">
+                    {monthlySummary.totalTasksCompleted}
                   </span>
                 </div>
                 <div className="pt-3 border-t border-gray-200">
@@ -1074,23 +1115,27 @@ const PayrollAttendancePage = () => {
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Punch In:</span>
                     <span className="font-medium text-gray-800">
-                      {attendanceModalData.punchInTime
-                        ? new Date(attendanceModalData.punchInTime).toLocaleTimeString('en-US', {
+                      {attendanceModalData.sessions && attendanceModalData.sessions.length > 0
+                        ? new Date(attendanceModalData.sessions[0].punchIn).toLocaleTimeString('en-US', {
                           hour: '2-digit',
                           minute: '2-digit'
                         })
-                        : '--:-- --'}
+                        : (attendanceModalData.punchInTime 
+                            ? new Date(attendanceModalData.punchInTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+                            : '--:-- --')}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Punch Out:</span>
                     <span className="font-medium text-gray-800">
-                      {attendanceModalData.punchOutTime
-                        ? new Date(attendanceModalData.punchOutTime).toLocaleTimeString('en-US', {
+                      {attendanceModalData.sessions && attendanceModalData.sessions.length > 0 && attendanceModalData.sessions[attendanceModalData.sessions.length - 1].punchOut
+                        ? new Date(attendanceModalData.sessions[attendanceModalData.sessions.length - 1].punchOut).toLocaleTimeString('en-US', {
                           hour: '2-digit',
                           minute: '2-digit'
                         })
-                        : '--:-- --'}
+                        : (attendanceModalData.punchOutTime 
+                            ? new Date(attendanceModalData.punchOutTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+                            : '--:-- --')}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
@@ -1106,12 +1151,47 @@ const PayrollAttendancePage = () => {
                 </div>
               </div>
 
+              {/* Sessions History */}
+              {attendanceModalData.sessions && attendanceModalData.sessions.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-700 mb-2">Session History</h4>
+                  <div className="space-y-2 max-h-32 overflow-y-auto pr-1">
+                    {attendanceModalData.sessions.map((session, idx) => (
+                      <div key={idx} className="flex justify-between items-center text-xs bg-gray-50 p-2 rounded border border-gray-100">
+                        <span className="text-gray-600 font-medium">Session {idx + 1}</span>
+                        <span className="text-gray-800">
+                          {new Date(session.punchIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {session.punchOut ? ` - ${new Date(session.punchOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : ' (Active)'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Comment History */}
+              {attendanceModalData.adminComments && attendanceModalData.adminComments.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-700 mb-2">Comment History</h4>
+                  <div className="space-y-2 max-h-32 overflow-y-auto pr-1">
+                    {attendanceModalData.adminComments.map((comment, idx) => (
+                      <div key={idx} className="bg-yellow-50 border-l-4 border-yellow-400 p-2 rounded">
+                        <p className="text-xs text-gray-800">
+                          <span className="font-bold mr-1">Comment {idx + 1}:</span>
+                          {comment}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Admin Comment</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Add New Comment</label>
                 <textarea
                   value={adminComment}
                   onChange={(e) => setAdminComment(e.target.value)}
-                  placeholder="Add your comment..."
+                  placeholder="Type your comment here..."
                   rows="3"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none resize-none"
                 />

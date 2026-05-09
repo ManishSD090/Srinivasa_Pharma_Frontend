@@ -1,6 +1,6 @@
 import api from './api'; // your axios instance
 
-export const fetchAllStaff = () => api.get('/staff');
+export const fetchAllStaff = (params) => api.get('/staff', { params });
 export const fetchResignedStaff = () => api.get('/staff/resigned');
 export const createStaff = (data) => api.post('/staff', data);
 export const updateStaff = (id, data) => api.put(`/staff/${id}`, data);

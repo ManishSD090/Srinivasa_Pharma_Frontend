@@ -1,8 +1,8 @@
 import api from "./api";
 
 // Get all tasks (admin: all, staff: assigned/open)
-export const fetchTasks = () => {
-    return api.get("/tasks");
+export const fetchTasks = (params) => {
+    return api.get("/tasks", { params });
 };
 
 // Get single task by ID

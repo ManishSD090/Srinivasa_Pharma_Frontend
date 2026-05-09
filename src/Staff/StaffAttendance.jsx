@@ -89,6 +89,7 @@ const StaffAttendance = () => {
         targetHours: data.targetHours || 8,
         status: data.status || 'Not Checked In',
         isPunchedIn: isCurrentlyPunchedIn,
+        isLate: data.isLate || false,
         raw: data
       };
 
@@ -335,17 +336,14 @@ const StaffAttendance = () => {
 
   const getAttendanceDot = (status) => {
     if (!status) return 'bg-transparent';
-    const s = status.toLowerCase();
-    const styles = {
-      'present': 'bg-green-500',
-      'absent': 'bg-red-500',
-      'leave': 'bg-yellow-500',
-      'on leave': 'bg-yellow-500',
-      'halfday': 'bg-orange-500',
-      'half day': 'bg-orange-500',
-      'late': 'bg-purple-500'
-    };
-    return styles[s] || 'bg-gray-300';
+    switch (status.toLowerCase()) {
+      case 'present': return 'bg-green-500';
+      case 'absent': return 'bg-red-500';
+      case 'leave': return 'bg-yellow-500';
+      case 'on leave': return 'bg-yellow-500';
+      case 'late': return 'bg-orange-500';
+      default: return 'bg-gray-300';
+    }
   };
 
   const getStatusStyle = (status) => {
@@ -353,7 +351,6 @@ const StaffAttendance = () => {
     if (s.includes('present')) return 'bg-green-100 text-green-700';
     if (s.includes('absent')) return 'bg-red-100 text-red-700';
     if (s.includes('leave')) return 'bg-yellow-100 text-yellow-700';
-    if (s.includes('half')) return 'bg-orange-100 text-orange-700';
     if (s.includes('late')) return 'bg-purple-100 text-purple-700';
     return 'bg-gray-100 text-gray-700';
   };
@@ -451,7 +448,12 @@ const StaffAttendance = () => {
                     <div className="space-y-2 max-h-40 overflow-y-auto">
                       {todayAttendance.sessions.map((session, idx) => (
                         <div key={idx} className="flex justify-between items-center text-xs bg-gray-50 p-2 rounded border border-gray-100">
-                          <span className="text-gray-600">Session {idx + 1}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-gray-600">Session {idx + 1}</span>
+                            {idx === 0 && todayAttendance.isLate && (
+                              <span className="px-1.5 py-0.5 bg-red-100 text-red-700 rounded text-[10px] font-bold">Late</span>
+                            )}
+                          </div>
                           <span className="font-medium text-gray-800">
                             {new Date(session.punchIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             {session.punchOut ? ` - ${new Date(session.punchOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : ' (Active)'}
@@ -581,10 +583,6 @@ const StaffAttendance = () => {
                   <div className="flex items-center space-x-2">
                     <div className="w-3 h-3 rounded-full bg-yellow-500" />
                     <span className="text-gray-600">On Leave</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 rounded-full bg-orange-500" />
-                    <span className="text-gray-600">Half Day</span>
                   </div>
                 </div>
               </div>

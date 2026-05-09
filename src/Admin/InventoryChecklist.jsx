@@ -31,7 +31,7 @@ const InventoryChecklist = () => {
 
   useEffect(() => {
     fetchInventoryOrders();
-  }, []);
+  }, [distributorFilter]);
 
   useEffect(() => {
     if (activeTab === 'past') {
@@ -42,7 +42,9 @@ const InventoryChecklist = () => {
   const fetchInventoryOrders = async () => {
     try {
       setLoading(prev => ({ ...prev, orders: true }));
-      const response = await api.get('/inventory/orders');
+      const response = await api.get('/inventory/orders', {
+        params: { search: distributorFilter }
+      });
 
       const transformedOrders = await Promise.all(response.data.map(async (order) => {
         try {
@@ -57,6 +59,8 @@ const InventoryChecklist = () => {
 
           return {
             id: order.orderId,
+            customerName: order.customerName || '—',
+            phone: order.phone || '—',
             distributor: distString || order.distributor || 'Loading distributor...',
             date: order.date ? new Date(order.date).toISOString().split('T')[0] : 'N/A',
             status: order.status,
@@ -110,6 +114,8 @@ const InventoryChecklist = () => {
 
           return {
             id: order.orderId,
+            customerName: orderDetails?.data?.customerName || order.customerName || '—',
+            phone: orderDetails?.data?.phone || order.phone || '—',
             distributor: distString || orderDetails?.data?.items?.[0]?.distributor || order.distributor || 'Completed Order',
             date: orderDetails?.data?.date ? new Date(orderDetails.data.date).toISOString().split('T')[0] : order.date || 'N/A',
             status: 'Completed',
@@ -166,6 +172,8 @@ const InventoryChecklist = () => {
 
         const transformedOrder = {
           id: order.id,
+          customerName: inventoryData.customerName || order.customerName,
+          phone: inventoryData.phone || order.phone,
           distributor: inventoryData.distributor || order.distributor,
           date: order.date,
           status: inventoryData.status,
@@ -217,10 +225,12 @@ const InventoryChecklist = () => {
         const hasMatchingItem = order.rawItems?.some(item => 
           item.distributor?.toLowerCase().includes(searchTerm)
         );
+        // Search by Customer Name as well
+        const matchesCustomer = order.customerName?.toLowerCase().includes(searchTerm);
         // Fallback to checking the main distributor string
         const matchesMainDistributor = order.distributor?.toLowerCase().includes(searchTerm);
         
-        return hasMatchingItem || matchesMainDistributor;
+        return hasMatchingItem || matchesMainDistributor || matchesCustomer;
       });
     }
 
@@ -411,18 +421,18 @@ const InventoryChecklist = () => {
                   <div className="flex justify-between items-start mb-2">
                     <div>
                       <p className="font-bold text-gray-700 text-sm mb-1">
-                        {getItemDisplayText(order)}
+                        {order.customerName}
                       </p>
                       <p className="text-xs text-gray-500">
-                        Items: {order.itemCount}
+                        {getItemDisplayText(order)} ({order.itemCount})
                       </p>
                     </div>
                     <span className={`px-2 py-0.5 rounded text-xs font-medium border ${getStatusColor(order.status)}`}>
                       {order.status}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600 mb-1">{order.distributor}</p>
-                  <p className="text-xs text-gray-500 mb-1">Date: {order.date}</p>
+                  <p className="text-sm text-gray-600 mb-1 font-medium">{order.distributor}</p>
+                  <p className="text-xs text-gray-500 mb-1">Phone: {order.phone} | Date: {order.date}</p>
                   <div className="mt-3 flex items-center text-[#246e72] text-sm font-medium">
                     {activeTab === 'pending' ? 'Check Items' : 'View Summary'} <ArrowRight size={14} className="ml-1" />
                   </div>
@@ -460,13 +470,16 @@ const InventoryChecklist = () => {
                   </h3>
                   <div className="flex flex-wrap items-center gap-4 mt-1">
                     <p className="text-sm text-gray-600">
+                      <span className="font-medium">Customer:</span> {selectedOrder.customerName}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      <span className="font-medium">Phone:</span> {selectedOrder.phone}
+                    </p>
+                    <p className="text-sm text-gray-600">
                       <span className="font-medium">Distributor:</span> {selectedOrder.distributor}
                     </p>
                     <p className="text-sm text-gray-600">
                       <span className="font-medium">Items:</span> {selectedOrder.itemCount}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      <span className="font-medium">First Item:</span> {selectedOrder.firstItemName}
                     </p>
                     <p className="text-sm text-gray-600">
                       <span className="font-medium">Date:</span> {selectedOrder.date}

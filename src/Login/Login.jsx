@@ -86,12 +86,6 @@ function Login() {
     });
   };
 
-  // Handle Google Login
-  const handleGoogleLogin = () => {
-    // Redirect to backend Google OAuth endpoint
-    window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
-  };
-
   return (
     <div className="min-h-screen flex ">
       {/* Left Side - Welcome Section */}
@@ -238,69 +232,6 @@ function Login() {
               Sign In
             </button>
           </form>
-
-          {/* Divider */}
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-[#d2eaf4] text-gray-500">Or continue with</span>
-            </div>
-          </div>
-
-          {/* Google Login Button */}
-          <button
-            onClick={handleGoogleLogin}
-            className="w-full py-3 px-6 rounded-xl font-semibold text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:shadow-md transform hover:scale-[1.02] transition-all duration-200 flex items-center justify-center"
-          >
-            <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
-              <path
-                fill="#EA4335"
-                d="M5.266 9.765A7.077 7.077 0 0 1 12 4.909c1.69 0 3.218.6 4.418 1.582L19.91 3C17.782 1.145 15.055 0 12 0 7.273 0 3.191 2.691 1.145 6.655l4.121 3.11z"
-              />
-              <path
-                fill="#34A853"
-                d="M16.04 18.013c-1.09.593-2.325.896-3.618.896-3.24 0-6.063-2.09-7.12-5.007L1.145 17.02C3.191 21.018 7.273 24 12 24c3.11 0 5.927-1.09 8.09-2.936l-4.05-3.051z"
-              />
-              <path
-                fill="#4285F4"
-                d="M23.49 12.275c0-.827-.073-1.623-.21-2.396H12v4.54h6.44c-.28 1.487-1.12 2.753-2.4 3.594l4.05 3.051c2.373-2.183 3.4-5.39 3.4-8.789z"
-              />
-              <path
-                fill="#FBBC05"
-                d="M5.266 14.235A6.974 6.974 0 0 1 4.909 12c0-.782.136-1.536.357-2.235L1.145 6.655A11.97 11.97 0 0 0 0 12c0 1.92.445 3.736 1.245 5.345l4.021-3.11z"
-              />
-            </svg>
-            Sign in with Google
-          </button>
-
-          {/* Help Section
-          <div className="mt-8 text-center">
-            <p className="text-sm text-gray-600 mb-3">Need help accessing your account?</p>
-            <div className="flex justify-center gap-4">
-              <button
-                type="button"
-                onClick={() => console.log('Contact support')}
-                className="text-sm text-gray-700 hover:text-[#246e72] transition flex items-center"
-              >
-                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-                Contact Support
-              </button>
-              <button
-                type="button"
-                onClick={() => console.log('Help center')}
-                className="text-sm text-gray-700 hover:text-[#246e72] transition flex items-center"
-              >
-                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Help Center
-              </button>
-            </div>
-          </div> */}
 
           {/* Footer */}
           <div className="mt-8 text-center text-xs text-gray-500">

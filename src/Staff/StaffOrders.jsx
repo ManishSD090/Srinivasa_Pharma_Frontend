@@ -35,10 +35,10 @@ const StaffOrders = () => {
    const [pickedQuantities, setPickedQuantities] = useState({});
    const [deliveryDate, setDeliveryDate] = useState("");
 
-   // Form Data
    const [formData, setFormData] = useState({
       date: '',
       phone: '',
+      customerName: '',
       advance: '',
       status: 'Placed'
    });
@@ -123,8 +123,8 @@ const StaffOrders = () => {
 
    // Add Order with backend integration
    const handleAddOrder = async () => {
-      if (!formData.date || !formData.phone) {
-         alert('Please fill in Date and Phone');
+      if (!formData.date) {
+         alert('Please fill in Date');
          return;
       }
 
@@ -136,7 +136,8 @@ const StaffOrders = () => {
       try {
          const payload = {
             date: formData.date,
-            phone: formData.phone,
+            phone: formData.phone || '',
+            customerName: formData.customerName || '',
             advance: Number(formData.advance) || 0,
             status: isForReview ? 'Needs Review' : 'Placed',
             items: items.map(i => ({
@@ -150,7 +151,7 @@ const StaffOrders = () => {
 
          setOrders(prev => [res.data.order, ...prev]);
 
-         setFormData({ date: '', phone: '', advance: '', status: 'Placed' });
+         setFormData({ date: '', phone: '', customerName: '', advance: '', status: 'Placed' });
          setItems([{ itemName: '', quantity: '', distributor: '' }]);
          setIsForReview(false);
 
@@ -229,27 +230,52 @@ const StaffOrders = () => {
    };
 
    // --- Delivery Logic ---
-   const handleOpenDeliveryModal = (order) => {
+   const handleOpenDeliveryModal = async (order) => {
       setCurrentOrderForDelivery(order);
 
-      const initialDeliveryItems = order.items.map(item => {
-         const alreadyDelivered = item.deliveredQuantity || 0;
-         const remaining = item.quantity - alreadyDelivered;
+      try {
+         // Fetch inventory details to know how many have been received from distributor
+         const invRes = await api.get(`/inventory/orders/${order._id || order.id}`);
+         const invItems = invRes.data.items || [];
 
-         return {
+         const initialDeliveryItems = order.items.map(item => {
+            const alreadyDelivered = item.deliveredQuantity || 0;
+            const remaining = item.quantity - alreadyDelivered;
+
+            // Find matching item in inventory
+            const invItem = invItems.find(i => i._id === item._id);
+            const receivedInShop = invItem ? invItem.receivedQty : 0;
+
+            // Available to give to customer = receivedInShop - alreadyDelivered
+            const availableInShop = Math.max(0, receivedInShop - alreadyDelivered);
+
+            return {
+               ...item,
+               remainingQuantity: remaining,
+               availableInShop: availableInShop
+            };
+         });
+
+         setDeliveryItems(initialDeliveryItems);
+         setPickedQuantities({});
+
+         const now = new Date();
+         now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+         setDeliveryDate(now.toISOString().slice(0, 16));
+
+         setShowDeliveredModal(true);
+      } catch (err) {
+         console.error("Error fetching inventory for delivery:", err);
+         // Fallback if inventory fetch fails
+         const initialDeliveryItems = order.items.map(item => ({
             ...item,
-            remainingQuantity: remaining
-         };
-      });
-
-      setDeliveryItems(initialDeliveryItems);
-      setPickedQuantities({});
-
-      const now = new Date();
-      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-      setDeliveryDate(now.toISOString().slice(0, 16));
-
-      setShowDeliveredModal(true);
+            remainingQuantity: item.quantity - (item.deliveredQuantity || 0),
+            availableInShop: 0
+         }));
+         setDeliveryItems(initialDeliveryItems);
+         setPickedQuantities({});
+         setShowDeliveredModal(true);
+      }
    };
 
    const handleDeliveryQtyChange = (itemId, value) => {
@@ -258,14 +284,30 @@ const StaffOrders = () => {
 
    const handleSaveDelivery = async () => {
       try {
+         const itemsToDeliver = deliveryItems
+            .filter(item => (pickedQuantities[item._id] || 0) > 0)
+            .map(item => ({
+               itemId: item._id,
+               pickedQuantity: pickedQuantities[item._id]
+            }));
+
+         if (itemsToDeliver.length === 0) {
+            alert("Please enter at least one quantity to deliver");
+            return;
+         }
+
+         // Check for over-delivery
+         for (const item of itemsToDeliver) {
+            const originalItem = deliveryItems.find(i => i._id === item.itemId);
+            if (item.pickedQuantity > originalItem.remainingQuantity) {
+               alert(`Warning: Cannot deliver more than the ordered amount for ${originalItem.itemName}. Remaining: ${originalItem.remainingQuantity}`);
+               return;
+            }
+         }
+
          const payload = {
             deliveryDate: deliveryDate,
-            items: deliveryItems
-               .filter(item => pickedQuantities[item._id] > 0)
-               .map(item => ({
-                  itemId: item._id,
-                  pickedQuantity: pickedQuantities[item._id]
-               }))
+            items: itemsToDeliver
          };
 
          await api.post(`/orders/delivered/${currentOrderForDelivery._id || currentOrderForDelivery.id}`, payload);
@@ -324,8 +366,8 @@ const StaffOrders = () => {
    // Save Updated Order
    const handleSaveOrder = async () => {
       try {
-         if (!currentOrder.date || !currentOrder.phone) {
-            alert("Date and phone are required");
+         if (!currentOrder.date) {
+            alert("Date is required");
             return;
          }
          if (currentOrder.items.some(i => !i.itemName || !i.quantity || !i.distributor)) {
@@ -335,7 +377,8 @@ const StaffOrders = () => {
 
          const payload = {
             date: new Date(currentOrder.date),
-            phone: currentOrder.phone,
+            phone: currentOrder.phone || '',
+            customerName: currentOrder.customerName || '',
             advance: Number(currentOrder.advance) || 0,
             status: currentOrder.status || 'Placed',
             items: currentOrder.items.map(i => ({
@@ -367,6 +410,7 @@ const StaffOrders = () => {
    // Filtering & Pagination
    const filteredOrders = orders.filter(order =>
       (order.phone || "").includes(searchQuery) ||
+      (order.customerName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
       (order.items || []).some(item =>
          item.itemName.toLowerCase().includes(searchQuery.toLowerCase()) ||
          item.distributor.toLowerCase().includes(searchQuery.toLowerCase())
@@ -419,7 +463,18 @@ const StaffOrders = () => {
                         />
                      </div>
                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Customer Phone</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Customer Name (Optional)</label>
+                        <input
+                           type="text"
+                           name="customerName"
+                           placeholder="Enter name"
+                           value={formData.customerName}
+                           onChange={handleFormChange}
+                           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm"
+                        />
+                     </div>
+                     <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Customer Phone (Optional)</label>
                         <input
                            type="tel"
                            name="phone"
@@ -429,7 +484,7 @@ const StaffOrders = () => {
                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm"
                         />
                      </div>
-                     <div className="md:col-span-2">
+                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Advance Amount</label>
                         <input
                            type="text"
@@ -558,7 +613,7 @@ const StaffOrders = () => {
                      <div className="w-full sm:w-auto">
                         <input
                            type="text"
-                           placeholder="Search item, distributor..."
+                           placeholder="Search by name, item, distributor..."
                            value={searchQuery}
                            onChange={(e) => setSearchQuery(e.target.value)}
                            className="w-full sm:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm"
@@ -570,8 +625,9 @@ const StaffOrders = () => {
                      <table className="w-full">
                         <thead>
                            <tr className="border-b border-gray-200">
-                              <th className="py-3 px-4 text-sm font-semibold text-gray-600 text-left">DELIVERED</th>
+                              <th className="py-3 px-4 text-sm font-semibold text-gray-600 text-left">STATUS</th>
                               <th className="py-3 px-4 text-sm font-semibold text-gray-600 text-left">DATE</th>
+                              <th className="py-3 px-4 text-sm font-semibold text-gray-600 text-left min-w-[150px]">CUSTOMER</th>
                               <th className="py-3 px-4 text-sm font-semibold text-gray-600 text-left">PHONE</th>
                               <th className="py-3 px-4 text-sm font-semibold text-gray-600 text-left">ITEMS & DISTRIBUTORS</th>
                               <th className="py-3 px-4 text-sm font-semibold text-gray-600 text-left">INV STATUS</th>
@@ -595,40 +651,32 @@ const StaffOrders = () => {
                               displayedOrders.map(order => (
                                  <tr key={order._id || order.id} className="border-b border-gray-100 hover:bg-gray-50">
                                     <td className="py-4 px-4 text-center">
-                                       <input
-                                          type="checkbox"
-                                          checked={order.isDeliveredToCustomer || false}
-                                          readOnly
+                                       <button
                                           onClick={() => {
-                                             // 1. Check the Inventory Status first
                                              const orderId = order._id || order.id;
                                              const invStatus = inventoryStatusMap[orderId] || 'Pending';
-
-                                             if (invStatus !== 'Completed') {
-                                                alert(`Cannot mark as delivered. Inventory status is currently '${invStatus}'. Please wait until the distributor has delivered all items.`);
-                                                return; // Stop execution here, do not open the modal
+                                             if (invStatus === 'Pending') {
+                                                alert(`Cannot mark as delivered. No items have been received in inventory yet.`);
+                                                return;
                                              }
-
-                                             // 2. If inventory IS completed, check if customer delivery is already completed
-                                             if (order.status === "Completed") {
-                                                alert(`All orders for customer ${order.phone} delivered`);
-                                             } else {
-                                                // 3. If inventory is ready and customer hasn't received everything yet, open modal
-                                                handleOpenDeliveryModal(order);
-                                             }
+                                             handleOpenDeliveryModal(order);
                                           }}
-                                          className={`w-4 h-4 border-gray-300 rounded !cursor-pointer ${order.status === "Partial"
-                                             ? "accent-yellow-500"
-                                             : order.status === "Completed"
-                                                ? "accent-green-500"
-                                                : "accent-[#246e72]"
-                                             }`}
-                                       />
+                                          className={`px-2 py-1 rounded text-xs font-bold border transition-all hover:shadow-sm ${
+                                             order.status === "Completed"
+                                                ? "bg-green-100 text-green-700 border-green-200"
+                                                : order.status === "Partial"
+                                                   ? "bg-yellow-100 text-yellow-700 border-yellow-200"
+                                                   : "bg-blue-100 text-blue-700 border-blue-200"
+                                          }`}
+                                       >
+                                          {order.status === "Placed" ? "PENDING" : order.status.toUpperCase()}
+                                       </button>
                                     </td>
                                     <td className="py-4 px-4 text-sm text-gray-700">
                                        {order.date ? order.date.split('T')[0] : 'N/A'}
                                     </td>
-                                    <td className="py-4 px-4 text-sm text-gray-700">{order.phone}</td>
+                                    <td className="py-4 px-4 text-sm text-gray-700 font-medium">{order.customerName || '—'}</td>
+                                    <td className="py-4 px-4 text-sm text-gray-700">{order.phone || '—'}</td>
                                     <td className="py-4 px-4 text-sm text-gray-700">
                                        <ul className="space-y-2">
                                           {order.items.map((item, idx) => (
@@ -808,17 +856,25 @@ const StaffOrders = () => {
                                  <p className="text-xs text-gray-500 italic">{item.distributor}</p>
                               </div>
                               <div className="col-span-2 text-xs text-center font-medium">
-                                 Ordered: {item.quantity} <br />
-                                 <span className="text-gray-500">Left: {item.remainingQuantity - (pickedQuantities[item._id] || 0)}</span>
+                                 <span className="text-gray-500">Ordered: {item.quantity}</span> <br />
+                                 <span className="text-teal-600">In Shop: {item.availableInShop}</span> <br />
+                                 <span className="text-gray-800">Remaining: {item.remainingQuantity - (pickedQuantities[item._id] || 0)}</span>
                               </div>
                               <div className="col-span-3">
-                                 <label className="text-[10px] text-gray-400 block mb-0.5">Picked Qty</label>
+                                 <label className="text-[10px] text-gray-400 block mb-0.5">Pick Qty</label>
                                  <input
                                     type="number"
                                     min="0"
-                                    max={item.remainingQuantity}
+                                    max={item.availableInShop}
                                     value={pickedQuantities[item._id] || ''}
-                                    onChange={(e) => handleDeliveryQtyChange(item._id, e.target.value)}
+                                    onChange={(e) => {
+                                       const val = Number(e.target.value);
+                                       if (val > item.availableInShop) {
+                                          alert(`Cannot deliver more than available in shop (${item.availableInShop})`);
+                                          return;
+                                       }
+                                       handleDeliveryQtyChange(item._id, e.target.value);
+                                    }}
                                     className="w-full px-2 py-1 border rounded text-sm text-center outline-none focus:ring-1 focus:ring-[#246e72]"
                                  />
                               </div>
@@ -875,17 +931,21 @@ const StaffOrders = () => {
                      <button onClick={() => setIsEditModalOpen(false)} className="text-white hover:bg-teal-700 p-1 rounded-full"><X size={20} /></button>
                   </div>
                   <div className="p-6 space-y-6 overflow-y-auto">
-                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div>
-                           <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                           <label className="block text-sm font-medium text-gray-700 mb-1 text-xs">Date</label>
                            <input type="date" name="date" value={currentOrder.date} onChange={handleEditChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm" />
                         </div>
                         <div>
-                           <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                           <input type="tel" name="phone" value={currentOrder.phone} onChange={handleEditChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm" />
+                           <label className="block text-sm font-medium text-gray-700 mb-1 text-xs">Name (Optional)</label>
+                           <input type="text" name="customerName" value={currentOrder.customerName || ""} onChange={handleEditChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm" placeholder="Name" />
                         </div>
                         <div>
-                           <label className="block text-sm font-medium text-gray-700 mb-1">Advance</label>
+                           <label className="block text-sm font-medium text-gray-700 mb-1 text-xs">Phone (Optional)</label>
+                           <input type="tel" name="phone" value={currentOrder.phone || ""} onChange={handleEditChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm" placeholder="Phone" />
+                        </div>
+                        <div>
+                           <label className="block text-sm font-medium text-gray-700 mb-1 text-xs">Advance</label>
                            <input type="number" name="advance" value={currentOrder.advance} onChange={handleEditChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm" />
                         </div>
                      </div>
@@ -957,8 +1017,9 @@ const StaffOrders = () => {
                <div className="bg-white rounded-xl w-full max-w-md p-6">
                   <h3 className="text-lg font-bold mb-4">Order Details</h3>
                   <div className="space-y-2 mb-6">
-                     <p><strong>Phone:</strong> {currentOrder.phone}</p>
-                     <p><strong>Advance:</strong> ₹{currentOrder.advance}</p>
+                     <p><strong>Name:</strong> {currentOrder.customerName || '—'}</p>
+                     <p><strong>Phone:</strong> {currentOrder.phone || '—'}</p>
+                     <p><strong>Advance:</strong> ₹{currentOrder.advance || 0}</p>
                      <p><strong>Items:</strong></p>
                      <ul className="list-disc pl-5">
                         {currentOrder.items.map((it, i) => <li key={i}>{it.itemName} - {it.quantity} ({it.distributor})</li>)}

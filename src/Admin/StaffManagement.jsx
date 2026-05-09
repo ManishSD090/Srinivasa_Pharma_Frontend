@@ -32,6 +32,7 @@ const StaffManagement = () => {
     phone: '',
     salary: '',
     workHours: '',
+    expectedStartTime: '09:00',
     joiningDate: '',
     role: '',
     password: ''
@@ -45,6 +46,7 @@ const StaffManagement = () => {
     phone: '',
     salary: '',
     workHours: '',
+    expectedStartTime: '09:00',
     joiningDate: '',
     leavingDate: '',
     role: '',
@@ -58,15 +60,23 @@ const StaffManagement = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const [liveStatusFilter, setLiveStatusFilter] = useState('All');
+
   useEffect(() => {
     loadStaff();
-  }, []);
+  }, [searchQuery, filterStatus, liveStatusFilter]);
 
   const loadStaff = async () => {
     try {
       setLoading(true);
+      const params = {
+        search: searchQuery,
+        status: filterStatus,
+        liveStatus: liveStatusFilter
+      };
+      
       const [activeRes, resignedRes] = await Promise.all([
-        fetchAllStaff(),
+        fetchAllStaff(params),
         fetchResignedStaff()
       ]);
 
@@ -85,12 +95,7 @@ const StaffManagement = () => {
     }
   };
 
-  const filteredStaff = staffList.filter(staff => {
-    const matchesSearch = staff.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      staff.phone.includes(searchQuery);
-    const matchesFilter = filterStatus === 'All' || staff.status === filterStatus;
-    return matchesSearch && matchesFilter;
-  });
+  const filteredStaff = staffList; // Now filtered by backend
 
   const totalPages = Math.ceil(filteredStaff.length / entriesPerPage);
   const displayedStaff = filteredStaff.slice(
@@ -229,6 +234,7 @@ const StaffManagement = () => {
         joiningDate: formData.joiningDate,
         role: formData.role,
         dailyWorkHrs: formData.workHours,
+        expectedStartTime: formData.expectedStartTime || '09:00',
         password: formData.password
       });
 
@@ -238,6 +244,7 @@ const StaffManagement = () => {
         phone: '',
         salary: '',
         workHours: '',
+        expectedStartTime: '09:00',
         joiningDate: '',
         role: '',
         password: ''
@@ -261,6 +268,7 @@ const StaffManagement = () => {
         phone: staff.phone,
         salary: staff.salary,
         workHours: staff.dailyWorkHrs,
+        expectedStartTime: staff.expectedStartTime || '09:00',
         joiningDate: staff.joiningDate,
         leavingDate: staff.leavingDate,
         role: staff.role,
@@ -287,6 +295,7 @@ const StaffManagement = () => {
         phone: editFormData.phone,
         salary: editFormData.salary,
         dailyWorkHrs: editFormData.workHours || 8,
+        expectedStartTime: editFormData.expectedStartTime || '09:00',
         role: editFormData.role,
         status: editFormData.status,
         leavingDate: editFormData.leavingDate
@@ -441,7 +450,7 @@ const StaffManagement = () => {
 
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Salary</label>
               <input type="number" name="salary" value={formData.salary} onChange={handleFormChange} placeholder="Enter salary" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
@@ -449,6 +458,10 @@ const StaffManagement = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Daily Work Hours</label>
               <input type="number" name="workHours" value={formData.workHours} onChange={handleFormChange} placeholder="e.g. 8" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Expected Start Time</label>
+              <input type="time" name="expectedStartTime" value={formData.expectedStartTime} onChange={handleFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Joining Date</label>
@@ -479,10 +492,17 @@ const StaffManagement = () => {
                 <input type="text" placeholder="Search by name or phone..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full sm:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm" />
               </div>
               <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm">
-                <option value="All">All Staff</option>
+                <option value="All">All System Status</option>
                 <option value="Active">Active</option>
                 <option value="On Leave">On Leave</option>
                 <option value="Resigned">Resigned</option>
+              </select>
+              <select value={liveStatusFilter} onChange={(e) => setLiveStatusFilter(e.target.value)} className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm bg-teal-50 font-semibold text-[#246e72]">
+                <option value="All">All Today's Status</option>
+                <option value="Present">Present</option>
+                <option value="Absent">Absent</option>
+                <option value="On Leave">On Leave</option>
+                <option value="Not Punched In">Not Punched In</option>
               </select>
               <select value={entriesPerPage} onChange={(e) => setEntriesPerPage(Number(e.target.value))} className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none text-sm">
                 <option value={10}>Show 10</option>
@@ -513,7 +533,9 @@ const StaffManagement = () => {
                   <th className="py-3 px-4 text-sm font-semibold text-gray-600">Email</th>
                   <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Salary</th>
                   <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Work Hours</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Shift Start</th>
                   <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Joining Date</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-[#246e72]">Today's Status</th>
                   <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Status</th>
                   <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Actions</th>
                 </tr>
@@ -531,7 +553,18 @@ const StaffManagement = () => {
                     <td className="py-4 px-4 text-sm text-gray-700">{staff.userId?.email || '—'}</td>
                     <td className="py-4 px-4 text-sm text-gray-700 font-semibold">{staff.salary}</td>
                     <td className="py-4 px-4 text-sm text-gray-700">{staff.dailyWorkHrs} Hrs</td>
+                    <td className="py-4 px-4 text-sm text-gray-700">{staff.expectedStartTime || '09:00'}</td>
                     <td className="py-4 px-4 text-sm text-gray-700">{staff.joiningDate}</td>
+                    <td className="py-4 px-4">
+                      <span className={`px-2 py-1 rounded text-[10px] font-bold border ${
+                        staff.liveStatus === 'Present' ? 'bg-green-100 text-green-700 border-green-200' :
+                        staff.liveStatus === 'Absent' ? 'bg-red-100 text-red-700 border-red-200' :
+                        staff.liveStatus === 'On Leave' ? 'bg-yellow-100 text-yellow-700 border-yellow-200' :
+                        'bg-gray-100 text-gray-600 border-gray-200'
+                      }`}>
+                        {staff.liveStatus?.toUpperCase() || 'NOT PUNCHED'}
+                      </span>
+                    </td>
                     <td className="py-4 px-4"><span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(staff.status)}`}>{staff.status}</span></td>
                     <td className="py-4 px-4">
                       <div className="flex space-x-2">
@@ -638,6 +671,10 @@ const StaffManagement = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Daily Work Hours</label>
                 <input type="number" name="workHours" value={editFormData.workHours} onChange={handleEditFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Expected Start Time</label>
+                <input type="time" name="expectedStartTime" value={editFormData.expectedStartTime} onChange={handleEditFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Staff Status</label>

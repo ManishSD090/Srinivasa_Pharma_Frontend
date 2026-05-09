@@ -66,6 +66,7 @@ const OrdersPage = () => {
   const [formData, setFormData] = useState({
     date: '',
     phone: '',
+    customerName: '',
     advance: ''
   });
 
@@ -86,7 +87,9 @@ const OrdersPage = () => {
   // FETCH ORDERS
   const fetchOrders = useCallback(async () => {
     try {
-      const res = await api.get("/orders");
+      const res = await api.get("/orders", {
+        params: { search: searchQuery }
+      });
       setOrders(res.data);
 
       const statusMap = {};
@@ -107,7 +110,7 @@ const OrdersPage = () => {
   useEffect(() => {
     fetchOrders();
     fetchDistributors();
-  }, [fetchOrders, fetchDistributors]);
+  }, [fetchOrders, fetchDistributors, searchQuery]);
 
   // FORM HANDLERS
   const handleFormChange = (e) => {
@@ -155,8 +158,8 @@ const OrdersPage = () => {
 
   // ADD ORDER
   const handleAddOrder = async () => {
-    if (!formData.date || !formData.phone) {
-      alert("Please fill Date and Phone");
+    if (!formData.date) {
+      alert("Please fill Date");
       return;
     }
 
@@ -168,7 +171,8 @@ const OrdersPage = () => {
     try {
       const payload = {
         date: formData.date,
-        phone: formData.phone,
+        phone: formData.phone || '',
+        customerName: formData.customerName || '',
         advance: Number(formData.advance) || 0,
         items: items.map(i => ({
           itemName: i.itemName,
@@ -179,7 +183,7 @@ const OrdersPage = () => {
 
       const res = await api.post("/orders", payload);
       setOrders(prev => [res.data.order, ...prev]);
-      setFormData({ date: "", phone: "", advance: "" });
+      setFormData({ date: "", phone: "", customerName: "", advance: "" });
       setItems([{ itemName: "", quantity: "", distributor: "" }]);
       alert("Order added successfully!");
     } catch (error) {
@@ -240,15 +244,7 @@ const OrdersPage = () => {
 
   // SEARCH AND FILTER
   const getFilteredOrders = () => {
-    let filtered = orders
-      .filter(Boolean)
-      .filter(order =>
-        (order?.phone || "").includes(searchQuery) ||
-        (order?.items || []).some(item =>
-          (item?.itemName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (item?.distributor || "").toLowerCase().includes(searchQuery.toLowerCase())
-        )
-      );
+    let filtered = orders.filter(Boolean); // Search is now handled by backend
 
     // Filter by Inventory Status
     if (inventoryStatusFilter !== 'all') {
@@ -334,27 +330,52 @@ const OrdersPage = () => {
     }
   };
 
-  const handleOpenDeliveryModal = (order) => {
+  const handleOpenDeliveryModal = async (order) => {
     setCurrentOrderForDelivery(order);
 
-    const initialDeliveryItems = order.items.map(item => {
-      const alreadyDelivered = item.deliveredQuantity || 0;
-      const remaining = item.quantity - alreadyDelivered;
+    try {
+      // Fetch inventory details to know how many have been received from distributor
+      const invRes = await api.get(`/inventory/orders/${order._id}`);
+      const invItems = invRes.data.items || [];
 
-      return {
+      const initialDeliveryItems = order.items.map(item => {
+        const alreadyDelivered = item.deliveredQuantity || 0;
+        const remaining = item.quantity - alreadyDelivered;
+
+        // Find matching item in inventory
+        const invItem = invItems.find(i => i._id === item._id);
+        const receivedInShop = invItem ? invItem.receivedQty : 0;
+
+        // Available to give to customer = receivedInShop - alreadyDelivered
+        const availableInShop = Math.max(0, receivedInShop - alreadyDelivered);
+
+        return {
+          ...item,
+          remainingQuantity: remaining,
+          availableInShop: availableInShop
+        };
+      });
+
+      setDeliveryItems(initialDeliveryItems);
+      setPickedQuantities({});
+
+      const now = new Date();
+      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+      setDeliveryDate(now.toISOString().slice(0, 16));
+
+      setShowDeliveredModal(true);
+    } catch (err) {
+      console.error("Error fetching inventory for delivery:", err);
+      // Fallback if inventory fetch fails
+      const initialDeliveryItems = order.items.map(item => ({
         ...item,
-        remainingQuantity: remaining
-      };
-    });
-
-    setDeliveryItems(initialDeliveryItems);
-    setPickedQuantities({});
-
-    const now = new Date();
-    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-    setDeliveryDate(now.toISOString().slice(0, 16));
-
-    setShowDeliveredModal(true);
+        remainingQuantity: item.quantity - (item.deliveredQuantity || 0),
+        availableInShop: 0 
+      }));
+      setDeliveryItems(initialDeliveryItems);
+      setPickedQuantities({});
+      setShowDeliveredModal(true);
+    }
   };
 
   const handleDeliveryQtyChange = (itemId, value) => {
@@ -363,14 +384,30 @@ const OrdersPage = () => {
 
   const handleSaveDelivery = async () => {
     try {
+      const itemsToDeliver = deliveryItems
+        .filter(item => (pickedQuantities[item._id] || 0) > 0)
+        .map(item => ({
+          itemId: item._id,
+          pickedQuantity: pickedQuantities[item._id]
+        }));
+
+      if (itemsToDeliver.length === 0) {
+        alert("Please enter at least one quantity to deliver");
+        return;
+      }
+
+      // Check for over-delivery
+      for (const item of itemsToDeliver) {
+        const originalItem = deliveryItems.find(i => i._id === item.itemId);
+        if (item.pickedQuantity > originalItem.remainingQuantity) {
+          alert(`Warning: Cannot deliver more than the ordered amount for ${originalItem.itemName}. Remaining: ${originalItem.remainingQuantity}`);
+          return;
+        }
+      }
+
       const payload = {
         deliveryDate: deliveryDate,
-        items: deliveryItems
-          .filter(item => pickedQuantities[item._id] > 0)
-          .map(item => ({
-            itemId: item._id,
-            pickedQuantity: pickedQuantities[item._id]
-          }))
+        items: itemsToDeliver
       };
 
       await api.post(`/orders/delivered/${currentOrderForDelivery._id}`, payload);
@@ -398,8 +435,8 @@ const OrdersPage = () => {
 
   const handleUpdateOrder = async () => {
     try {
-      if (!editOrderData.date || !editOrderData?.phone) {
-        alert("Date and phone are required");
+      if (!editOrderData.date) {
+        alert("Date is required");
         return;
       }
       if (editOrderData.items.some(i => !i.itemName || !i.quantity || !i.distributor)) {
@@ -408,7 +445,8 @@ const OrdersPage = () => {
       }
       const payload = {
         date: new Date(editOrderData.date),
-        phone: editOrderData?.phone,
+        phone: editOrderData?.phone || '',
+        customerName: editOrderData?.customerName || '',
         advance: Number(editOrderData.advance) || 0,
         items: editOrderData.items.map(i => ({
           itemName: i.itemName,
@@ -443,7 +481,8 @@ const OrdersPage = () => {
       if (order.items.length === 1) {
         formattedData.push({
           Date: formatDate(order.date),
-          Phone: order.phone,
+          'Customer Name': order.customerName || '—',
+          Phone: order.phone || '—',
           Items: `${order.items[0].itemName} (${order.items[0].distributor})`,
           Quantity: order.items[0].quantity,
           Advance: order.advance || '—',
@@ -453,7 +492,8 @@ const OrdersPage = () => {
         order.items.forEach((item, index) => {
           formattedData.push({
             Date: index === 0 ? formatDate(order.date) : '',
-            Phone: index === 0 ? order.phone : '',
+            'Customer Name': index === 0 ? (order.customerName || '—') : '',
+            Phone: index === 0 ? (order.phone || '—') : '',
             Items: `${item.itemName} (${item.distributor})`,
             Quantity: item.quantity,
             Advance: index === 0 ? order.advance || '—' : '',
@@ -481,9 +521,9 @@ const OrdersPage = () => {
   const exportOrdersToPDF = () => {
     try {
       const doc = new jsPDF("landscape");
-      const tableColumn = ["Date", "Phone", "Items", "Quantity", "Advance", "Inventory Status"];
+      const tableColumn = ["Date", "Name", "Phone", "Items", "Quantity", "Advance", "Inventory Status"];
       const formattedData = formatOrdersForExport(filteredOrders);
-      const tableRows = formattedData.map(row => [row.Date, row.Phone, row.Items, row.Quantity, row.Advance, row['Inventory Status']]);
+      const tableRows = formattedData.map(row => [row.Date, row['Customer Name'], row.Phone, row.Items, row.Quantity, row.Advance, row['Inventory Status']]);
       doc.text("Orders Report", 14, 15);
       autoTable(doc, {
         startY: 20,
@@ -511,10 +551,14 @@ const OrdersPage = () => {
               <input type="date" name="date" value={formData.date} onChange={handleFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Customer Phone</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Customer Name (Optional)</label>
+              <input type="text" name="customerName" placeholder="Enter name" value={formData.customerName} onChange={handleFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Customer Phone (Optional)</label>
               <input type="tel" name="phone" placeholder="+91 XXXXX XXXXX" value={formData.phone} onChange={handleFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
             </div>
-            <div className="md:col-span-2">
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Advance Amount</label>
               <input type="text" name="advance" placeholder="Advance" value={formData.advance} onChange={handleFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none" />
             </div>
@@ -564,7 +608,7 @@ const OrdersPage = () => {
                 )}
               </button>
             </div>
-            <input type="text" placeholder="Search by item, distributor, phone..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full sm:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none transition-all text-sm" />
+            <input type="text" placeholder="Search by name, item, distributor, phone..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full sm:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#246e72] outline-none transition-all text-sm" />
           </div>
 
           <div className="overflow-x-auto min-h-[350px]">
@@ -573,7 +617,7 @@ const OrdersPage = () => {
                 <tr className="border-b border-gray-200">
                   <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600 relative">
                     <div className="flex items-center justify-start gap-1">
-                      <span>Delivered</span>
+                      <span>Status</span>
                       <div className="relative">
                         <button onClick={() => { setShowDeliveryStatusDropdown(!showDeliveryStatusDropdown); setShowInventoryStatusDropdown(false); }} className="p-1 hover:bg-gray-200 rounded transition-colors"><Filter size={16} className="text-gray-600" /></button>
                         {showDeliveryStatusDropdown && (
@@ -590,6 +634,7 @@ const OrdersPage = () => {
                     </div>
                   </th>
                   <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Date</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600 min-w-[150px]">Customer</th>
                   <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Phone</th>
                   <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Items & Distributors</th>
                   <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600 relative">
@@ -617,36 +662,33 @@ const OrdersPage = () => {
                 {displayedOrders.map(order => (
                   <tr key={order._id} className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${order.status === 'Needs Review' ? 'bg-yellow-50/50' : ''}`}>
                     <td className="py-4 px-4 text-center">
-                      {order.status === "Needs Review" ? (
-                        <AlertTriangle size={16} className="text-yellow-500 mx-auto" title="Needs Review" />
-                      ) : (
-                        <input
-                          type="checkbox"
-                          checked={order.isDeliveredToCustomer || false}
-                          readOnly
-                          onClick={() => {
-                            const invStatus = inventoryStatusMap[order._id] || 'Pending';
-                            if (invStatus !== 'Completed') {
-                              alert(`Cannot mark as delivered. Inventory status is currently '${invStatus}'. Please wait until the distributor has delivered all items.`);
-                              return;
-                            }
-                            if (order.status === "Completed") {
-                              alert(`All orders for customer ${order.phone} delivered`);
-                            } else {
-                              handleOpenDeliveryModal(order);
-                            }
-                          }}
-                          className={`w-4 h-4 border-gray-300 rounded !cursor-pointer ${order.status === "Partial"
-                            ? "accent-yellow-500"
-                            : order.status === "Completed"
-                              ? "accent-green-500"
-                              : "accent-[#246e72]"
-                            }`}
-                        />
-                      )}
-                    </td>
+                       {order.status === "Needs Review" ? (
+                         <AlertTriangle size={16} className="text-yellow-500 mx-auto" title="Needs Review" />
+                       ) : (
+                         <button
+                           onClick={() => {
+                             const invStatus = inventoryStatusMap[order._id] || 'Pending';
+                             if (invStatus === 'Pending') {
+                               alert(`Cannot mark as delivered. No items have been received in inventory yet. Please check the Inventory Checklist.`);
+                               return;
+                             }
+                             handleOpenDeliveryModal(order);
+                           }}
+                           className={`px-2 py-1 rounded text-xs font-bold border transition-all hover:shadow-sm ${
+                             order.status === "Completed"
+                               ? "bg-green-100 text-green-700 border-green-200"
+                               : order.status === "Partial"
+                                 ? "bg-yellow-100 text-yellow-700 border-yellow-200"
+                                 : "bg-blue-100 text-blue-700 border-blue-200"
+                           }`}
+                         >
+                           {order.status === "Placed" ? "PENDING" : order.status.toUpperCase()}
+                         </button>
+                       )}
+                     </td>
                     <td className="py-4 px-4 text-sm text-gray-700">{formatDate(order.date)}</td>
-                    <td className="py-4 px-4 text-sm text-gray-700">{order.phone}</td>
+                    <td className="py-4 px-4 text-sm text-gray-700 font-medium">{order.customerName || '—'}</td>
+                    <td className="py-4 px-4 text-sm text-gray-700">{order.phone || '—'}</td>
                     <td className="py-4 px-4 text-sm text-gray-700">
                       <ul className="space-y-2">
                         {order.items.map((item, idx) => (
@@ -794,17 +836,25 @@ const OrdersPage = () => {
                       <p className="text-xs text-gray-500 italic">{item.distributor}</p>
                     </div>
                     <div className="col-span-2 text-xs text-center font-medium">
-                      Ordered: {item.quantity} <br />
-                      <span className="text-gray-500">Left: {item.remainingQuantity - (pickedQuantities[item._id] || 0)}</span>
+                      <span className="text-gray-500">Ordered: {item.quantity}</span> <br />
+                      <span className="text-teal-600">In Shop: {item.availableInShop}</span> <br />
+                      <span className="text-gray-800">Remaining: {item.remainingQuantity - (pickedQuantities[item._id] || 0)}</span>
                     </div>
                     <div className="col-span-3">
-                      <label className="text-[10px] text-gray-400 block mb-0.5">Picked Qty</label>
+                      <label className="text-[10px] text-gray-400 block mb-0.5">Pick Qty</label>
                       <input
                         type="number"
                         min="0"
-                        max={item.remainingQuantity}
+                        max={item.availableInShop}
                         value={pickedQuantities[item._id] || ''}
-                        onChange={(e) => handleDeliveryQtyChange(item._id, e.target.value)}
+                        onChange={(e) => {
+                           const val = Number(e.target.value);
+                           if (val > item.availableInShop) {
+                              alert(`Cannot deliver more than available in shop (${item.availableInShop})`);
+                              return;
+                           }
+                           handleDeliveryQtyChange(item._id, e.target.value);
+                        }}
                         className="w-full px-2 py-1 border rounded text-sm text-center outline-none focus:ring-1 focus:ring-[#246e72]"
                       />
                     </div>
@@ -870,10 +920,23 @@ const OrdersPage = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl p-6">
             <div className="flex justify-between items-center mb-6"><h2 className="text-xl font-bold text-gray-800">Edit Order</h2><button onClick={() => setIsEditModal(false)}><X /></button></div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <input type="date" value={formatDateForInput(editOrderData.date)} onChange={(e) => setEditOrderData({ ...editOrderData, date: e.target.value })} className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-[#246e72]" />
-              <input type="text" value={editOrderData?.phone || ""} onChange={(e) => setEditOrderData({ ...editOrderData, phone: e.target.value })} className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-[#246e72]" />
-              <input type="number" value={editOrderData?.advance || ""} onChange={(e) => setEditOrderData({ ...editOrderData, advance: e.target.value })} className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-[#246e72]" />
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <div className="flex flex-col">
+                <label className="text-xs text-gray-500 mb-1">Date</label>
+                <input type="date" value={formatDateForInput(editOrderData.date)} onChange={(e) => setEditOrderData({ ...editOrderData, date: e.target.value })} className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-[#246e72]" />
+              </div>
+              <div className="flex flex-col">
+                <label className="text-xs text-gray-500 mb-1">Name (Optional)</label>
+                <input type="text" placeholder="Name" value={editOrderData?.customerName || ""} onChange={(e) => setEditOrderData({ ...editOrderData, customerName: e.target.value })} className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-[#246e72]" />
+              </div>
+              <div className="flex flex-col">
+                <label className="text-xs text-gray-500 mb-1">Phone (Optional)</label>
+                <input type="text" placeholder="Phone" value={editOrderData?.phone || ""} onChange={(e) => setEditOrderData({ ...editOrderData, phone: e.target.value })} className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-[#246e72]" />
+              </div>
+              <div className="flex flex-col">
+                <label className="text-xs text-gray-500 mb-1">Advance</label>
+                <input type="number" value={editOrderData?.advance || ""} onChange={(e) => setEditOrderData({ ...editOrderData, advance: e.target.value })} className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-[#246e72]" />
+              </div>
             </div>
             <h4 className="font-semibold text-gray-700 mb-3">Order Items</h4>
             {editOrderData?.items?.map((item, index) => (
