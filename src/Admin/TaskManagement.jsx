@@ -14,6 +14,7 @@ import {
 import TaskHistoryModal from './TaskHistoryModal';
 import {
   fetchTasks,
+  fetchTaskById,
   createTask,
   updateTask,
   deleteTask,
@@ -167,7 +168,7 @@ const TaskManagement = () => {
 
   const handleShowHistory = async (task) => {
     try {
-      const res = await api.get(`/tasks/${task._id}`);
+      const res = await fetchTaskById(task._id);
       setSelectedTask(res.data);
       setShowHistoryModal(true);
     } catch (err) {
@@ -293,6 +294,7 @@ const TaskManagement = () => {
 
   // --- NEW: Handle opening the Edit Modal ---
   const handleEditClick = (task) => {
+    setSelectedTask(task);
     setEditFormData({
       id: task._id,
       title: task.title,
@@ -492,7 +494,7 @@ const TaskManagement = () => {
                   <td className="py-4 px-4"><span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(task.status)}`}>{task.status}</span></td>
                   <td className="py-4 px-4">
                     <div className="flex space-x-2">
-                      <button onClick={() => { setSelectedTask(task); setEditFormData(task); setShowEditModal(true); }} className="w-8 h-8 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center" title="Edit"><Edit size={16} /></button>
+                      <button onClick={() => handleEditClick(task)} className="w-8 h-8 bg-[#246e72] text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center" title="Edit"><Edit size={16} /></button>
                       <button onClick={() => handleShowHistory(task)} className="w-8 h-8 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center justify-center" title="History"><Clock size={16} /></button>
                       <button onClick={() => { setSelectedTask(task); setShowDeleteModal(true); }} className="w-8 h-8 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center" title="Delete"><Trash2 size={16} /></button>
                     </div>
