@@ -18,6 +18,28 @@ const StaffOrders = () => {
    const [newDistributor, setNewDistributor] = useState('');
    const [addingDistributor, setAddingDistributor] = useState(false);
 
+   // New states for filters (Admin matched)
+   const [inventoryStatusFilter, setInventoryStatusFilter] = useState('all');
+   const [deliveryStatusFilter, setDeliveryStatusFilter] = useState('all');
+   const [showInventoryStatusDropdown, setShowInventoryStatusDropdown] = useState(false);
+   const [showDeliveryStatusDropdown, setShowDeliveryStatusDropdown] = useState(false);
+
+   // Available inventory status filters
+   const inventoryStatusFilters = [
+      { id: 'all', label: 'All' },
+      { id: 'pending', label: 'Pending' },
+      { id: 'partial', label: 'Partial' },
+      { id: 'completed', label: 'Completed' }
+   ];
+
+   // Available delivery status filters
+   const deliveryStatusFilters = [
+      { id: 'all', label: 'All' },
+      { id: 'not_delivered', label: 'Not Delivered' },
+      { id: 'partial', label: 'Partially Delivered' },
+      { id: 'completed', label: 'Completed' }
+   ];
+
    // Call History States
    const [showHistoryModal, setShowHistoryModal] = useState(false);
    const [currentOrderLogs, setCurrentOrderLogs] = useState([]);
@@ -408,14 +430,50 @@ const StaffOrders = () => {
    };
 
    // Filtering & Pagination
-   const filteredOrders = orders.filter(order =>
-      (order.phone || "").includes(searchQuery) ||
-      (order.customerName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (order.items || []).some(item =>
-         item.itemName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-         item.distributor.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-   );
+   const clearFilters = () => {
+      setInventoryStatusFilter('all');
+      setDeliveryStatusFilter('all');
+      setSearchQuery('');
+   };
+
+   // Filtering & Pagination
+   const getFilteredOrders = () => {
+      let filtered = orders.filter(order =>
+         (order.phone || "").includes(searchQuery) ||
+         (order.customerName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+         (order.items || []).some(item =>
+            item.itemName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.distributor.toLowerCase().includes(searchQuery.toLowerCase())
+         )
+      );
+
+      // Filter by Inventory Status
+      if (inventoryStatusFilter !== 'all') {
+         filtered = filtered.filter(order => {
+            const status = inventoryStatusMap[order._id || order.id] || 'Pending';
+            return status.toLowerCase() === inventoryStatusFilter.toLowerCase();
+         });
+      }
+
+      // Filter by Delivery Status
+      if (deliveryStatusFilter !== 'all') {
+         filtered = filtered.filter(order => {
+            const status = order.status || 'Placed';
+            if (deliveryStatusFilter === 'not_delivered') {
+               return !['Partial', 'Completed'].includes(status);
+            } else if (deliveryStatusFilter === 'partial') {
+               return status === 'Partial';
+            } else if (deliveryStatusFilter === 'completed') {
+               return status === 'Completed';
+            }
+            return true;
+         });
+      }
+
+      return filtered;
+   };
+
+   const filteredOrders = getFilteredOrders();
 
    const totalPages = Math.ceil(filteredOrders.length / entriesPerPage);
    const displayedOrders = filteredOrders.slice(
@@ -593,11 +651,11 @@ const StaffOrders = () => {
                      <div className="flex flex-wrap items-center gap-3">
                         <div className="relative">
                            <button
-                              onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                              onClick={() => { setShowFilterDropdown(!showFilterDropdown); clearFilters(); }}
                               className="bg-[#246e72] text-white px-4 py-2 rounded-lg hover:bg-[#1a5256] transition-colors font-medium flex items-center space-x-2 text-sm"
                            >
                               <Filter size={18} />
-                              <span>Filter</span>
+                              <span>Clear Filters</span>
                            </button>
                         </div>
                         <select
@@ -625,12 +683,74 @@ const StaffOrders = () => {
                      <table className="w-full">
                         <thead>
                            <tr className="border-b border-gray-200">
-                              <th className="py-3 px-4 text-sm font-semibold text-gray-600 text-left">STATUS</th>
+                               <th className="py-3 px-4 text-sm font-semibold text-gray-600 text-left relative">
+                                 <div className="flex items-center justify-start gap-1">
+                                    <span>STATUS</span>
+                                    <div className="relative">
+                                       <button 
+                                          onClick={() => { setShowDeliveryStatusDropdown(!showDeliveryStatusDropdown); setShowInventoryStatusDropdown(false); }} 
+                                          className="p-1 hover:bg-gray-200 rounded transition-colors"
+                                       >
+                                          <Filter size={16} className="text-gray-600" />
+                                       </button>
+                                       {showDeliveryStatusDropdown && (
+                                          <div className="absolute left-0 mt-2 w-44 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                                             {deliveryStatusFilters.map(filter => (
+                                                <button 
+                                                   key={filter.id} 
+                                                   onClick={() => { setDeliveryStatusFilter(filter.id); setShowDeliveryStatusDropdown(false); }} 
+                                                   className={`w-full text-left px-4 py-2 text-sm transition-colors ${deliveryStatusFilter === filter.id ? 'bg-[#246e72] text-white' : 'text-gray-700 hover:bg-gray-50'}`}
+                                                >
+                                                   {filter.label}
+                                                </button>
+                                             ))}
+                                             {deliveryStatusFilter !== 'all' && (
+                                                <>
+                                                   <div className="border-t border-gray-200"></div>
+                                                   <button onClick={() => { setDeliveryStatusFilter('all'); setShowDeliveryStatusDropdown(false); }} className="w-full text-left px-4 py-2 text-xs text-gray-500 hover:bg-gray-50">Clear Filter</button>
+                                                </>
+                                             )}
+                                          </div>
+                                       )}
+                                    </div>
+                                 </div>
+                              </th>
                               <th className="py-3 px-4 text-sm font-semibold text-gray-600 text-left">DATE</th>
                               <th className="py-3 px-4 text-sm font-semibold text-gray-600 text-left min-w-[150px]">CUSTOMER</th>
                               <th className="py-3 px-4 text-sm font-semibold text-gray-600 text-left">PHONE</th>
                               <th className="py-3 px-4 text-sm font-semibold text-gray-600 text-left">ITEMS & DISTRIBUTORS</th>
-                              <th className="py-3 px-4 text-sm font-semibold text-gray-600 text-left">INV STATUS</th>
+                               <th className="py-3 px-4 text-sm font-semibold text-gray-600 text-left relative">
+                                 <div className="flex items-center justify-between">
+                                    <span>INV STATUS</span>
+                                    <div className="relative">
+                                       <button 
+                                          onClick={() => { setShowInventoryStatusDropdown(!showInventoryStatusDropdown); setShowDeliveryStatusDropdown(false); }} 
+                                          className="ml-2 p-1 hover:bg-gray-200 rounded transition-colors"
+                                       >
+                                          <Filter size={16} className="text-gray-600" />
+                                       </button>
+                                       {showInventoryStatusDropdown && (
+                                          <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                                             {inventoryStatusFilters.map(filter => (
+                                                <button 
+                                                   key={filter.id} 
+                                                   onClick={() => { setInventoryStatusFilter(filter.id); setShowInventoryStatusDropdown(false); }} 
+                                                   className={`w-full text-left px-4 py-2 text-sm transition-colors ${inventoryStatusFilter === filter.id ? 'bg-[#246e72] text-white' : 'text-gray-700 hover:bg-gray-50'}`}
+                                                >
+                                                   {filter.label}
+                                                </button>
+                                             ))}
+                                             {inventoryStatusFilter !== 'all' && (
+                                                <>
+                                                   <div className="border-t border-gray-200"></div>
+                                                   <button onClick={() => { setInventoryStatusFilter('all'); setShowInventoryStatusDropdown(false); }} className="w-full text-left px-4 py-2 text-xs text-gray-500 hover:bg-gray-50">Clear Filter</button>
+                                                </>
+                                             )}
+                                          </div>
+                                       )}
+                                    </div>
+                                 </div>
+                              </th>
                               <th className="py-3 px-4 text-sm font-semibold text-gray-600 text-left">ACTIONS</th>
                            </tr>
                         </thead>
