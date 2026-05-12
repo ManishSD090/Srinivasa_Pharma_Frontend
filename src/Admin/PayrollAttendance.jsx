@@ -823,6 +823,10 @@ const PayrollAttendancePage = () => {
                     <div className="w-3 h-3 rounded-full bg-yellow-500" />
                     <span className="text-gray-600">On Leave</span>
                   </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 rounded-full bg-purple-500" />
+                    <span className="text-gray-600">Late Arrival</span>
+                  </div>
                 </div>
               </div>
             </div>
